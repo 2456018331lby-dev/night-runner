@@ -1,0 +1,101 @@
+[gd_scene load_steps=2 format=3 uid="uid://cs1khv8f2f88y"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_fxges"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_fxges")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = -24.0
+offset_bottom = -18.0
+
+[node name="TopRow" type="HBoxContainer" parent="MarginContainer"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 18
+
+[node name="ScoreCard" type="PanelContainer" parent="MarginContainer/TopRow"]
+custom_minimum_size = Vector2(252, 120)
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/TopRow/ScoreCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/TopRow/ScoreCard/Margin"]
+theme_override_constants/separation = 2
+
+[node name="ScoreCaption" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
+text = "SCORE"
+
+[node name="ScoreLabel" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
+text = "0000"
+
+[node name="BestLabel" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
+text = "BEST 0000"
+
+[node name="CenterColumn" type="VBoxContainer" parent="MarginContainer/TopRow"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/TopRow/CenterColumn"]
+size_flags_horizontal = 4
+text = "NIGHT RUNNER"
+horizontal_alignment = 1
+
+[node name="StatusCard" type="PanelContainer" parent="MarginContainer/TopRow/CenterColumn"]
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 66)
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/TopRow/CenterColumn/StatusCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/TopRow/CenterColumn/StatusCard/Margin"]
+text = "Run the roofs."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightCard" type="PanelContainer" parent="MarginContainer/TopRow"]
+custom_minimum_size = Vector2(252, 120)
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/TopRow/RightCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/TopRow/RightCard/Margin"]
+theme_override_constants/separation = 8
+
+[node name="HealthRow" type="HBoxContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+theme_override_constants/separation = 10
+
+[node name="HealthCaption" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow"]
+text = "HP"
+
+[node name="PipRow" type="HBoxContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow"]
+theme_override_constants/separation = 8
+
+[node name="Pip1" type="PanelContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+custom_minimum_size = Vector2(28, 14)
+
+[node name="Pip2" type="PanelContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+custom_minimum_size = Vector2(28, 14)
+
+[node name="Pip3" type="PanelContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+custom_minimum_size = Vector2(28, 14)
+
+[node name="TimeCaption" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+text = "RUN CLOCK"
+
+[node name="TimeLabel" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+text = "00:00"

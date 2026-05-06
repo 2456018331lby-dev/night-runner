@@ -1,0 +1,88 @@
+[gd_scene load_steps=9 format=3 uid="uid://b5cdd0kn7aw5j"]
+
+[ext_resource type="Script" path="res://scripts/game/world.gd" id="1_u5v1w"]
+[ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="2_u0c0k"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_ug8e7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="4_g5m0f"]
+[ext_resource type="Script" path="res://scripts/game/presentation_layer.gd" id="5_5locr"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(1900, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_roof_a"]
+size = Vector2(280, 30)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_roof_b"]
+size = Vector2(260, 30)
+
+[node name="World" type="Node2D"]
+script = ExtResource("1_u5v1w")
+
+[node name="Presentation" type="Node2D" parent="."]
+script = ExtResource("5_5locr")
+
+[node name="Backdrop" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 2048, 0, 2048, 900, 0, 900)
+color = Color(0.027451, 0.0470588, 0.0901961, 1)
+
+[node name="Moon" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -52, 36, -36, 52, 0, 36, 36, 0, 52, -36, 36, -52, 0, -36, -36)
+position = Vector2(1090, 110)
+color = Color(1, 0.858824, 0.4, 1)
+
+[node name="Ground" type="StaticBody2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+position = Vector2(790, 666)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="Visual" type="Polygon2D" parent="Ground"]
+polygon = PackedVector2Array(-950, -32, 950, -32, 950, 32, -950, 32)
+color = Color(0.101961, 0.137255, 0.227451, 1)
+
+[node name="RoofA" type="StaticBody2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+position = Vector2(690, 426)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofA"]
+shape = SubResource("RectangleShape2D_roof_a")
+
+[node name="Visual" type="Polygon2D" parent="RoofA"]
+polygon = PackedVector2Array(-140, -15, 140, -15, 140, 15, -140, 15)
+color = Color(0.141176, 0.2, 0.317647, 1)
+
+[node name="RoofB" type="StaticBody2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+position = Vector2(1124, 340)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofB"]
+shape = SubResource("RectangleShape2D_roof_b")
+
+[node name="Visual" type="Polygon2D" parent="RoofB"]
+polygon = PackedVector2Array(-130, -15, 130, -15, 130, 15, -130, 15)
+color = Color(0.117647, 0.176471, 0.294118, 1)
+
+[node name="RoofC" type="StaticBody2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+position = Vector2(1500, 240)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofC"]
+shape = SubResource("RectangleShape2D_roof_b")
+
+[node name="Visual" type="Polygon2D" parent="RoofC"]
+polygon = PackedVector2Array(-130, -15, 130, -15, 130, 15, -130, 15)
+color = Color(0.117647, 0.176471, 0.294118, 1)
+
+[node name="Player" parent="." instance=ExtResource("2_u0c0k")]
+position = Vector2(140, 590)
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="HUD" parent="." instance=ExtResource("3_ug8e7")]
+
+[node name="TouchControls" parent="." instance=ExtResource("4_g5m0f")]

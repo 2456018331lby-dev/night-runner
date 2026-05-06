@@ -1,0 +1,77 @@
+[gd_scene load_steps=2 format=3 uid="uid://dus2rd1ghhdk3"]
+
+[ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="1_0h507"]
+
+[node name="TouchControls" type="CanvasLayer"]
+visible = false
+script = ExtResource("1_0h507")
+
+[node name="Controls" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = -18.0
+
+[node name="LeftPad" type="PanelContainer" parent="Controls"]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = -186.0
+offset_right = 300.0
+offset_bottom = -6.0
+
+[node name="Margin" type="MarginContainer" parent="Controls/LeftPad"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="MoveRow" type="HBoxContainer" parent="Controls/LeftPad/Margin"]
+theme_override_constants/separation = 16
+
+[node name="MoveLeft" type="Button" parent="Controls/LeftPad/Margin/MoveRow"]
+custom_minimum_size = Vector2(126, 126)
+text = "LEFT"
+
+[node name="MoveRight" type="Button" parent="Controls/LeftPad/Margin/MoveRow"]
+custom_minimum_size = Vector2(126, 126)
+text = "RIGHT"
+
+[node name="ActionPad" type="PanelContainer" parent="Controls"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -348.0
+offset_top = -266.0
+offset_right = -6.0
+offset_bottom = -6.0
+
+[node name="Margin" type="MarginContainer" parent="Controls/ActionPad"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="Controls/ActionPad/Margin"]
+theme_override_constants/separation = 14
+
+[node name="Jump" type="Button" parent="Controls/ActionPad/Margin/VBox"]
+custom_minimum_size = Vector2(0, 72)
+text = "JUMP"
+
+[node name="ActionRow" type="HBoxContainer" parent="Controls/ActionPad/Margin/VBox"]
+theme_override_constants/separation = 14
+
+[node name="Attack" type="Button" parent="Controls/ActionPad/Margin/VBox/ActionRow"]
+custom_minimum_size = Vector2(170, 128)
+size_flags_horizontal = 3
+text = "ATTACK"
+
+[node name="Dash" type="Button" parent="Controls/ActionPad/Margin/VBox/ActionRow"]
+custom_minimum_size = Vector2(122, 128)
+text = "DASH"

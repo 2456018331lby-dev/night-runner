@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://dtb0yojd8hvy4"]
+
+[ext_resource type="Script" path="res://scripts/actors/enemy_runner.gd" id="1_1gprn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(28, 48)
+
+[node name="EnemyRunner" type="CharacterBody2D"]
+script = ExtResource("1_1gprn")
+collision_layer = 2
+collision_mask = 13
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Body" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-14, -24, 14, -24, 14, 24, -14, 24)
+color = Color(0.211765, 0.94902, 0.8, 1)
+

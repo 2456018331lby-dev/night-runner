@@ -1,0 +1,64 @@
+extends Node
+
+signal state_changed
+signal run_started
+signal run_failed
+
+var score: int = 0
+var health: int = 3
+var elapsed_time: float = 0.0
+var is_run_active: bool = false
+var is_run_failed: bool = false
+var meta_progress: Dictionary = {
+	"highest_score": 0,
+	"unlocked_chapters": ["prototype"],
+}
+
+
+func _process(delta: float) -> void:
+	if is_run_active and not is_run_failed:
+		elapsed_time += delta
+		state_changed.emit()
+
+
+func start_run() -> void:
+	score = 0
+	health = 3
+	elapsed_time = 0.0
+	is_run_active = true
+	is_run_failed = false
+	run_started.emit()
+	state_changed.emit()
+
+
+func add_score(amount: int) -> void:
+	score += amount
+	if score > int(meta_progress.get("highest_score", 0)):
+		meta_progress["highest_score"] = score
+	state_changed.emit()
+
+
+func lose_health(amount: int = 1) -> void:
+	if is_run_failed:
+		return
+	health = max(0, health - amount)
+	if health == 0:
+		finish_run(false)
+	else:
+		state_changed.emit()
+
+
+func finish_run(success: bool) -> void:
+	is_run_active = false
+	is_run_failed = not success
+	if is_run_failed:
+		run_failed.emit()
+	state_changed.emit()
+
+
+func formatted_time() -> String:
+	var total_seconds := int(elapsed_time)
+	var minutes := total_seconds / 60
+	var seconds := total_seconds % 60
+	return "%02d:%02d" % [minutes, seconds]
+

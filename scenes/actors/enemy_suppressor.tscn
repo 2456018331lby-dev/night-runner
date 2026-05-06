@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/enemy_suppressor.gd" id="1_e2w4n"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(32, 52)
+
+[node name="EnemySuppressor" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 13
+script = ExtResource("1_e2w4n")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Rig" type="Node2D" parent="."]
+
+[node name="Body" type="Polygon2D" parent="Rig"]
+polygon = PackedVector2Array(-16, -26, 16, -26, 16, 26, -16, 26)
+color = Color(0.227451, 0.34902, 0.921569, 1)
+
+[node name="Visor" type="Polygon2D" parent="Rig"]
+polygon = PackedVector2Array(-4, -8, 12, -12, 14, -4, -4, 0)
+color = Color(0.901961, 0.94902, 1, 1)
+
+[node name="Muzzle" type="Marker2D" parent="Rig"]
+position = Vector2(20, -6)

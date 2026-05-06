@@ -1,0 +1,73 @@
+; Engine configuration file.
+
+[application]
+
+config/name="Night Runner"
+config/description="Android-first, PC-expandable action platformer prototype."
+config/tags=PackedStringArray("action", "platformer", "android", "steam-ready")
+run/main_scene="res://scenes/app/main.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+GameState="*res://scripts/autoload/game_state.gd"
+PlatformProfile="*res://scripts/autoload/platform_profile.gd"
+InputRouter="*res://scripts/autoload/input_router.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[input]
+
+move_left={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":65,"unicode":97), Object(InputEventKey,"device":-1,"physical_keycode":16777231)]
+}
+move_right={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":68,"unicode":100), Object(InputEventKey,"device":-1,"physical_keycode":16777233)]
+}
+jump={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":32,"unicode":32), Object(InputEventKey,"device":-1,"physical_keycode":87,"unicode":119), Object(InputEventKey,"device":-1,"physical_keycode":16777232)]
+}
+attack={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":74,"unicode":106), Object(InputEventMouseButton,"device":-1,"button_index":1)]
+}
+dash={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":75,"unicode":107), Object(InputEventKey,"device":-1,"physical_keycode":16777237)]
+}
+restart={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":82,"unicode":114)]
+}
+pause={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":80,"unicode":112), Object(InputEventKey,"device":-1,"physical_keycode":16777217)]
+}
+
+[layer_names]
+
+2d_physics/layer_1="player"
+2d_physics/layer_2="enemy"
+2d_physics/layer_3="world"
+2d_physics/layer_4="hazard"
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+
