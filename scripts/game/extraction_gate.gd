@@ -32,6 +32,11 @@ func _process(delta: float) -> void:
 func set_unlocked(value: bool) -> void:
 	unlocked = value
 	_apply_visual_state()
+	if unlocked:
+		for body in get_overlapping_bodies():
+			if body.is_in_group("player"):
+				extraction_entered.emit()
+				break
 
 
 func _apply_visual_state() -> void:

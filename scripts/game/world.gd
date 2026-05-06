@@ -16,29 +16,39 @@ const BOOST_PAD_SCENE := preload("res://scenes/game/boost_pad.tscn")
 var encounter_layout: Array[Dictionary] = [
 	{
 		"scene": RUNNER_SCENE,
-		"position": Vector2(540, 300),
+		"position": Vector2(540, 348),
 	},
 	{
 		"scene": SUPPRESSOR_SCENE,
-		"position": Vector2(900, 220),
+		"position": Vector2(900, 188),
 	},
 	{
 		"scene": RUNNER_SCENE,
-		"position": Vector2(1290, 120),
+		"position": Vector2(1290, 208),
 	},
 	{
 		"scene": SUPPRESSOR_SCENE,
-		"position": Vector2(1700, 20),
+		"position": Vector2(1700, 78),
 	},
 	{
 		"scene": RUNNER_SCENE,
-		"position": Vector2(1810, 44),
+		"position": Vector2(1810, 40),
+	},
+	{
+		"scene": RUNNER_SCENE,
+		"position": Vector2(1100, 612),
+	},
+	{
+		"scene": SUPPRESSOR_SCENE,
+		"position": Vector2(2050, 110),
 	},
 ]
 var data_core_positions: Array[Vector2] = [
-	Vector2(690, 350),
-	Vector2(1124, 262),
-	Vector2(1760, 70),
+	Vector2(690, 366),
+	Vector2(1124, 278),
+	Vector2(1500, 178),
+	Vector2(1760, 92),
+	Vector2(2050, 122),
 ]
 var boost_pad_layout: Array[Dictionary] = [
 	{
@@ -52,6 +62,10 @@ var boost_pad_layout: Array[Dictionary] = [
 	{
 		"position": Vector2(1716, 112),
 		"boost_velocity": Vector2(300.0, -390.0),
+	},
+	{
+		"position": Vector2(1934, 142),
+		"boost_velocity": Vector2(280.0, -360.0),
 	},
 ]
 var reinforcements_spawned: bool = false
@@ -127,6 +141,7 @@ func _spawn_reinforcements() -> void:
 	_spawn_enemy(RUNNER_SCENE, Vector2(808, 372))
 	_spawn_enemy(SUPPRESSOR_SCENE, Vector2(1498, 190))
 	_spawn_enemy(RUNNER_SCENE, Vector2(1850, 74))
+	_spawn_enemy(SUPPRESSOR_SCENE, Vector2(2120, 120))
 
 
 func _on_enemy_defeated(points: int) -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://b5cdd0kn7aw5j"]
+[gd_scene load_steps=15 format=3 uid="uid://b5cdd0kn7aw5j"]
 
 [ext_resource type="Script" path="res://scripts/game/world.gd" id="1_u5v1w"]
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="2_u0c0k"]
@@ -19,6 +19,9 @@ size = Vector2(260, 30)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_roof_d"]
 size = Vector2(220, 30)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_roof_e"]
+size = Vector2(240, 30)
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_u5v1w")
@@ -95,6 +98,18 @@ shape = SubResource("RectangleShape2D_roof_d")
 polygon = PackedVector2Array(-110, -15, 110, -15, 110, 15, -110, 15)
 color = Color(0.12549, 0.188235, 0.313726, 1)
 
+[node name="RoofE" type="StaticBody2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+position = Vector2(2050, 190)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofE"]
+shape = SubResource("RectangleShape2D_roof_e")
+
+[node name="Visual" type="Polygon2D" parent="RoofE"]
+polygon = PackedVector2Array(-120, -15, 120, -15, 120, 15, -120, 15)
+color = Color(0.133333, 0.196078, 0.32549, 1)
+
 [node name="Player" parent="." instance=ExtResource("2_u0c0k")]
 position = Vector2(140, 590)
 
@@ -108,7 +123,7 @@ position = Vector2(140, 590)
 visible = false
 
 [node name="ExtractionGate" parent="." instance=ExtResource("6_f4q3m")]
-position = Vector2(1858, 104)
+position = Vector2(2124, 128)
 
 [node name="HUD" parent="." instance=ExtResource("3_ug8e7")]
 

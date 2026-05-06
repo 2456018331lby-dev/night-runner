@@ -10,9 +10,10 @@ const GRAVITY := 1500.0
 const DASH_SPEED := 760.0
 const DASH_TIME := 0.18
 const DASH_COOLDOWN := 0.6
-const ATTACK_RANGE_X := 110.0
-const ATTACK_RANGE_Y := 56.0
+const ATTACK_RANGE_X := 156.0
+const ATTACK_RANGE_Y := 84.0
 const ATTACK_FORCE := 540.0
+const ATTACK_COOLDOWN := 0.18
 
 @onready var body_visual: Polygon2D = $Body
 @onready var art_sprite: Sprite2D = $Art
@@ -27,6 +28,7 @@ var action_pop_timer: float = 0.0
 var camera_shake_timer: float = 0.0
 var camera_shake_strength: float = 0.0
 var boost_flash_timer: float = 0.0
+var attack_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -50,6 +52,8 @@ func _update_timers(delta: float) -> void:
 		dash_timer -= delta
 	if dash_cooldown_timer > 0.0:
 		dash_cooldown_timer -= delta
+	if attack_timer > 0.0:
+		attack_timer -= delta
 	if invulnerable_timer > 0.0:
 		invulnerable_timer -= delta
 	if action_pop_timer > 0.0:
@@ -101,17 +105,20 @@ func _try_dash() -> void:
 
 
 func _try_attack() -> void:
+	if attack_timer > 0.0:
+		return
+	attack_timer = ATTACK_COOLDOWN
 	var hit_any := false
 	for enemy: Node in get_tree().get_nodes_in_group("enemy"):
 		if not enemy.has_method("receive_hit"):
 			continue
 		var delta_pos: Vector2 = enemy.global_position - global_position
-		if signf(delta_pos.x) == facing and absf(delta_pos.x) <= ATTACK_RANGE_X and absf(delta_pos.y) <= ATTACK_RANGE_Y:
+		var forward_distance := delta_pos.x * facing
+		if forward_distance >= -20.0 and forward_distance <= ATTACK_RANGE_X and absf(delta_pos.y) <= ATTACK_RANGE_Y:
 			enemy.receive_hit(Vector2(facing * ATTACK_FORCE, -240.0))
 			hit_any = true
 	action_pop_timer = 0.08
-	if hit_any:
-		_trigger_camera_shake(5.5, 0.12)
+	_trigger_camera_shake(3.0 if not hit_any else 5.5, 0.12)
 
 
 func _apply_gravity(delta: float) -> void:
