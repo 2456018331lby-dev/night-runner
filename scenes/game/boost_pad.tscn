@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/boost_pad.gd" id="1_44v1h"]
+[ext_resource type="Texture2D" path="res://assets/art/boost_pad.svg" id="2_n2kgj"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pad"]
+size = Vector2(86, 32)
+
+[node name="BoostPad" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
+script = ExtResource("1_44v1h")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -4)
+shape = SubResource("RectangleShape2D_pad")
+
+[node name="Glow" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-54, -24, 54, -24, 70, 10, -70, 10)
+color = Color(0.270588, 0.796078, 1, 0.34)
+
+[node name="Art" type="Sprite2D" parent="."]
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("2_n2kgj")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://b5cdd0kn7aw5j"]
+[gd_scene load_steps=14 format=3 uid="uid://b5cdd0kn7aw5j"]
 
 [ext_resource type="Script" path="res://scripts/game/world.gd" id="1_u5v1w"]
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="2_u0c0k"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="4_g5m0f"]
 [ext_resource type="Script" path="res://scripts/game/presentation_layer.gd" id="5_5locr"]
 [ext_resource type="PackedScene" path="res://scenes/game/extraction_gate.tscn" id="6_f4q3m"]
+[ext_resource type="PackedScene" path="res://scenes/game/boost_pad.tscn" id="7_0t8vl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1900, 64)
@@ -100,6 +101,11 @@ position = Vector2(140, 590)
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="DataCores" type="Node2D" parent="."]
+
+[node name="BoostPads" type="Node2D" parent="."]
+
+[node name="PreviewPad" parent="BoostPads" instance=ExtResource("7_0t8vl")]
+visible = false
 
 [node name="ExtractionGate" parent="." instance=ExtResource("6_f4q3m")]
 position = Vector2(1858, 104)

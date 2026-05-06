@@ -26,6 +26,7 @@ var invulnerable_timer: float = 0.0
 var action_pop_timer: float = 0.0
 var camera_shake_timer: float = 0.0
 var camera_shake_strength: float = 0.0
+var boost_flash_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -57,6 +58,8 @@ func _update_timers(delta: float) -> void:
 		camera_shake_timer -= delta
 	else:
 		camera_shake_strength = move_toward(camera_shake_strength, 0.0, delta * 22.0)
+	if boost_flash_timer > 0.0:
+		boost_flash_timer -= delta
 
 
 func _collect_actions() -> void:
@@ -141,11 +144,29 @@ func take_contact_hit(push_direction: float) -> void:
 	player_hit.emit()
 
 
+func apply_launch_boost(boost_velocity: Vector2) -> void:
+	velocity = boost_velocity
+	facing = signf(boost_velocity.x) if boost_velocity.x != 0.0 else facing
+	action_pop_timer = maxf(action_pop_timer, 0.12)
+	boost_flash_timer = 0.2
+	_trigger_camera_shake(6.5, 0.16)
+
+
 func _refresh_visuals() -> void:
-	body_visual.color = Color(1.0, 0.35, 0.54) if invulnerable_timer <= 0.0 else Color(1.0, 0.85, 0.42)
+	if invulnerable_timer > 0.0:
+		body_visual.color = Color(1.0, 0.85, 0.42)
+	elif boost_flash_timer > 0.0:
+		body_visual.color = Color(0.74, 0.98, 1.0)
+	else:
+		body_visual.color = Color(1.0, 0.35, 0.54)
 	var impact_strength := clampf(action_pop_timer * 8.0, 0.0, 1.0)
 	body_visual.scale = Vector2(facing * (1.0 + impact_strength * 0.14), 1.0 - impact_strength * 0.08)
-	art_sprite.modulate = Color(1.0, 1.0, 1.0) if invulnerable_timer <= 0.0 else Color(1.0, 0.9, 0.72)
+	if invulnerable_timer > 0.0:
+		art_sprite.modulate = Color(1.0, 0.9, 0.72)
+	elif boost_flash_timer > 0.0:
+		art_sprite.modulate = Color(0.84, 0.98, 1.0)
+	else:
+		art_sprite.modulate = Color(1.0, 1.0, 1.0)
 	art_sprite.scale = Vector2(0.25 * facing * (1.0 + impact_strength * 0.08), 0.25 * (1.0 - impact_strength * 0.04))
 	camera.position.x = lerpf(camera.position.x, 90.0 * facing, 0.08)
 	var shake_target := Vector2.ZERO

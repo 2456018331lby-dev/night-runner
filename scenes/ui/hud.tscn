@@ -14,100 +14,136 @@ offset_top = 18.0
 offset_right = -24.0
 offset_bottom = -18.0
 
-[node name="TopRow" type="HBoxContainer" parent="MarginContainer"]
+[node name="RootColumn" type="VBoxContainer" parent="MarginContainer"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="TopRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
 size_flags_horizontal = 3
 theme_override_constants/separation = 18
 
-[node name="ScoreCard" type="PanelContainer" parent="MarginContainer/TopRow"]
+[node name="ScoreCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
 custom_minimum_size = Vector2(252, 142)
 
-[node name="Margin" type="MarginContainer" parent="MarginContainer/TopRow/ScoreCard"]
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/ScoreCard"]
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="MarginContainer/TopRow/ScoreCard/Margin"]
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin"]
 theme_override_constants/separation = 2
 
-[node name="ScoreCaption" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
+[node name="ScoreCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
 text = "SCORE"
 
-[node name="ScoreLabel" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
+[node name="ScoreLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
 text = "0000"
 
-[node name="BestLabel" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
+[node name="BestLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
 text = "BEST 0000"
 
-[node name="ComboLabel" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
+[node name="ComboLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
 text = "COMBO READY"
 
-[node name="CenterColumn" type="VBoxContainer" parent="MarginContainer/TopRow"]
+[node name="CenterColumn" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/TopRow/CenterColumn"]
+[node name="TitleLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/CenterColumn"]
 size_flags_horizontal = 4
 text = "NIGHT RUNNER"
 horizontal_alignment = 1
 
-[node name="StatusCard" type="PanelContainer" parent="MarginContainer/TopRow/CenterColumn"]
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 66)
-
-[node name="Margin" type="MarginContainer" parent="MarginContainer/TopRow/CenterColumn/StatusCard"]
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 14
-
-[node name="StatusLabel" type="Label" parent="MarginContainer/TopRow/CenterColumn/StatusCard/Margin"]
-text = "Run the roofs."
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="RightCard" type="PanelContainer" parent="MarginContainer/TopRow"]
+[node name="RightCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
 custom_minimum_size = Vector2(252, 168)
 
-[node name="Margin" type="MarginContainer" parent="MarginContainer/TopRow/RightCard"]
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/RightCard"]
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="MarginContainer/TopRow/RightCard/Margin"]
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin"]
 theme_override_constants/separation = 8
 
-[node name="HealthRow" type="HBoxContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+[node name="HealthRow" type="HBoxContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
 theme_override_constants/separation = 10
 
-[node name="HealthCaption" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow"]
+[node name="HealthCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow"]
 text = "HP"
 
-[node name="PipRow" type="HBoxContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow"]
+[node name="PipRow" type="HBoxContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow"]
 theme_override_constants/separation = 8
 
-[node name="Pip1" type="PanelContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+[node name="Pip1" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
 custom_minimum_size = Vector2(28, 14)
 
-[node name="Pip2" type="PanelContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+[node name="Pip2" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
 custom_minimum_size = Vector2(28, 14)
 
-[node name="Pip3" type="PanelContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+[node name="Pip3" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
 custom_minimum_size = Vector2(28, 14)
 
-[node name="CoreCaption" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+[node name="CoreCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
 text = "DATA CORES"
 
-[node name="CoreLabel" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+[node name="CoreLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
 text = "0 / 0"
 
-[node name="TimeCaption" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+[node name="TimeCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
 text = "RUN CLOCK"
 
-[node name="TimeLabel" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+[node name="TimeLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
 text = "00:00"
 
-[node name="RankLabel" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+[node name="RankLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
 text = "RANK --"
+
+[node name="ObjectiveRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
+size_flags_horizontal = 3
+
+[node name="ObjectiveCard" type="PanelContainer" parent="MarginContainer/RootColumn/ObjectiveRow"]
+custom_minimum_size = Vector2(360, 74)
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard/Margin"]
+theme_override_constants/separation = 4
+
+[node name="ObjectiveTitle" type="Label" parent="MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard/Margin/VBox"]
+text = "OBJECTIVE"
+
+[node name="ObjectiveLabel" type="Label" parent="MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard/Margin/VBox"]
+text = "Steal all data cores and extract."
+
+[node name="ToastAnchor" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -240.0
+offset_top = -102.0
+offset_right = 240.0
+offset_bottom = -24.0
+
+[node name="ToastCard" type="PanelContainer" parent="ToastAnchor"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Margin" type="MarginContainer" parent="ToastAnchor/ToastCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="ToastLabel" type="Label" parent="ToastAnchor/ToastCard/Margin"]
+text = "Toast"
+horizontal_alignment = 1

@@ -3,10 +3,12 @@ extends Node2D
 const RUNNER_SCENE := preload("res://scenes/actors/enemy_runner.tscn")
 const SUPPRESSOR_SCENE := preload("res://scenes/actors/enemy_suppressor.tscn")
 const DATA_CORE_SCENE := preload("res://scenes/game/data_core.tscn")
+const BOOST_PAD_SCENE := preload("res://scenes/game/boost_pad.tscn")
 
 @onready var player: Node = $Player
 @onready var enemy_container: Node2D = $Enemies
 @onready var data_core_container: Node2D = $DataCores
+@onready var boost_pad_container: Node2D = $BoostPads
 @onready var extraction_gate: Area2D = $ExtractionGate
 @onready var hud: CanvasLayer = $HUD
 @onready var touch_controls: CanvasLayer = $TouchControls
@@ -38,7 +40,22 @@ var data_core_positions: Array[Vector2] = [
 	Vector2(1124, 262),
 	Vector2(1760, 70),
 ]
-var current_status: String = ""
+var boost_pad_layout: Array[Dictionary] = [
+	{
+		"position": Vector2(494, 618),
+		"boost_velocity": Vector2(420.0, -520.0),
+	},
+	{
+		"position": Vector2(1124, 292),
+		"boost_velocity": Vector2(340.0, -470.0),
+	},
+	{
+		"position": Vector2(1716, 112),
+		"boost_velocity": Vector2(300.0, -390.0),
+	},
+]
+var reinforcements_spawned: bool = false
+var current_objective: String = ""
 
 
 func _ready() -> void:
@@ -53,6 +70,7 @@ func _ready() -> void:
 
 
 func begin() -> void:
+	reinforcements_spawned = false
 	for setup in encounter_layout:
 		var scene: PackedScene = setup["scene"]
 		var position: Vector2 = setup["position"]
@@ -60,25 +78,12 @@ func begin() -> void:
 	GameState.set_data_core_total(data_core_positions.size())
 	for core_position in data_core_positions:
 		_spawn_data_core(core_position)
+	for pad_setup in boost_pad_layout:
+		_spawn_boost_pad(pad_setup["position"], pad_setup["boost_velocity"])
 	if extraction_gate.has_method("set_unlocked"):
 		extraction_gate.call("set_unlocked", false)
-	_update_status("Steal every data core, then hit the extraction gate.")
-
-
-func _process(_delta: float) -> void:
-	if GameState.is_run_failed or GameState.run_success:
-		return
-	var remaining_enemies := 0
-	for child in enemy_container.get_children():
-		if child.is_in_group("enemy"):
-			remaining_enemies += 1
-	if GameState.extraction_unlocked:
-		if remaining_enemies == 0:
-			_update_status("Lane clear. Step into extraction for the clean finish.")
-		else:
-			_update_status("Extraction is live. Leave now or risk more score.")
-	elif remaining_enemies == 0:
-		_update_status("Sweep the rooftops. Find the remaining data cores.")
+	_set_objective("Steal all 3 data cores, then escape alive.")
+	_show_toast("Sweep fast. Boost pads can catapult you between rooftops.", 2.8)
 
 
 func _input(event: InputEvent) -> void:
@@ -106,43 +111,68 @@ func _spawn_data_core(at_position: Vector2) -> void:
 	data_core_container.add_child(core)
 
 
+func _spawn_boost_pad(at_position: Vector2, boost_velocity: Vector2) -> void:
+	var pad: Area2D = BOOST_PAD_SCENE.instantiate() as Area2D
+	if pad == null:
+		return
+	pad.global_position = at_position
+	pad.set("boost_velocity", boost_velocity)
+	boost_pad_container.add_child(pad)
+
+
+func _spawn_reinforcements() -> void:
+	if reinforcements_spawned:
+		return
+	reinforcements_spawned = true
+	_spawn_enemy(RUNNER_SCENE, Vector2(808, 372))
+	_spawn_enemy(SUPPRESSOR_SCENE, Vector2(1498, 190))
+	_spawn_enemy(RUNNER_SCENE, Vector2(1850, 74))
+
+
 func _on_enemy_defeated(points: int) -> void:
 	GameState.register_enemy_defeat(points)
+	if GameState.combo_count >= 3:
+		_show_toast("Combo x%d. Keep pressure for bonus score." % GameState.combo_count, 1.6)
 
 
 func _on_player_hit() -> void:
 	GameState.lose_health(1)
-	_update_status("Stay moving. Taking hits will cost the whole run.")
+	_show_toast("Hit taken. Preserve your last health for extraction bonus.", 1.9)
 
 
 func _on_player_fell() -> void:
 	GameState.finish_run(false)
-	_update_status("You fell. Press R to restart.")
+	_set_objective("Run failed. Restart and reroute through the rooftops.")
+	_show_toast("You fell off the route.", 2.0)
 
 
 func _on_run_failed() -> void:
-	_update_status("Run failed. Press R to restart.")
+	_set_objective("Run failed. Restart and recover the route.")
 
 
 func _on_run_finished(success: bool) -> void:
 	if success:
-		_update_status(GameState.result_summary)
+		_set_objective("Extraction complete. Push for a higher rank on the next run.")
+		_show_toast(GameState.result_summary, 3.0)
 
 
 func _on_data_core_collected() -> void:
 	GameState.collect_data_core(250)
 	var remaining := GameState.data_cores_total - GameState.data_cores_collected
 	if remaining > 0:
-		_update_status("Data core secured. %d left before extraction unlocks." % remaining)
+		_set_objective("Collect the remaining %d data core(s)." % remaining)
+		_show_toast("Core secured. Keep moving before the lanes collapse.", 1.9)
 		return
 	if extraction_gate.has_method("set_unlocked"):
 		extraction_gate.call("set_unlocked", true)
-	_update_status("All cores secured. Extraction is now live.")
+	_spawn_reinforcements()
+	_set_objective("Extraction is live. Escape now or stay and farm the cleanup team.")
+	_show_toast("Alarm tripped. Reinforcements inbound.", 2.4)
 
 
 func _on_extraction_blocked() -> void:
 	var remaining := GameState.data_cores_total - GameState.data_cores_collected
-	_update_status("Extraction locked. Collect %d more data core(s)." % remaining)
+	_show_toast("Extraction locked. %d more data core(s) needed." % remaining, 1.8)
 
 
 func _on_extraction_entered() -> void:
@@ -151,26 +181,31 @@ func _on_extraction_entered() -> void:
 	var finish_bonus: int = GameState.health * 120 + max(0, 420 - int(GameState.elapsed_time * 18.0))
 	GameState.add_score(finish_bonus)
 	var rank := _calculate_rank()
-	var summary := "Extraction complete. Rank %s. Score %04d. Press R to run again." % [rank, GameState.score]
+	var summary := "Rank %s. Score %04d. Press R to run again." % [rank, GameState.score]
 	GameState.set_result(rank, summary)
 	GameState.finish_run(true)
 
 
 func _calculate_rank() -> String:
-	if GameState.score >= 1600:
+	if GameState.score >= 2000:
 		return "S"
-	if GameState.score >= 1250:
+	if GameState.score >= 1550:
 		return "A"
-	if GameState.score >= 950:
+	if GameState.score >= 1150:
 		return "B"
-	if GameState.score >= 700:
+	if GameState.score >= 850:
 		return "C"
 	return "D"
 
 
-func _update_status(text: String) -> void:
-	if current_status == text:
+func _set_objective(text: String) -> void:
+	if current_objective == text:
 		return
-	current_status = text
-	if hud.has_method("set_status"):
-		hud.call("set_status", text)
+	current_objective = text
+	if hud.has_method("set_objective"):
+		hud.call("set_objective", text)
+
+
+func _show_toast(text: String, duration: float = 2.3) -> void:
+	if hud.has_method("show_toast"):
+		hud.call("show_toast", text, duration)
