@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/actors/enemy_suppressor.gd" id="1_e2w4n"]
+[ext_resource type="Texture2D" path="res://assets/art/enemy_suppressor.svg" id="2_h15e5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(32, 52)
@@ -17,11 +18,16 @@ shape = SubResource("RectangleShape2D_body")
 
 [node name="Body" type="Polygon2D" parent="Rig"]
 polygon = PackedVector2Array(-16, -26, 16, -26, 16, 26, -16, 26)
-color = Color(0.227451, 0.34902, 0.921569, 1)
+color = Color(0.227451, 0.34902, 0.921569, 0.08)
 
 [node name="Visor" type="Polygon2D" parent="Rig"]
 polygon = PackedVector2Array(-4, -8, 12, -12, 14, -4, -4, 0)
-color = Color(0.901961, 0.94902, 1, 1)
+color = Color(0.901961, 0.94902, 1, 0.08)
+
+[node name="Art" type="Sprite2D" parent="Rig"]
+position = Vector2(0, -2)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_h15e5")
 
 [node name="Muzzle" type="Marker2D" parent="Rig"]
 position = Vector2(20, -6)

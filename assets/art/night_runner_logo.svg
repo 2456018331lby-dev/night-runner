@@ -1,0 +1,21 @@
+<svg width="640" height="240" viewBox="0 0 640 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoMain" x1="66" y1="44" x2="540" y2="204" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7BF5FF"/>
+      <stop offset="0.45" stop-color="#5A7DFF"/>
+      <stop offset="1" stop-color="#FF4F7E"/>
+    </linearGradient>
+    <linearGradient id="logoAccent" x1="120" y1="120" x2="584" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD87D"/>
+      <stop offset="1" stop-color="#FF7B47"/>
+    </linearGradient>
+  </defs>
+  <rect x="44" y="44" width="552" height="152" rx="32" fill="#071120" stroke="#245B88" stroke-width="4"/>
+  <path d="M104 84H144L178 134V84H216V156H176L142 108V156H104V84Z" fill="url(#logoMain)"/>
+  <path d="M242 84H356V112H320V156H280V112H242V84Z" fill="url(#logoMain)"/>
+  <path d="M376 84H416V124L448 84H492L454 126L496 156H448L416 132V156H376V84Z" fill="url(#logoMain)"/>
+  <path d="M520 84H560L594 134V84H596V156H560L526 108V156H520V84Z" fill="url(#logoMain)"/>
+  <path d="M104 178H596" stroke="url(#logoAccent)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M100 62H206" stroke="#7BF5FF" stroke-width="6" stroke-linecap="round" opacity="0.72"/>
+  <path d="M420 62H540" stroke="#FF8D73" stroke-width="6" stroke-linecap="round" opacity="0.72"/>
+</svg>

@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://dtb0yojd8hvy4"]
+[gd_scene load_steps=4 format=3 uid="uid://dtb0yojd8hvy4"]
 
 [ext_resource type="Script" path="res://scripts/actors/enemy_runner.gd" id="1_1gprn"]
+[ext_resource type="Texture2D" path="res://assets/art/enemy_runner.svg" id="2_j1i25"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(28, 48)
@@ -15,5 +16,9 @@ shape = SubResource("RectangleShape2D_body")
 
 [node name="Body" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(-14, -24, 14, -24, 14, 24, -14, 24)
-color = Color(0.211765, 0.94902, 0.8, 1)
+color = Color(0.211765, 0.94902, 0.8, 0.18)
 
+[node name="Art" type="Sprite2D" parent="."]
+position = Vector2(0, -2)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("2_j1i25")

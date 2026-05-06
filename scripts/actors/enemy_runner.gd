@@ -7,6 +7,7 @@ const GRAVITY := 1500.0
 const CONTACT_RANGE := 34.0
 
 @onready var body_visual: Polygon2D = $Body
+@onready var art_sprite: Sprite2D = $Art
 
 var player: Node2D
 var knocked_velocity: Vector2 = Vector2.ZERO
@@ -53,8 +54,10 @@ func _update_flash(delta: float) -> void:
 	if hit_flash_timer > 0.0:
 		hit_flash_timer -= delta
 		body_visual.color = Color(1.0, 0.95, 0.72)
+		art_sprite.modulate = Color(1.0, 0.96, 0.78)
 	else:
 		body_visual.color = Color(0.21, 0.95, 0.8)
+		art_sprite.modulate = Color(1.0, 1.0, 1.0)
 
 
 func _defeat() -> void:

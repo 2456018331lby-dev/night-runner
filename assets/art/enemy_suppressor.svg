@@ -1,0 +1,21 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="suppressorArmor" x1="78" y1="36" x2="192" y2="204" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#88A8FF"/>
+      <stop offset="1" stop-color="#315BFF"/>
+    </linearGradient>
+    <linearGradient id="weaponGlow" x1="120" y1="106" x2="218" y2="152" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFC56C"/>
+      <stop offset="1" stop-color="#FF6B2C"/>
+    </linearGradient>
+  </defs>
+  <path d="M126 34C112 34 100 46 100 60C100 74 112 86 126 86C140 86 152 74 152 60C152 46 140 34 126 34Z" fill="url(#suppressorArmor)"/>
+  <path d="M108 88L150 88L172 118L164 156L142 168L132 206H108L112 170L92 146L92 114L108 88Z" fill="url(#suppressorArmor)"/>
+  <path d="M146 104L188 104L214 122L210 142L188 148L146 146L138 126L146 104Z" fill="url(#weaponGlow)"/>
+  <path d="M84 116L104 124L106 146L88 154L74 140L84 116Z" fill="#C7D5FF"/>
+  <path d="M188 116L230 116L236 128L230 140L188 140L188 116Z" fill="#FFF2A2"/>
+  <path d="M112 168L98 196L88 220H64L80 190L90 162L112 168Z" fill="#A8BCFF"/>
+  <path d="M132 170L156 186L182 220H158L134 194L132 170Z" fill="#FFB16E"/>
+  <path d="M114 58H142" stroke="#D7E1FF" stroke-width="10" stroke-linecap="round"/>
+  <path d="M94 220H174" stroke="#315BFF" stroke-width="8" stroke-linecap="round" opacity="0.45"/>
+</svg>

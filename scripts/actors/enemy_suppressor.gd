@@ -19,6 +19,7 @@ const POINTS_AWARD := 150
 @onready var rig: Node2D = $Rig
 @onready var body_visual: Polygon2D = $Rig/Body
 @onready var visor_visual: Polygon2D = $Rig/Visor
+@onready var art_sprite: Sprite2D = $Rig/Art
 @onready var muzzle: Marker2D = $Rig/Muzzle
 
 var player: Node2D
@@ -119,12 +120,15 @@ func _refresh_visuals() -> void:
 	if hit_flash_timer > 0.0:
 		body_visual.color = Color(1.0, 0.9, 0.72)
 		visor_visual.color = Color(1.0, 0.95, 0.65)
+		art_sprite.modulate = Color(1.0, 0.94, 0.82)
 	elif fire_cooldown_timer < 0.2:
 		body_visual.color = Color(0.27, 0.4, 0.96)
 		visor_visual.color = Color(1.0, 0.45, 0.32)
+		art_sprite.modulate = Color(1.0, 0.86, 0.74)
 	else:
 		body_visual.color = Color(0.23, 0.35, 0.92)
 		visor_visual.color = Color(0.9, 0.95, 1.0)
+		art_sprite.modulate = Color(1.0, 1.0, 1.0)
 
 
 func _defeat() -> void:

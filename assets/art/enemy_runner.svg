@@ -1,0 +1,15 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="runnerCore" x1="64" y1="34" x2="180" y2="212" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7EFFF4"/>
+      <stop offset="1" stop-color="#16C7B7"/>
+    </linearGradient>
+  </defs>
+  <path d="M128 32C114 32 102 44 102 58C102 73 114 84 128 84C143 84 154 73 154 58C154 44 143 32 128 32Z" fill="url(#runnerCore)"/>
+  <path d="M114 88L156 94L176 122L162 134L148 116L142 144L168 166L158 182L136 170L118 206H94L108 160L88 128L100 94L114 88Z" fill="url(#runnerCore)"/>
+  <path d="M98 96L78 122L54 134L46 120L64 108L80 88L98 96Z" fill="#F3FF9A"/>
+  <path d="M108 160L84 184L64 214H42L64 180L90 150L108 160Z" fill="#96FFF4"/>
+  <path d="M136 170L174 186L206 210L196 224L166 212L132 196L136 170Z" fill="#F3FF9A"/>
+  <path d="M120 56L146 62" stroke="#C5FFF7" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <path d="M94 220H170" stroke="#16C7B7" stroke-width="8" stroke-linecap="round" opacity="0.45"/>
+</svg>

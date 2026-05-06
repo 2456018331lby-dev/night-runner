@@ -15,6 +15,7 @@ const ATTACK_RANGE_Y := 56.0
 const ATTACK_FORCE := 540.0
 
 @onready var body_visual: Polygon2D = $Body
+@onready var art_sprite: Sprite2D = $Art
 @onready var camera: Camera2D = $Camera2D
 
 var jumps_remaining: int = 2
@@ -144,6 +145,8 @@ func _refresh_visuals() -> void:
 	body_visual.color = Color(1.0, 0.35, 0.54) if invulnerable_timer <= 0.0 else Color(1.0, 0.85, 0.42)
 	var impact_strength := clampf(action_pop_timer * 8.0, 0.0, 1.0)
 	body_visual.scale = Vector2(facing * (1.0 + impact_strength * 0.14), 1.0 - impact_strength * 0.08)
+	art_sprite.modulate = Color(1.0, 1.0, 1.0) if invulnerable_timer <= 0.0 else Color(1.0, 0.9, 0.72)
+	art_sprite.scale = Vector2(0.25 * facing * (1.0 + impact_strength * 0.08), 0.25 * (1.0 - impact_strength * 0.04))
 	camera.position.x = lerpf(camera.position.x, 90.0 * facing, 0.08)
 	var shake_target := Vector2.ZERO
 	if camera_shake_timer > 0.0:
