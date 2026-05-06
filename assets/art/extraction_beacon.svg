@@ -1,0 +1,18 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="beaconCore" x1="88" y1="30" x2="184" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8AF3FF"/>
+      <stop offset="1" stop-color="#3171FF"/>
+    </linearGradient>
+    <linearGradient id="beaconWarn" x1="108" y1="76" x2="176" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD47C"/>
+      <stop offset="1" stop-color="#FF6D38"/>
+    </linearGradient>
+  </defs>
+  <path d="M74 218H182" stroke="#2C6D96" stroke-width="10" stroke-linecap="round"/>
+  <path d="M104 218V112L128 88L152 112V218" fill="url(#beaconCore)"/>
+  <path d="M88 112H168L188 130V150L168 168H88L68 150V130L88 112Z" fill="url(#beaconWarn)"/>
+  <path d="M112 126H144L156 138L144 150H112L100 138L112 126Z" fill="#FFF7D9"/>
+  <path d="M128 46L168 86H88L128 46Z" fill="#9CF7FF"/>
+  <path d="M128 18L148 46H108L128 18Z" fill="#FFE28D"/>
+</svg>

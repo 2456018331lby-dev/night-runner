@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/data_core.gd" id="1_1a1qg"]
+[ext_resource type="Texture2D" path="res://assets/art/data_core.svg" id="2_m5xdr"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_core"]
+radius = 16.0
+
+[node name="DataCore" type="Area2D"]
+script = ExtResource("1_1a1qg")
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_core")
+
+[node name="Glow" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -26, 18, -12, 24, 10, 0, 24, -24, 10, -18, -12)
+color = Color(0.266667, 0.780392, 1, 0.36)
+scale = Vector2(1.4, 1.2)
+
+[node name="Art" type="Sprite2D" parent="."]
+scale = Vector2(0.28, 0.28)
+texture = ExtResource("2_m5xdr")

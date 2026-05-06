@@ -1,0 +1,18 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="coreGlow" x1="46" y1="34" x2="142" y2="158" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9FFFF7"/>
+      <stop offset="1" stop-color="#3CB6FF"/>
+    </linearGradient>
+    <linearGradient id="coreShard" x1="68" y1="42" x2="132" y2="146" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF6A4"/>
+      <stop offset="1" stop-color="#FFB249"/>
+    </linearGradient>
+  </defs>
+  <path d="M96 18L140 44V96L96 174L52 96V44L96 18Z" fill="url(#coreGlow)"/>
+  <path d="M96 38L124 54V94L96 142L68 94V54L96 38Z" fill="url(#coreShard)"/>
+  <path d="M96 56L112 66V92L96 118L80 92V66L96 56Z" fill="#FFFDF2"/>
+  <path d="M48 96H16" stroke="#6CE7FF" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+  <path d="M176 96H144" stroke="#6CE7FF" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+  <path d="M96 20V2" stroke="#FFD06A" stroke-width="8" stroke-linecap="round" opacity="0.58"/>
+</svg>

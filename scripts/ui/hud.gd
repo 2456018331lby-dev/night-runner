@@ -4,9 +4,11 @@ const PANEL_BG := Color(0.04, 0.07, 0.13, 0.82)
 const PANEL_BORDER := Color(0.26, 0.79, 1.0, 0.48)
 const STATUS_BORDER := Color(1.0, 0.56, 0.24, 0.74)
 const ALERT_BORDER := Color(1.0, 0.34, 0.32, 0.84)
+const SUCCESS_BORDER := Color(0.4, 1.0, 0.79, 0.92)
 const TEXT_PRIMARY := Color(0.96, 0.98, 1.0)
 const TEXT_MUTED := Color(0.67, 0.79, 0.95)
 const TEXT_ACCENT := Color(1.0, 0.84, 0.42)
+const TEXT_SUCCESS := Color(0.76, 1.0, 0.88)
 const HEALTH_ON := Color(1.0, 0.46, 0.36, 1.0)
 const HEALTH_OFF := Color(0.13, 0.2, 0.31, 1.0)
 
@@ -17,10 +19,14 @@ const HEALTH_OFF := Color(0.13, 0.2, 0.31, 1.0)
 @onready var score_caption: Label = $MarginContainer/TopRow/ScoreCard/Margin/VBox/ScoreCaption
 @onready var score_label: Label = $MarginContainer/TopRow/ScoreCard/Margin/VBox/ScoreLabel
 @onready var best_label: Label = $MarginContainer/TopRow/ScoreCard/Margin/VBox/BestLabel
+@onready var combo_label: Label = $MarginContainer/TopRow/ScoreCard/Margin/VBox/ComboLabel
 @onready var status_label: Label = $MarginContainer/TopRow/CenterColumn/StatusCard/Margin/StatusLabel
 @onready var health_caption: Label = $MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/HealthCaption
+@onready var core_caption: Label = $MarginContainer/TopRow/RightCard/Margin/VBox/CoreCaption
+@onready var core_label: Label = $MarginContainer/TopRow/RightCard/Margin/VBox/CoreLabel
 @onready var time_caption: Label = $MarginContainer/TopRow/RightCard/Margin/VBox/TimeCaption
 @onready var time_label: Label = $MarginContainer/TopRow/RightCard/Margin/VBox/TimeLabel
+@onready var rank_label: Label = $MarginContainer/TopRow/RightCard/Margin/VBox/RankLabel
 @onready var health_pips: Array[PanelContainer] = [
 	$MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow/Pip1,
 	$MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow/Pip2,
@@ -40,7 +46,23 @@ func _ready() -> void:
 func _refresh() -> void:
 	score_label.text = "%04d" % GameState.score
 	best_label.text = "BEST %04d" % int(GameState.meta_progress.get("highest_score", 0))
+	if GameState.combo_count > 1 and GameState.combo_timer > 0.0:
+		combo_label.text = "COMBO x%d" % GameState.combo_count
+		combo_label.add_theme_color_override("font_color", TEXT_ACCENT)
+	else:
+		combo_label.text = "COMBO READY"
+		combo_label.add_theme_color_override("font_color", TEXT_MUTED)
+	core_label.text = "%d / %d" % [GameState.data_cores_collected, GameState.data_cores_total]
 	time_label.text = GameState.formatted_time()
+	if GameState.run_success:
+		rank_label.text = "RANK %s" % GameState.final_rank
+		rank_label.add_theme_color_override("font_color", TEXT_SUCCESS)
+	elif GameState.is_run_failed:
+		rank_label.text = "FAILED"
+		rank_label.add_theme_color_override("font_color", Color(1.0, 0.74, 0.72))
+	else:
+		rank_label.text = "RANK --"
+		rank_label.add_theme_color_override("font_color", TEXT_MUTED)
 	status_label.text = status_text
 	_refresh_status_style()
 	_refresh_health_pips()
@@ -57,10 +79,14 @@ func _apply_theme() -> void:
 	right_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
 	_style_caption(score_caption)
 	_style_caption(best_label)
+	_style_caption(combo_label)
 	_style_caption(health_caption)
+	_style_caption(core_caption)
 	_style_caption(time_caption)
 	_style_metric(score_label, 30, TEXT_ACCENT)
+	_style_metric(core_label, 22, TEXT_PRIMARY)
 	_style_metric(time_label, 28, TEXT_PRIMARY)
+	_style_metric(rank_label, 20, TEXT_MUTED)
 	title_label.add_theme_font_size_override("font_size", 22)
 	title_label.add_theme_color_override("font_color", Color(0.61, 0.86, 1.0))
 	status_label.add_theme_font_size_override("font_size", 16)
@@ -73,6 +99,9 @@ func _refresh_status_style() -> void:
 	if GameState.is_run_failed:
 		border = ALERT_BORDER
 		text_color = Color(1.0, 0.82, 0.8)
+	elif GameState.run_success:
+		border = SUCCESS_BORDER
+		text_color = TEXT_SUCCESS
 	status_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, border, 20))
 	status_label.add_theme_color_override("font_color", text_color)
 

@@ -19,7 +19,7 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 18
 
 [node name="ScoreCard" type="PanelContainer" parent="MarginContainer/TopRow"]
-custom_minimum_size = Vector2(252, 120)
+custom_minimum_size = Vector2(252, 142)
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/TopRow/ScoreCard"]
 theme_override_constants/margin_left = 18
@@ -38,6 +38,9 @@ text = "0000"
 
 [node name="BestLabel" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
 text = "BEST 0000"
+
+[node name="ComboLabel" type="Label" parent="MarginContainer/TopRow/ScoreCard/Margin/VBox"]
+text = "COMBO READY"
 
 [node name="CenterColumn" type="VBoxContainer" parent="MarginContainer/TopRow"]
 size_flags_horizontal = 3
@@ -65,7 +68,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="RightCard" type="PanelContainer" parent="MarginContainer/TopRow"]
-custom_minimum_size = Vector2(252, 120)
+custom_minimum_size = Vector2(252, 168)
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/TopRow/RightCard"]
 theme_override_constants/margin_left = 18
@@ -94,8 +97,17 @@ custom_minimum_size = Vector2(28, 14)
 [node name="Pip3" type="PanelContainer" parent="MarginContainer/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
 custom_minimum_size = Vector2(28, 14)
 
+[node name="CoreCaption" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+text = "DATA CORES"
+
+[node name="CoreLabel" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+text = "0 / 0"
+
 [node name="TimeCaption" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
 text = "RUN CLOCK"
 
 [node name="TimeLabel" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
 text = "00:00"
+
+[node name="RankLabel" type="Label" parent="MarginContainer/TopRow/RightCard/Margin/VBox"]
+text = "RANK --"
