@@ -46,7 +46,7 @@
 
 ## 文档
 
-- 设计与方向：[docs/design.md](/C:/Users/24560/Desktop/study/gametwo/docs/design.md)
+- 维护入口：[MAINTENANCE.md](/C:/Users/24560/Desktop/study/gametwo/MAINTENANCE.md)
 - 架构说明：[docs/architecture.md](/C:/Users/24560/Desktop/study/gametwo/docs/architecture.md)
 - 进度日志：[docs/progress.md](/C:/Users/24560/Desktop/study/gametwo/docs/progress.md)
 - 维护待办：[docs/backlog.md](/C:/Users/24560/Desktop/study/gametwo/docs/backlog.md)
