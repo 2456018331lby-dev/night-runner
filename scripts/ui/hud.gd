@@ -106,6 +106,8 @@ func _refresh() -> void:
 	secondary_title.text = "OPTIONAL OBJECTIVE"
 	secondary_name.text = GameState.get_secondary_objective_name() if not GameState.get_secondary_objective_name().is_empty() else "No optional objective"
 	secondary_status.text = GameState.get_secondary_objective_status_text()
+	if operation_context.has("hazards") and Array(operation_context.get("hazards", [])).size() > 0 and not GameState.run_success and not GameState.is_run_failed:
+		secondary_status.text += "\nRoute hazard net active."
 	cashout_title.text = GameState.get_extraction_bonus_label().to_upper() if not GameState.get_extraction_bonus_label().is_empty() else "CASHOUT WINDOW"
 	cashout_status.text = GameState.get_extraction_bonus_status_text()
 	if not directive_context.is_empty():

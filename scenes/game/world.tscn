@@ -115,6 +115,8 @@ position = Vector2(140, 590)
 [node name="PreviewPad" parent="BoostPads" instance=ExtResource("7_0t8vl")]
 visible = false
 
+[node name="Hazards" type="Node2D" parent="."]
+
 [node name="ExtractionGate" parent="." instance=ExtResource("6_f4q3m")]
 position = Vector2(2124, 128)
 

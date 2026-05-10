@@ -2,6 +2,7 @@ extends Node2D
 
 const DATA_CORE_SCENE := preload("res://scenes/game/data_core.tscn")
 const BOOST_PAD_SCENE := preload("res://scenes/game/boost_pad.tscn")
+const ROUTE_HAZARD_SCENE := preload("res://scenes/game/route_hazard.tscn")
 
 @onready var presentation: Node2D = $Presentation
 @onready var ground_container: Node2D = $Geometry
@@ -9,6 +10,7 @@ const BOOST_PAD_SCENE := preload("res://scenes/game/boost_pad.tscn")
 @onready var enemy_container: Node2D = $Enemies
 @onready var data_core_container: Node2D = $DataCores
 @onready var boost_pad_container: Node2D = $BoostPads
+@onready var hazard_container: Node2D = $Hazards
 @onready var extraction_gate: Area2D = $ExtractionGate
 @onready var hud: CanvasLayer = $HUD
 @onready var touch_controls: CanvasLayer = $TouchControls
@@ -20,6 +22,7 @@ var triggered_timeline_events: Dictionary = {}
 var triggered_core_events: Dictionary = {}
 var triggered_cashout_events: Dictionary = {}
 var generated_platforms: Array[Node2D] = []
+var spawned_hazards: Array[Area2D] = []
 
 
 func _ready() -> void:
@@ -54,6 +57,8 @@ func begin(operation: Dictionary) -> void:
 		_spawn_data_core(core_position)
 	for pad_setup in _get_boost_pads():
 		_spawn_boost_pad(pad_setup["position"], pad_setup["boost_velocity"])
+	for hazard_setup in _get_hazards():
+		_spawn_hazard(hazard_setup)
 	if extraction_gate.has_method("set_unlocked"):
 		extraction_gate.call("set_unlocked", false)
 	extraction_gate.global_position = Vector2(active_operation.get("extraction_position", Vector2(2124, 128)))
@@ -71,10 +76,13 @@ func reset_world() -> void:
 		node.queue_free()
 	for node in boost_pad_container.get_children():
 		node.queue_free()
+	for node in hazard_container.get_children():
+		node.queue_free()
 	for platform in generated_platforms:
 		if is_instance_valid(platform):
 			platform.queue_free()
 	generated_platforms.clear()
+	spawned_hazards.clear()
 	active_operation.clear()
 	current_objective = ""
 	if hud.has_method("set_operation_context"):
@@ -88,6 +96,7 @@ func _process(_delta: float) -> void:
 		return
 	_check_timeline_events()
 	_check_cashout_events()
+	_update_hazard_states()
 
 
 func _spawn_initial_encounters() -> void:
@@ -160,6 +169,17 @@ func _spawn_boost_pad(at_position: Vector2, boost_velocity: Vector2) -> void:
 	boost_pad_container.add_child(pad)
 
 
+func _spawn_hazard(hazard_setup: Dictionary) -> void:
+	var hazard: Area2D = ROUTE_HAZARD_SCENE.instantiate() as Area2D
+	if hazard == null:
+		return
+	hazard.global_position = Vector2(hazard_setup.get("position", Vector2.ZERO))
+	if hazard.has_method("configure"):
+		hazard.call("configure", hazard_setup)
+	hazard_container.add_child(hazard)
+	spawned_hazards.append(hazard)
+
+
 func _check_timeline_events() -> void:
 	var events: Array = active_operation.get("timeline_events", [])
 	for index in events.size():
@@ -211,6 +231,32 @@ func _show_lane_signals() -> void:
 	if signals.is_empty():
 		return
 	_show_toast(" // ".join(signals), 3.5)
+
+
+func _update_hazard_states() -> void:
+	for hazard in spawned_hazards:
+		if not is_instance_valid(hazard):
+			continue
+		var setup: Dictionary = hazard.get("setup")
+		var activation := String(setup.get("activate_on", "always"))
+		var enabled := false
+		match activation:
+			"always":
+				enabled = true
+			"core_1":
+				enabled = GameState.data_cores_collected >= 1
+			"core_2":
+				enabled = GameState.data_cores_collected >= 2
+			"core_3":
+				enabled = GameState.data_cores_collected >= 3
+			"cashout":
+				enabled = GameState.extraction_unlocked
+			_:
+				enabled = false
+		if hazard.has_method("set_stage_enabled"):
+			var changed := bool(hazard.call("set_stage_enabled", enabled))
+			if changed and enabled:
+				_show_toast("Hazard live // %s" % String(setup.get("id", "route_hazard")).replace("_", " "), 1.4)
 
 
 func _spawn_completion_wave() -> void:
@@ -348,3 +394,10 @@ func _get_boost_pads() -> Array[Dictionary]:
 	for value in active_operation.get("boost_pads", []):
 		pads.append(value)
 	return pads
+
+
+func _get_hazards() -> Array[Dictionary]:
+	var hazards: Array[Dictionary] = []
+	for value in active_operation.get("hazards", []):
+		hazards.append(value)
+	return hazards

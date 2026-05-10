@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/route_hazard.gd" id="1_37beq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hazard"]
+size = Vector2(120, 18)
+
+[node name="RouteHazard" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
+script = ExtResource("1_37beq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_hazard")
+
+[node name="Halo" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-76, -18, 76, -18, 76, 18, -76, 18)
+color = Color(1, 0.54, 0.29, 0.12)
+
+[node name="Beam" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-60, -9, 60, -9, 60, 9, -60, 9)
+color = Color(0.31, 0.89, 1, 0.34)
