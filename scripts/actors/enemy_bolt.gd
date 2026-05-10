@@ -32,5 +32,5 @@ func _on_body_entered(body: Node) -> void:
 		var push_direction := signf(velocity.x)
 		if push_direction == 0.0:
 			push_direction = 1.0
-		body.take_contact_hit(push_direction)
+		body.take_contact_hit(push_direction, "enemy", "suppressor_bolt")
 	queue_free()

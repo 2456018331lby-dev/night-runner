@@ -20,11 +20,14 @@ const TEXT_GOLD := Color("ffd37c")
 const TEXT_ALERT := Color("ff9289")
 const TEXT_SUCCESS := Color("98ffd2")
 const TEXT_SOFT := Color("dce7f5")
+const TEXT_TEAL := Color("77ffe4")
 
 @onready var backdrop: ColorRect = $Backdrop
 @onready var ambient_a: ColorRect = $Backdrop/AmbientA
 @onready var ambient_b: ColorRect = $Backdrop/AmbientB
 @onready var grain: ColorRect = $Backdrop/Grain
+@onready var scanlines: ColorRect = $Backdrop/Scanlines
+@onready var vignette: ColorRect = $Backdrop/Vignette
 @onready var frame: PanelContainer = $Margin/Layout/Frame
 @onready var title_label: Label = $Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin/TitleFlow/Title
 @onready var subtitle_label: Label = $Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin/TitleFlow/Subtitle
@@ -192,6 +195,9 @@ func _refresh_focus(operation: Dictionary) -> void:
 		directive_deck_subtitle.text = "Directive selection is locked mid-run."
 		_clear_directive_buttons()
 		if current_phase == FrontendBridge.PHASE_RESULTS:
+			_add_directive_note(GameState.get_run_verdict_text(), TEXT_TEAL)
+			for line in GameState.get_run_score_breakdown_lines():
+				_add_directive_note(line, TEXT_PRIMARY)
 			_add_directive_note(GameState.secondary_objective_summary if not GameState.secondary_objective_summary.is_empty() else "No optional objective resolved.", TEXT_GOLD)
 			_add_directive_note(GameState.get_extraction_bonus_status_text(), TEXT_MUTED)
 		elif current_phase == FrontendBridge.PHASE_PAUSE:
@@ -320,10 +326,21 @@ func _select_button(operation_id: String) -> void:
 func _add_debrief_metrics(operation: Dictionary) -> void:
 	_clear_operation_buttons()
 	var record := GameState.get_operation_record(String(operation.get("id", "")))
+	var metrics := GameState.get_run_metrics()
 	_add_panel_note("Rank %s // Score %04d" % [GameState.final_rank, GameState.score], TEXT_GOLD)
 	_add_panel_note("Operation best %04d // Career best %04d" % [int(record.get("best_score", 0)), int(GameState.meta_progress.get("highest_score", 0))], TEXT_MUTED)
 	_add_panel_note("Directive %s" % (GameState.get_current_directive_name() if not GameState.get_current_directive_name().is_empty() else "None"), TEXT_PRIMARY)
-	_add_panel_note("Cashout %s" % GameState.get_extraction_bonus_status_text(), TEXT_SOFT)
+	_add_panel_note("Combat +%d // Core haul +%d" % [int(metrics.get("combat_score", 0)), int(metrics.get("core_score", 0))], TEXT_TEAL)
+	_add_panel_note("Exit +%d // Optional +%d // Cashout +%d" % [
+		int(metrics.get("exit_bonus", 0)),
+		int(metrics.get("objective_bonus", 0)),
+		int(metrics.get("cashout_bonus", 0)),
+	], TEXT_SOFT)
+	_add_panel_note("Hits %d // Hazard hits %d // Max combo x%d" % [
+		int(metrics.get("hits_taken", 0)),
+		int(metrics.get("hazard_hits", 0)),
+		int(metrics.get("max_combo", 0)),
+	], TEXT_MUTED)
 
 
 func _add_pause_metrics() -> void:
@@ -384,6 +401,8 @@ func _apply_theme() -> void:
 	ambient_a.color = Color(0.15, 0.5, 0.78, 0.16)
 	ambient_b.color = Color(0.78, 0.39, 0.2, 0.14)
 	grain.color = Color(1.0, 1.0, 1.0, 0.02)
+	scanlines.color = Color(0.68, 0.86, 1.0, 0.035)
+	vignette.color = Color(0.0, 0.0, 0.0, 0.34)
 	frame.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_LINE, 30, 2, 24))
 	_style_panel($Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox, PANEL_BG_SOFT, PANEL_LINE)
 	_style_panel($Margin/Layout/Frame/Margin/Column/HeaderRow/StatusBox, PANEL_BG_SOFT, PANEL_ACCENT)
@@ -503,6 +522,7 @@ func _update_focus_palette(operation: Dictionary) -> void:
 	title_label.add_theme_color_override("font_color", primary.lightened(0.2))
 	ambient_a.color = Color(primary.r, primary.g, primary.b, 0.14)
 	ambient_b.color = Color(secondary.r, secondary.g, secondary.b, 0.12)
+	scanlines.color = Color(primary.r, primary.g, primary.b, 0.04)
 
 
 func _make_panel_style(fill: Color, border: Color, radius: int, border_width: int, shadow_size: int) -> StyleBoxFlat:

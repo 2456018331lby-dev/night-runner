@@ -76,6 +76,7 @@
 
 - 数据驱动的路线机关节点
 - 负责周期性激活、碰撞惩罚和自身视觉状态
+- 当前已支持 `pulse_beam`、`sweep_wall`、`collapse_zone` 三类 archetype
 - 由 `World` 按行动配置生成和切阶段，不自己决定关卡节奏
 
 ### `RunCatalog`
@@ -123,7 +124,7 @@
 ## 当前产品壳分工
 
 - `SessionScreen` 负责中枢甲板、结果页、暂停页和局前构筑展示
-- `HUD` 负责局内主目标、directive、次级目标和 cashout 状态
+- `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标和 cashout 状态
 - 这两层都只读桥接状态，不直接驱动玩法判定，便于后续完全重做前端
 
 ## AI 维护约定

@@ -34,6 +34,10 @@ const HEALTH_OFF := Color(0.13, 0.2, 0.31, 1.0)
 @onready var time_caption: Label = $MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/TimeCaption
 @onready var time_label: Label = $MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/TimeLabel
 @onready var rank_label: Label = $MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/RankLabel
+@onready var phase_card: PanelContainer = $MarginContainer/RootColumn/ObjectiveRow/PhaseCard
+@onready var phase_title: Label = $MarginContainer/RootColumn/ObjectiveRow/PhaseCard/Margin/VBox/PhaseTitle
+@onready var phase_name: Label = $MarginContainer/RootColumn/ObjectiveRow/PhaseCard/Margin/VBox/PhaseName
+@onready var phase_status: Label = $MarginContainer/RootColumn/ObjectiveRow/PhaseCard/Margin/VBox/PhaseStatus
 @onready var directive_title: Label = $MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox/DirectiveTitle
 @onready var directive_name: Label = $MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox/DirectiveName
 @onready var directive_summary: Label = $MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox/DirectiveSummary
@@ -95,6 +99,8 @@ func _refresh() -> void:
 	objective_label.text = objective_text
 	title_label.text = String(operation_context.get("title", "NIGHT RUNNER"))
 	subtitle_label.text = String(operation_context.get("subtitle", "Urban combat archive"))
+	phase_name.text = GameState.get_route_phase_text()
+	phase_status.text = "%s\n%s" % [GameState.get_route_pressure_text(), GameState.get_hazard_status_text()]
 	if directive_context.is_empty():
 		directive_title.text = "DIRECTIVE"
 		directive_name.text = "Base Protocol"
@@ -107,7 +113,7 @@ func _refresh() -> void:
 	secondary_name.text = GameState.get_secondary_objective_name() if not GameState.get_secondary_objective_name().is_empty() else "No optional objective"
 	secondary_status.text = GameState.get_secondary_objective_status_text()
 	if operation_context.has("hazards") and Array(operation_context.get("hazards", [])).size() > 0 and not GameState.run_success and not GameState.is_run_failed:
-		secondary_status.text += "\nRoute hazard net active."
+		secondary_status.text += "\n%s" % GameState.get_hazard_status_text()
 	cashout_title.text = GameState.get_extraction_bonus_label().to_upper() if not GameState.get_extraction_bonus_label().is_empty() else "CASHOUT WINDOW"
 	cashout_status.text = GameState.get_extraction_bonus_status_text()
 	if not directive_context.is_empty():
@@ -165,11 +171,12 @@ func _apply_theme() -> void:
 	operation_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
 	telemetry_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
 	objective_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, PANEL_BORDER, 18))
+	phase_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(0.96, 0.55, 0.26, 0.42), 18))
 	directive_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, PANEL_ACCENT, 18))
 	secondary_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(0.82, 0.84, 1.0, 0.3), 18))
 	cashout_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(1.0, 0.72, 0.35, 0.4), 18))
 	toast_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_ACCENT, 18, 2, 12))
-	for label in [score_caption, best_label, combo_label, health_caption, core_caption, time_caption, objective_title, directive_title, secondary_title, cashout_title]:
+	for label in [score_caption, best_label, combo_label, health_caption, core_caption, time_caption, objective_title, phase_title, directive_title, secondary_title, cashout_title]:
 		_style_caption(label)
 	_style_metric(score_label, 30, TEXT_ACCENT)
 	_style_metric(core_label, 22, TEXT_PRIMARY)
@@ -181,6 +188,10 @@ func _apply_theme() -> void:
 	subtitle_label.add_theme_color_override("font_color", TEXT_MUTED)
 	objective_label.add_theme_font_size_override("font_size", 16)
 	objective_label.add_theme_color_override("font_color", TEXT_PRIMARY)
+	phase_name.add_theme_font_size_override("font_size", 17)
+	phase_name.add_theme_color_override("font_color", TEXT_ACCENT)
+	phase_status.add_theme_font_size_override("font_size", 14)
+	phase_status.add_theme_color_override("font_color", TEXT_MUTED)
 	directive_name.add_theme_font_size_override("font_size", 17)
 	directive_name.add_theme_color_override("font_color", TEXT_PRIMARY)
 	directive_summary.add_theme_font_size_override("font_size", 14)
@@ -221,9 +232,12 @@ func _apply_operation_palette() -> void:
 	operation_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, primary, 22))
 	directive_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, secondary, 18))
 	objective_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, primary, 18))
+	phase_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, secondary.lightened(0.04), 18))
 	secondary_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, primary.lightened(0.12), 18))
 	cashout_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, secondary.lightened(0.08), 18))
 	title_label.add_theme_color_override("font_color", primary.lightened(0.18))
+	phase_title.add_theme_color_override("font_color", secondary.lightened(0.12))
+	phase_name.add_theme_color_override("font_color", secondary.lightened(0.18))
 	directive_title.add_theme_color_override("font_color", secondary.lightened(0.1))
 	cashout_title.add_theme_color_override("font_color", secondary.lightened(0.12))
 

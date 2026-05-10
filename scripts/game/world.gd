@@ -23,6 +23,7 @@ var triggered_core_events: Dictionary = {}
 var triggered_cashout_events: Dictionary = {}
 var generated_platforms: Array[Node2D] = []
 var spawned_hazards: Array[Area2D] = []
+var last_hazard_status_text: String = ""
 
 
 func _ready() -> void:
@@ -48,6 +49,7 @@ func begin(operation: Dictionary) -> void:
 	triggered_timeline_events.clear()
 	triggered_core_events.clear()
 	triggered_cashout_events.clear()
+	last_hazard_status_text = ""
 	_build_platforms()
 	_apply_operation_theme()
 	_position_player()
@@ -65,6 +67,7 @@ func begin(operation: Dictionary) -> void:
 	_set_objective(String(active_operation.get("objective_intro", "Steal the data cores and extract.")))
 	_show_toast(String(active_operation.get("intro_toast", "Route live.")), 3.0)
 	_show_lane_signals()
+	_refresh_live_route_status()
 	if hud.has_method("set_operation_context"):
 		hud.call("set_operation_context", active_operation, GameState.current_directive)
 
@@ -85,6 +88,8 @@ func reset_world() -> void:
 	spawned_hazards.clear()
 	active_operation.clear()
 	current_objective = ""
+	last_hazard_status_text = ""
+	GameState.set_live_route_status("INGRESS", "Route cold.", "Hazard net dormant.")
 	if hud.has_method("set_operation_context"):
 		hud.call("set_operation_context", {}, {})
 	if hud.has_method("set_objective"):
@@ -97,6 +102,7 @@ func _process(_delta: float) -> void:
 	_check_timeline_events()
 	_check_cashout_events()
 	_update_hazard_states()
+	_refresh_live_route_status()
 
 
 func _spawn_initial_encounters() -> void:
@@ -256,7 +262,7 @@ func _update_hazard_states() -> void:
 		if hazard.has_method("set_stage_enabled"):
 			var changed := bool(hazard.call("set_stage_enabled", enabled))
 			if changed and enabled:
-				_show_toast("Hazard live // %s" % String(setup.get("id", "route_hazard")).replace("_", " "), 1.4)
+				_show_toast("Hazard live // %s" % String(setup.get("label", setup.get("id", "route_hazard"))), 1.4)
 
 
 func _spawn_completion_wave() -> void:
@@ -336,10 +342,9 @@ func _on_extraction_entered() -> void:
 	if GameState.health == max(1, 3 + int(GameState.run_modifiers.get("health_bonus", 0))):
 		finish_bonus += int(GameState.run_modifiers.get("silent_bonus", 0))
 	var objective_result := GameState.evaluate_secondary_objective()
-	if bool(objective_result.get("completed", false)):
-		finish_bonus += int(objective_result.get("reward_score", 0))
-	finish_bonus += GameState.pending_extraction_bonus
-	GameState.add_score(finish_bonus)
+	var objective_bonus := int(objective_result.get("reward_score", 0)) if bool(objective_result.get("completed", false)) else 0
+	var cashout_bonus := GameState.pending_extraction_bonus
+	GameState.apply_run_end_rewards(finish_bonus, objective_bonus, cashout_bonus)
 	var rank := _calculate_rank()
 	var summary := "Rank %s // Score %04d // Directive %s // %s // %s" % [
 		rank,
@@ -350,6 +355,45 @@ func _on_extraction_entered() -> void:
 	]
 	GameState.set_result(rank, summary)
 	GameState.finish_run(true)
+
+
+func _refresh_live_route_status() -> void:
+	var phase_text := "INGRESS"
+	if GameState.extraction_unlocked:
+		phase_text = "CASHOUT"
+	elif GameState.data_cores_collected > 0:
+		phase_text = "BREACH"
+	var pressure_text := ""
+	if GameState.extraction_unlocked:
+		pressure_text = "Extraction open. Greed converts survival into payout."
+	elif GameState.data_cores_collected >= max(1, GameState.data_cores_total - 1) and GameState.data_cores_total > 0:
+		pressure_text = "Final vault pressure. Finish the sweep and choose your exit."
+	else:
+		pressure_text = "Route building. Push cores while the lane is still readable."
+	var hazard_text := _build_hazard_status_text()
+	if hazard_text == last_hazard_status_text and phase_text == GameState.get_route_phase_text() and pressure_text == GameState.get_route_pressure_text():
+		return
+	last_hazard_status_text = hazard_text
+	GameState.set_live_route_status(phase_text, pressure_text, hazard_text)
+
+
+func _build_hazard_status_text() -> String:
+	if spawned_hazards.is_empty():
+		return "Hazard net offline."
+	var live_labels: Array[String] = []
+	var priming_labels: Array[String] = []
+	for hazard in spawned_hazards:
+		if not is_instance_valid(hazard):
+			continue
+		if bool(hazard.get("active_now")):
+			live_labels.append(String(hazard.call("get_status_summary")))
+		elif bool(hazard.get("stage_enabled")):
+			priming_labels.append(String(hazard.call("get_status_summary")))
+	if not live_labels.is_empty():
+		return "Hot zone // %s" % " // ".join(live_labels)
+	if not priming_labels.is_empty():
+		return "Priming // %s" % " // ".join(priming_labels)
+	return "Hazard net dormant."
 
 
 func _calculate_rank() -> String:

@@ -157,9 +157,10 @@ func _handle_fall_check() -> void:
 		player_fell.emit()
 
 
-func take_contact_hit(push_direction: float) -> void:
+func take_contact_hit(push_direction: float, source_kind: String = "enemy", source_detail: String = "") -> void:
 	if invulnerable_timer > 0.0 or GameState.is_run_failed:
 		return
+	GameState.register_damage_source(source_kind, source_detail)
 	invulnerable_timer = 0.65
 	velocity = Vector2(push_direction * 260.0, -220.0)
 	action_pop_timer = 0.16

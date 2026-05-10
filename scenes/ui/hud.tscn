@@ -116,9 +116,11 @@ text = "RANK --"
 
 [node name="ObjectiveRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
 size_flags_horizontal = 3
+theme_override_constants/separation = 14
 
 [node name="ObjectiveCard" type="PanelContainer" parent="MarginContainer/RootColumn/ObjectiveRow"]
-custom_minimum_size = Vector2(460, 78)
+custom_minimum_size = Vector2(420, 88)
+size_flags_horizontal = 3
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard"]
 theme_override_constants/margin_left = 16
@@ -133,7 +135,31 @@ theme_override_constants/separation = 4
 text = "OBJECTIVE"
 
 [node name="ObjectiveLabel" type="Label" parent="MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard/Margin/VBox"]
+autowrap_mode = 3
 text = "Steal all data cores and extract."
+
+[node name="PhaseCard" type="PanelContainer" parent="MarginContainer/RootColumn/ObjectiveRow"]
+custom_minimum_size = Vector2(330, 88)
+size_flags_horizontal = 3
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/ObjectiveRow/PhaseCard"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/ObjectiveRow/PhaseCard/Margin"]
+theme_override_constants/separation = 4
+
+[node name="PhaseTitle" type="Label" parent="MarginContainer/RootColumn/ObjectiveRow/PhaseCard/Margin/VBox"]
+text = "ROUTE PHASE"
+
+[node name="PhaseName" type="Label" parent="MarginContainer/RootColumn/ObjectiveRow/PhaseCard/Margin/VBox"]
+text = "INGRESS"
+
+[node name="PhaseStatus" type="Label" parent="MarginContainer/RootColumn/ObjectiveRow/PhaseCard/Margin/VBox"]
+autowrap_mode = 3
+text = "Phase status"
 
 [node name="DirectiveRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
 size_flags_horizontal = 3

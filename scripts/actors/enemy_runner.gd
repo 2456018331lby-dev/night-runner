@@ -49,7 +49,7 @@ func _try_contact_damage() -> void:
 	if not is_instance_valid(player) or GameState.is_run_failed:
 		return
 	if global_position.distance_to(player.global_position) <= CONTACT_RANGE:
-		player.take_contact_hit(signf(player.global_position.x - global_position.x))
+		player.take_contact_hit(signf(player.global_position.x - global_position.x), "enemy", "runner_body")
 
 
 func _update_flash(delta: float) -> void:

@@ -50,6 +50,17 @@ var extraction_bonus_active: bool = false
 var extraction_bonus_kills: int = 0
 var pending_extraction_bonus: int = 0
 var extraction_unlock_time: float = -1.0
+var enemy_score_total: int = 0
+var core_score_total: int = 0
+var finish_bonus_awarded: int = 0
+var secondary_bonus_awarded: int = 0
+var extraction_bonus_awarded: int = 0
+var hazard_hits_taken: int = 0
+var last_damage_source_kind: String = ""
+var last_damage_source_detail: String = ""
+var live_route_phase: String = "INGRESS"
+var live_route_pressure: String = "Route cold."
+var live_hazard_status: String = "Hazard net dormant."
 
 
 func _ready() -> void:
@@ -98,6 +109,17 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	extraction_bonus_kills = 0
 	pending_extraction_bonus = 0
 	extraction_unlock_time = -1.0
+	enemy_score_total = 0
+	core_score_total = 0
+	finish_bonus_awarded = 0
+	secondary_bonus_awarded = 0
+	extraction_bonus_awarded = 0
+	hazard_hits_taken = 0
+	last_damage_source_kind = ""
+	last_damage_source_detail = ""
+	live_route_phase = "INGRESS"
+	live_route_pressure = "Route cold."
+	live_hazard_status = "Hazard net dormant."
 	data_cores_collected = 0
 	data_cores_total = 0
 	extraction_unlocked = false
@@ -125,6 +147,7 @@ func register_enemy_defeat(base_points: int) -> void:
 	combo_timer = combo_window
 	var total_points := int(round((base_points + max(0, combo_count - 1) * 50) * float(run_modifiers.get("score_multiplier", 1.0))))
 	score += total_points
+	enemy_score_total += total_points
 	if extraction_bonus_active and extraction_unlocked:
 		extraction_bonus_kills += 1
 		pending_extraction_bonus += get_next_extraction_bonus_value()
@@ -140,8 +163,10 @@ func set_data_core_total(total: int) -> void:
 
 
 func collect_data_core(points: int = 250) -> void:
+	var reward := int(round(points * float(run_modifiers.get("score_multiplier", 1.0))))
 	data_cores_collected = min(data_cores_total, data_cores_collected + 1)
-	score += int(round(points * float(run_modifiers.get("score_multiplier", 1.0))))
+	score += reward
+	core_score_total += reward
 	if data_cores_collected >= data_cores_total:
 		extraction_unlocked = true
 		extraction_unlock_time = elapsed_time
@@ -156,7 +181,7 @@ func lose_health(amount: int = 1) -> void:
 	hits_taken += amount
 	health = max(0, health - amount)
 	if health == 0:
-		var summary := "Run collapsed under suppressive fire."
+		var summary := "Run collapsed under %s." % get_last_damage_source_summary()
 		if pending_extraction_bonus > 0:
 			summary += " Lost %s +%d." % [get_extraction_bonus_label(), pending_extraction_bonus]
 		set_result("FAIL", summary)
@@ -287,7 +312,7 @@ func evaluate_secondary_objective() -> Dictionary:
 		_:
 			completed = false
 	var reward_score := int(current_secondary_objective.get("reward_score", 0)) if completed else 0
-	var summary := "Secondary objective complete: %s" % get_secondary_objective_name() if completed else "Secondary objective failed: %s" % get_secondary_objective_name()
+	var summary := "Secondary objective complete: %s (+%d)" % [get_secondary_objective_name(), reward_score] if completed else "Secondary objective failed: %s" % get_secondary_objective_name()
 	secondary_objective_completed = completed
 	secondary_objective_summary = summary
 	return {
@@ -339,6 +364,15 @@ func activate_extraction_bonus() -> void:
 	state_changed.emit()
 
 
+func apply_run_end_rewards(exit_bonus: int, objective_bonus: int, cashout_bonus: int) -> int:
+	finish_bonus_awarded = max(0, exit_bonus)
+	secondary_bonus_awarded = max(0, objective_bonus)
+	extraction_bonus_awarded = max(0, cashout_bonus)
+	var total_reward := finish_bonus_awarded + secondary_bonus_awarded + extraction_bonus_awarded
+	add_score(total_reward)
+	return total_reward
+
+
 func get_next_extraction_bonus_value() -> int:
 	if extraction_bonus_config.is_empty():
 		return 0
@@ -378,6 +412,99 @@ func get_cashout_elapsed_time() -> float:
 
 func formatted_cashout_time() -> String:
 	return _format_raw_time(get_cashout_elapsed_time())
+
+
+func register_damage_source(kind: String, detail: String = "") -> void:
+	last_damage_source_kind = kind
+	last_damage_source_detail = detail
+	if kind == "hazard":
+		hazard_hits_taken += 1
+
+
+func set_live_route_status(phase_text: String, pressure_text: String, hazard_text: String) -> void:
+	if live_route_phase == phase_text and live_route_pressure == pressure_text and live_hazard_status == hazard_text:
+		return
+	live_route_phase = phase_text
+	live_route_pressure = pressure_text
+	live_hazard_status = hazard_text
+	state_changed.emit()
+
+
+func get_route_phase_text() -> String:
+	return live_route_phase
+
+
+func get_route_pressure_text() -> String:
+	return live_route_pressure
+
+
+func get_hazard_status_text() -> String:
+	return live_hazard_status
+
+
+func get_run_metrics() -> Dictionary:
+	return {
+		"combat_score": enemy_score_total,
+		"core_score": core_score_total,
+		"exit_bonus": finish_bonus_awarded,
+		"objective_bonus": secondary_bonus_awarded,
+		"cashout_bonus": extraction_bonus_awarded,
+		"hits_taken": hits_taken,
+		"hazard_hits": hazard_hits_taken,
+		"max_combo": max_combo_reached,
+		"cashout_kills": extraction_bonus_kills,
+		"elapsed_time": elapsed_time,
+	}
+
+
+func get_run_score_breakdown_lines() -> Array[String]:
+	var lines: Array[String] = []
+	lines.append("Combat +%d // Core haul +%d" % [enemy_score_total, core_score_total])
+	if run_success:
+		lines.append("Exit package +%d // Optional +%d // Cashout +%d" % [
+			finish_bonus_awarded,
+			secondary_bonus_awarded,
+			extraction_bonus_awarded,
+		])
+	else:
+		lines.append("No extraction package secured // Lost banked cashout +%d" % pending_extraction_bonus)
+	return lines
+
+
+func get_run_verdict_text() -> String:
+	var hazard_clause := "Hazard net avoided cleanly." if hazard_hits_taken <= 0 else "Hazard net connected %d time(s)." % hazard_hits_taken
+	var combo_clause := "Max combo x%d." % max_combo_reached if max_combo_reached > 0 else "No combo chain established."
+	if run_success:
+		return "Extracted in %s with %d hit(s) taken. %s %s" % [
+			formatted_time(),
+			hits_taken,
+			combo_clause,
+			hazard_clause,
+		]
+	return "Route collapsed after %s with %d hit(s) taken. %s %s" % [
+		formatted_time(),
+		hits_taken,
+		combo_clause,
+		hazard_clause,
+	]
+
+
+func get_last_damage_source_summary() -> String:
+	match last_damage_source_kind:
+		"hazard":
+			return "route hazard pressure"
+		"enemy":
+			match last_damage_source_detail:
+				"runner_body":
+					return "runner impact"
+				"suppressor_body":
+					return "suppressor impact"
+				"suppressor_bolt":
+					return "suppressor fire"
+				_:
+					return "hostile pressure"
+		_:
+			return "combat pressure"
 
 
 func describe_modifier_block(modifiers: Dictionary) -> String:
