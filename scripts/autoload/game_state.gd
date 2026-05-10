@@ -49,6 +49,7 @@ var extraction_bonus_label: String = ""
 var extraction_bonus_active: bool = false
 var extraction_bonus_kills: int = 0
 var pending_extraction_bonus: int = 0
+var extraction_unlock_time: float = -1.0
 
 
 func _ready() -> void:
@@ -96,6 +97,7 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	extraction_bonus_active = false
 	extraction_bonus_kills = 0
 	pending_extraction_bonus = 0
+	extraction_unlock_time = -1.0
 	data_cores_collected = 0
 	data_cores_total = 0
 	extraction_unlocked = false
@@ -142,6 +144,7 @@ func collect_data_core(points: int = 250) -> void:
 	score += int(round(points * float(run_modifiers.get("score_multiplier", 1.0))))
 	if data_cores_collected >= data_cores_total:
 		extraction_unlocked = true
+		extraction_unlock_time = elapsed_time
 		activate_extraction_bonus()
 	_update_high_score()
 	state_changed.emit()
@@ -353,15 +356,53 @@ func get_extraction_bonus_status_text() -> String:
 		return "Locked until all data cores are secured."
 	if not extraction_bonus_active:
 		return "No extraction bonus active."
+	var live_time := formatted_cashout_time()
 	if pending_extraction_bonus <= 0:
-		return "%s online. Stay in the route for a higher payout." % get_extraction_bonus_label()
-	return "%s +%d banked across %d takedowns." % [get_extraction_bonus_label(), pending_extraction_bonus, extraction_bonus_kills]
+		return "%s online. Overstay %s for a higher payout." % [get_extraction_bonus_label(), live_time]
+	return "%s +%d banked across %d takedowns // overstay %s" % [get_extraction_bonus_label(), pending_extraction_bonus, extraction_bonus_kills, live_time]
 
 
 func get_extraction_bonus_progress_ratio() -> float:
 	if not extraction_bonus_active:
 		return 0.0
-	return clampf(float(mini(extraction_bonus_kills, 5)) / 5.0, 0.0, 1.0)
+	var kill_ratio := clampf(float(mini(extraction_bonus_kills, 5)) / 5.0, 0.0, 1.0)
+	var time_ratio := clampf(get_cashout_elapsed_time() / 25.0, 0.0, 1.0)
+	return maxf(kill_ratio, time_ratio)
+
+
+func get_cashout_elapsed_time() -> float:
+	if extraction_unlock_time < 0.0:
+		return 0.0
+	return maxf(0.0, elapsed_time - extraction_unlock_time)
+
+
+func formatted_cashout_time() -> String:
+	return _format_raw_time(get_cashout_elapsed_time())
+
+
+func describe_modifier_block(modifiers: Dictionary) -> String:
+	if modifiers.is_empty():
+		return "No modifier shifts."
+	var fragments: Array[String] = []
+	var order := [
+		"speed_multiplier",
+		"dash_multiplier",
+		"jump_multiplier",
+		"boost_multiplier",
+		"attack_force_multiplier",
+		"combo_window_multiplier",
+		"score_multiplier",
+		"finish_bonus_multiplier",
+		"health_bonus",
+		"silent_bonus",
+	]
+	for key in order:
+		if not modifiers.has(key):
+			continue
+		var fragment := _format_modifier_line(key, modifiers[key])
+		if not fragment.is_empty():
+			fragments.append(fragment)
+	return " // ".join(fragments) if not fragments.is_empty() else "No modifier shifts."
 
 
 func _build_run_modifiers(operation: Dictionary, directive: Dictionary) -> Dictionary:
@@ -452,6 +493,41 @@ func _pick_best_rank(existing_rank: String, next_rank: String) -> String:
 	if order.find(existing_rank) == -1:
 		return next_rank
 	return next_rank if order.find(next_rank) < order.find(existing_rank) else existing_rank
+
+
+func _format_modifier_line(key: String, value: Variant) -> String:
+	match key:
+		"speed_multiplier":
+			return _format_percent_shift("SPD", float(value))
+		"dash_multiplier":
+			return _format_percent_shift("DASH", float(value))
+		"jump_multiplier":
+			return _format_percent_shift("JUMP", float(value))
+		"boost_multiplier":
+			return _format_percent_shift("BOOST", float(value))
+		"attack_force_multiplier":
+			return _format_percent_shift("ATK", float(value))
+		"combo_window_multiplier":
+			return _format_percent_shift("COMBO", float(value))
+		"score_multiplier":
+			return _format_percent_shift("SCORE", float(value))
+		"finish_bonus_multiplier":
+			return _format_percent_shift("EXIT", float(value))
+		"health_bonus":
+			var health_delta := int(round(float(value)))
+			return "HP %+d" % health_delta if health_delta != 0 else ""
+		"silent_bonus":
+			var bonus := int(round(float(value)))
+			return "SILENT +%d" % bonus if bonus != 0 else ""
+		_:
+			return ""
+
+
+func _format_percent_shift(label: String, multiplier: float) -> String:
+	if is_equal_approx(multiplier, 1.0):
+		return ""
+	var percent_delta := int(round((multiplier - 1.0) * 100.0))
+	return "%s %+d%%" % [label, percent_delta]
 
 
 func _format_raw_time(time_value: float) -> String:

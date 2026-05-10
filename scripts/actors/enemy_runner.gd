@@ -13,6 +13,7 @@ var player: Node2D
 var knocked_velocity: Vector2 = Vector2.ZERO
 var defeated_once: bool = false
 var hit_flash_timer: float = 0.0
+var stride_phase: float = randf() * TAU
 
 
 func _ready() -> void:
@@ -31,6 +32,7 @@ func _physics_process(delta: float) -> void:
 		var direction := signf(player.global_position.x - global_position.x)
 		velocity.x = direction * SPEED * GameState.get_modifier_value("speed_multiplier", 1.0)
 		body_visual.scale.x = direction if direction != 0.0 else body_visual.scale.x
+	stride_phase += delta * clampf(absf(velocity.x) / 80.0, 0.8, 2.6)
 	move_and_slide()
 	_try_contact_damage()
 	_update_flash(delta)
@@ -58,6 +60,9 @@ func _update_flash(delta: float) -> void:
 	else:
 		body_visual.color = Color(0.21, 0.95, 0.8)
 		art_sprite.modulate = Color(1.0, 1.0, 1.0)
+	var squash := 1.0 + sin(stride_phase) * 0.06 if absf(velocity.x) > 10.0 and is_on_floor() else 1.0
+	body_visual.scale.y = squash
+	art_sprite.scale.y = 0.22 * (1.0 + (squash - 1.0) * 0.6)
 
 
 func _defeat() -> void:

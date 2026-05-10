@@ -28,6 +28,8 @@ var defeated_once: bool = false
 var hit_flash_timer: float = 0.0
 var fire_cooldown_timer: float = 0.55
 var facing: float = -1.0
+var aim_flash_timer: float = 0.0
+var stride_phase: float = randf() * TAU
 
 
 func _ready() -> void:
@@ -53,6 +55,7 @@ func receive_hit(force: Vector2) -> void:
 	knocked_velocity = force
 	hit_flash_timer = 0.18
 	fire_cooldown_timer = maxf(fire_cooldown_timer, 0.35)
+	aim_flash_timer = 0.0
 
 
 func _update_timers(delta: float) -> void:
@@ -60,6 +63,8 @@ func _update_timers(delta: float) -> void:
 		hit_flash_timer -= delta
 	if fire_cooldown_timer > 0.0:
 		fire_cooldown_timer -= delta
+	else:
+		aim_flash_timer = minf(0.24, aim_flash_timer + delta)
 
 
 func _update_motion(delta: float) -> void:
@@ -81,6 +86,7 @@ func _update_motion(delta: float) -> void:
 		velocity.x = facing * WALK_SPEED * GameState.get_modifier_value("speed_multiplier", 1.0)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, WALK_SPEED * delta * 6.0)
+	stride_phase += delta * clampf(absf(velocity.x) / 75.0, 0.7, 2.2)
 
 
 func _try_fire() -> void:
@@ -105,6 +111,7 @@ func _try_fire() -> void:
 		bolt_node.call("launch", (aim_position - muzzle.global_position).normalized() * PROJECTILE_SPEED)
 	get_parent().add_child(bolt_node)
 	fire_cooldown_timer = FIRE_COOLDOWN
+	aim_flash_timer = 0.0
 
 
 func _try_contact_damage() -> void:
@@ -117,6 +124,7 @@ func _try_contact_damage() -> void:
 func _refresh_visuals() -> void:
 	if facing != 0.0:
 		rig.scale.x = facing
+	var stride := 1.0 + sin(stride_phase) * 0.05 if absf(velocity.x) > 8.0 and is_on_floor() else 1.0
 	if hit_flash_timer > 0.0:
 		body_visual.color = Color(1.0, 0.9, 0.72)
 		visor_visual.color = Color(1.0, 0.95, 0.65)
@@ -127,8 +135,11 @@ func _refresh_visuals() -> void:
 		art_sprite.modulate = Color(1.0, 0.86, 0.74)
 	else:
 		body_visual.color = Color(0.23, 0.35, 0.92)
-		visor_visual.color = Color(0.9, 0.95, 1.0)
+		var ready_mix := clampf(aim_flash_timer / 0.24, 0.0, 1.0)
+		visor_visual.color = Color(0.9 + ready_mix * 0.1, 0.95 - ready_mix * 0.18, 1.0 - ready_mix * 0.45)
 		art_sprite.modulate = Color(1.0, 1.0, 1.0)
+	body_visual.scale.y = stride
+	muzzle.scale = Vector2.ONE * (1.0 + clampf(aim_flash_timer / 0.24, 0.0, 1.0) * 0.16)
 
 
 func _defeat() -> void:

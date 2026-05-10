@@ -29,6 +29,9 @@ var camera_shake_timer: float = 0.0
 var camera_shake_strength: float = 0.0
 var boost_flash_timer: float = 0.0
 var attack_timer: float = 0.0
+var hit_stop_timer: float = 0.0
+var strike_flash_timer: float = 0.0
+var trail_phase: float = 0.0
 
 
 func _ready() -> void:
@@ -37,6 +40,9 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_timers(delta)
+	if hit_stop_timer > 0.0:
+		_refresh_visuals()
+		return
 	_collect_actions()
 	_apply_gravity(delta)
 	_handle_horizontal_motion(delta)
@@ -54,6 +60,8 @@ func _update_timers(delta: float) -> void:
 		dash_cooldown_timer -= delta
 	if attack_timer > 0.0:
 		attack_timer -= delta
+	if hit_stop_timer > 0.0:
+		hit_stop_timer -= delta
 	if invulnerable_timer > 0.0:
 		invulnerable_timer -= delta
 	if action_pop_timer > 0.0:
@@ -64,6 +72,9 @@ func _update_timers(delta: float) -> void:
 		camera_shake_strength = move_toward(camera_shake_strength, 0.0, delta * 22.0)
 	if boost_flash_timer > 0.0:
 		boost_flash_timer -= delta
+	if strike_flash_timer > 0.0:
+		strike_flash_timer -= delta
+	trail_phase += delta * 7.0
 
 
 func _collect_actions() -> void:
@@ -120,6 +131,9 @@ func _try_attack() -> void:
 			enemy.receive_hit(Vector2(facing * attack_force, -240.0))
 			hit_any = true
 	action_pop_timer = 0.08
+	strike_flash_timer = 0.12
+	if hit_any:
+		hit_stop_timer = 0.035
 	_trigger_camera_shake(3.0 if not hit_any else 5.5, 0.12)
 
 
@@ -164,19 +178,24 @@ func apply_launch_boost(boost_velocity: Vector2) -> void:
 func _refresh_visuals() -> void:
 	if invulnerable_timer > 0.0:
 		body_visual.color = Color(1.0, 0.85, 0.42)
+	elif strike_flash_timer > 0.0:
+		body_visual.color = Color(1.0, 0.62, 0.48)
 	elif boost_flash_timer > 0.0:
 		body_visual.color = Color(0.74, 0.98, 1.0)
 	else:
 		body_visual.color = Color(1.0, 0.35, 0.54)
 	var impact_strength := clampf(action_pop_timer * 8.0, 0.0, 1.0)
-	body_visual.scale = Vector2(facing * (1.0 + impact_strength * 0.14), 1.0 - impact_strength * 0.08)
+	var locomotion_bob := 0.03 * sin(trail_phase) if is_on_floor() and absf(velocity.x) > 120.0 else 0.0
+	body_visual.scale = Vector2(facing * (1.0 + impact_strength * 0.14), 1.0 - impact_strength * 0.08 + locomotion_bob)
 	if invulnerable_timer > 0.0:
 		art_sprite.modulate = Color(1.0, 0.9, 0.72)
+	elif strike_flash_timer > 0.0:
+		art_sprite.modulate = Color(1.0, 0.86, 0.78)
 	elif boost_flash_timer > 0.0:
 		art_sprite.modulate = Color(0.84, 0.98, 1.0)
 	else:
 		art_sprite.modulate = Color(1.0, 1.0, 1.0)
-	art_sprite.scale = Vector2(0.25 * facing * (1.0 + impact_strength * 0.08), 0.25 * (1.0 - impact_strength * 0.04))
+	art_sprite.scale = Vector2(0.25 * facing * (1.0 + impact_strength * 0.08), 0.25 * (1.0 - impact_strength * 0.04 + locomotion_bob * 0.35))
 	camera.position.x = lerpf(camera.position.x, 90.0 * facing, 0.08)
 	var shake_target := Vector2.ZERO
 	if camera_shake_timer > 0.0:

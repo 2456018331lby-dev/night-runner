@@ -9,6 +9,7 @@ const TEXT_MUTED := Color(0.64, 0.77, 0.94)
 const TEXT_ACCENT := Color(1.0, 0.84, 0.42)
 const TEXT_SUCCESS := Color(0.76, 1.0, 0.88)
 const TEXT_ALERT := Color(1.0, 0.74, 0.72)
+const TEXT_SOFT := Color(0.88, 0.93, 1.0)
 const HEALTH_ON := Color(1.0, 0.46, 0.36, 1.0)
 const HEALTH_OFF := Color(0.13, 0.2, 0.31, 1.0)
 
@@ -89,6 +90,8 @@ func _refresh() -> void:
 		combo_label.add_theme_color_override("font_color", TEXT_MUTED)
 	core_label.text = "%d / %d" % [GameState.data_cores_collected, GameState.data_cores_total]
 	time_label.text = GameState.formatted_time()
+	if GameState.extraction_unlocked and not GameState.run_success and not GameState.is_run_failed:
+		time_label.text = "%s // CASH %s" % [GameState.formatted_time(), GameState.formatted_cashout_time()]
 	objective_label.text = objective_text
 	title_label.text = String(operation_context.get("title", "NIGHT RUNNER"))
 	subtitle_label.text = String(operation_context.get("subtitle", "Urban combat archive"))
@@ -105,6 +108,8 @@ func _refresh() -> void:
 	secondary_status.text = GameState.get_secondary_objective_status_text()
 	cashout_title.text = GameState.get_extraction_bonus_label().to_upper() if not GameState.get_extraction_bonus_label().is_empty() else "CASHOUT WINDOW"
 	cashout_status.text = GameState.get_extraction_bonus_status_text()
+	if not directive_context.is_empty():
+		directive_summary.text = String(directive_context.get("summary", "")) + "\n" + GameState.describe_modifier_block(Dictionary(directive_context.get("modifiers", {})))
 	if GameState.run_success:
 		rank_label.text = "RANK %s" % GameState.final_rank
 		rank_label.add_theme_color_override("font_color", TEXT_SUCCESS)
@@ -166,7 +171,7 @@ func _apply_theme() -> void:
 		_style_caption(label)
 	_style_metric(score_label, 30, TEXT_ACCENT)
 	_style_metric(core_label, 22, TEXT_PRIMARY)
-	_style_metric(time_label, 28, TEXT_PRIMARY)
+	_style_metric(time_label, 24, TEXT_PRIMARY)
 	_style_metric(rank_label, 20, TEXT_MUTED)
 	title_label.add_theme_font_size_override("font_size", 24)
 	title_label.add_theme_color_override("font_color", Color(0.61, 0.86, 1.0))
@@ -183,7 +188,7 @@ func _apply_theme() -> void:
 	secondary_status.add_theme_font_size_override("font_size", 14)
 	secondary_status.add_theme_color_override("font_color", TEXT_MUTED)
 	cashout_status.add_theme_font_size_override("font_size", 14)
-	cashout_status.add_theme_color_override("font_color", TEXT_MUTED)
+	cashout_status.add_theme_color_override("font_color", TEXT_SOFT)
 	toast_label.add_theme_font_size_override("font_size", 16)
 	toast_label.add_theme_color_override("font_color", TEXT_PRIMARY)
 

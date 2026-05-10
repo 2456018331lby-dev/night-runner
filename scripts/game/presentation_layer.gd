@@ -13,6 +13,8 @@ var sweep_time: float = 0.0
 var fog_nodes: Array[Polygon2D] = []
 var fog_offsets: Array[Vector2] = []
 var beam_nodes: Array[Polygon2D] = []
+var rail_nodes: Array[Polygon2D] = []
+var rail_glow_nodes: Array[Polygon2D] = []
 var backdrop: Polygon2D
 var moon: Polygon2D
 
@@ -68,13 +70,22 @@ func set_theme(theme: Dictionary) -> void:
 
 func _process(delta: float) -> void:
 	sweep_time += delta
+	var combat_heat := 0.0
+	if has_node("/root/GameState"):
+		combat_heat = clampf(GameState.get_extraction_bonus_progress_ratio(), 0.0, 1.0)
 	for index in fog_nodes.size():
 		var fog := fog_nodes[index]
 		var offset := fog_offsets[index]
 		fog.position = offset + Vector2(sin(sweep_time * (0.22 + index * 0.07)) * (26.0 + index * 18.0), cos(sweep_time * (0.16 + index * 0.05)) * 8.0)
-		fog.modulate.a = 0.62 + sin(sweep_time * (0.5 + index * 0.08)) * 0.16
+		fog.modulate.a = 0.62 + sin(sweep_time * (0.5 + index * 0.08)) * 0.16 + combat_heat * 0.12
 	for index in beam_nodes.size():
-		beam_nodes[index].modulate.a = 0.34 + sin(sweep_time * (1.4 + index * 0.33)) * 0.18
+		beam_nodes[index].modulate.a = 0.34 + sin(sweep_time * (1.4 + index * 0.33)) * 0.18 + combat_heat * 0.08
+	for index in rail_nodes.size():
+		var pulse := 0.76 + sin(sweep_time * (2.0 + index * 0.34)) * 0.18 + combat_heat * 0.18
+		rail_nodes[index].modulate.a = clampf(pulse, 0.25, 1.0)
+	for index in rail_glow_nodes.size():
+		var glow_pulse := 0.24 + sin(sweep_time * (1.3 + index * 0.21)) * 0.09 + combat_heat * 0.24
+		rail_glow_nodes[index].modulate.a = clampf(glow_pulse, 0.12, 0.72)
 
 
 func _build_glows() -> void:
@@ -171,8 +182,10 @@ func _build_neon_rails() -> void:
 		var color: Color = strip["color"]
 		var rail := _make_rect(position, size, color, -1)
 		add_child(rail)
+		rail_nodes.append(rail)
 		var glow := _make_rect(position, Vector2(size.x, size.y * 2.4), Color(color.r, color.g, color.b, 0.18), -2)
 		add_child(glow)
+		rail_glow_nodes.append(glow)
 
 
 func _make_rect(center: Vector2, size: Vector2, color: Color, z_order: int) -> Polygon2D:

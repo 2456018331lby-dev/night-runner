@@ -18,6 +18,7 @@ var current_objective: String = ""
 var reinforcements_spawned: bool = false
 var triggered_timeline_events: Dictionary = {}
 var triggered_core_events: Dictionary = {}
+var triggered_cashout_events: Dictionary = {}
 var generated_platforms: Array[Node2D] = []
 
 
@@ -43,6 +44,7 @@ func begin(operation: Dictionary) -> void:
 	reinforcements_spawned = false
 	triggered_timeline_events.clear()
 	triggered_core_events.clear()
+	triggered_cashout_events.clear()
 	_build_platforms()
 	_apply_operation_theme()
 	_position_player()
@@ -57,6 +59,7 @@ func begin(operation: Dictionary) -> void:
 	extraction_gate.global_position = Vector2(active_operation.get("extraction_position", Vector2(2124, 128)))
 	_set_objective(String(active_operation.get("objective_intro", "Steal the data cores and extract.")))
 	_show_toast(String(active_operation.get("intro_toast", "Route live.")), 3.0)
+	_show_lane_signals()
 	if hud.has_method("set_operation_context"):
 		hud.call("set_operation_context", active_operation, GameState.current_directive)
 
@@ -84,6 +87,7 @@ func _process(_delta: float) -> void:
 	if not GameState.is_run_active or GameState.is_run_failed:
 		return
 	_check_timeline_events()
+	_check_cashout_events()
 
 
 func _spawn_initial_encounters() -> void:
@@ -188,6 +192,27 @@ func _trigger_spawn_event(event: Dictionary) -> void:
 		_show_toast(toast, 2.4)
 
 
+func _check_cashout_events() -> void:
+	if not GameState.extraction_unlocked:
+		return
+	var events: Array = active_operation.get("cashout_events", [])
+	for index in events.size():
+		if triggered_cashout_events.get(index, false):
+			continue
+		var event: Dictionary = events[index]
+		if GameState.get_cashout_elapsed_time() < float(event.get("elapsed", 0.0)):
+			continue
+		triggered_cashout_events[index] = true
+		_trigger_spawn_event(event)
+
+
+func _show_lane_signals() -> void:
+	var signals: Array = active_operation.get("lane_signals", [])
+	if signals.is_empty():
+		return
+	_show_toast(" // ".join(signals), 3.5)
+
+
 func _spawn_completion_wave() -> void:
 	if reinforcements_spawned:
 		return
@@ -206,7 +231,10 @@ func _on_enemy_defeated(points: int) -> void:
 
 func _on_player_hit() -> void:
 	GameState.lose_health(1)
-	_show_toast("Hit taken. Protect your health for the extraction payout.", 1.8)
+	if GameState.pending_extraction_bonus > 0:
+		_show_toast("Hit taken under pressure. Cash out before %s slips away." % GameState.get_extraction_bonus_label(), 1.8)
+	else:
+		_show_toast("Hit taken. Protect your health for the extraction payout.", 1.8)
 
 
 func _on_player_fell() -> void:
@@ -242,6 +270,7 @@ func _on_data_core_collected() -> void:
 	if GameState.extraction_bonus_active:
 		completion_text += " %s" % GameState.get_extraction_bonus_status_text()
 	_show_toast(completion_text, 2.8)
+	_show_toast("Optional objective // %s" % GameState.get_secondary_objective_status_text(), 2.1)
 
 
 func _on_extraction_blocked() -> void:

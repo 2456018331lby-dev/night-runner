@@ -19,6 +19,7 @@ const TEXT_MUTED := Color("9bb0c9")
 const TEXT_GOLD := Color("ffd37c")
 const TEXT_ALERT := Color("ff9289")
 const TEXT_SUCCESS := Color("98ffd2")
+const TEXT_SOFT := Color("dce7f5")
 
 @onready var backdrop: ColorRect = $Backdrop
 @onready var ambient_a: ColorRect = $Backdrop/AmbientA
@@ -73,7 +74,7 @@ func build_hub(operations: Array[Dictionary], selected_id: String) -> void:
 	status_label.text = "OPERATIONS DECK"
 	deck_title.text = "AVAILABLE RUNS"
 	deck_subtitle.text = "Three combat fantasies in one career ladder: chase, infiltration and adaptive overdrive."
-	footer_hint.text = "Select an operation. The system remembers your best score, rank and survival rate."
+	footer_hint.text = "Select an operation. The system remembers best score, rank, survival rate and chosen directive."
 	primary_button.text = "LAUNCH OPERATION"
 	secondary_button.text = "VIEW RESULTS"
 	tertiary_button.text = "PAUSE LOCKED"
@@ -149,6 +150,9 @@ func _refresh_focus(operation: Dictionary) -> void:
 	focus_summary.text = String(selected.get("summary", "Select an operation to inspect its risk profile."))
 	focus_brief.text = String(selected.get("brief", ""))
 	focus_intel.text = String(selected.get("intel", ""))
+	var lane_signals: Array = selected.get("lane_signals", [])
+	if not lane_signals.is_empty():
+		focus_intel.text += "\n" + " // ".join(lane_signals)
 	mission_title.text = "MISSION OBJECTIVE"
 	var secondary_name := String(selected.get("secondary_objective", {}).get("name", "No optional objective"))
 	var secondary_description := String(selected.get("secondary_objective", {}).get("description", ""))
@@ -166,6 +170,7 @@ func _refresh_focus(operation: Dictionary) -> void:
 			int(extraction_bonus.get("base_bounty", 0)),
 			int(extraction_bonus.get("step_bounty", 0)),
 		]
+		bonus_summary.text += "\nThis lane also has %d live cashout escalation beat(s)." % int(Array(selected.get("cashout_events", [])).size())
 	record_title.text = "FIELD RECORDS"
 	_populate_record_grid(record)
 	if current_phase == FrontendBridge.PHASE_HUB:
@@ -173,6 +178,9 @@ func _refresh_focus(operation: Dictionary) -> void:
 		directive_title.text = "SELECTED DIRECTIVE"
 		directive_name.text = String(selected_directive.get("name", "Base Protocol"))
 		directive_summary.text = String(selected_directive.get("summary", "No adaptive directive active."))
+		var modifier_summary := GameState.describe_modifier_block(Dictionary(selected_directive.get("modifiers", {})))
+		if not modifier_summary.is_empty():
+			directive_summary.text += "\n" + modifier_summary
 		directive_deck_title.text = "TACTICAL LOADOUT"
 		directive_deck_subtitle.text = "Choose the run modifier before launch. This stays modular so the front-end can be replaced later without touching gameplay."
 		_populate_directive_deck(selected)
@@ -248,8 +256,9 @@ func _add_directive_button(operation: Dictionary, directive: Dictionary, selecte
 	var button := Button.new()
 	button.toggle_mode = true
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.text = "%s\n%s" % [String(directive.get("name", "")), String(directive.get("summary", ""))]
-	button.custom_minimum_size = Vector2(0, 82)
+	var modifier_summary := GameState.describe_modifier_block(Dictionary(directive.get("modifiers", {})))
+	button.text = "%s\n%s\n%s" % [String(directive.get("name", "")), String(directive.get("summary", "")), modifier_summary]
+	button.custom_minimum_size = Vector2(0, 104)
 	button.button_pressed = selected
 	button.focus_mode = Control.FOCUS_NONE
 	var operation_id := String(operation.get("id", ""))
@@ -283,7 +292,7 @@ func _select_directive_button(operation_id: String, directive_id: String) -> voi
 		button.add_theme_stylebox_override("pressed", styles["pressed"])
 	var selected_directive := FrontendBridge.get_selected_directive(operation_id)
 	directive_name.text = String(selected_directive.get("name", "Base Protocol"))
-	directive_summary.text = String(selected_directive.get("summary", "No adaptive directive active."))
+	directive_summary.text = String(selected_directive.get("summary", "No adaptive directive active.")) + "\n" + GameState.describe_modifier_block(Dictionary(selected_directive.get("modifiers", {})))
 
 
 func _get_directive_from_operation(operation: Dictionary, directive_id: String) -> Dictionary:
@@ -314,12 +323,14 @@ func _add_debrief_metrics(operation: Dictionary) -> void:
 	_add_panel_note("Rank %s // Score %04d" % [GameState.final_rank, GameState.score], TEXT_GOLD)
 	_add_panel_note("Operation best %04d // Career best %04d" % [int(record.get("best_score", 0)), int(GameState.meta_progress.get("highest_score", 0))], TEXT_MUTED)
 	_add_panel_note("Directive %s" % (GameState.get_current_directive_name() if not GameState.get_current_directive_name().is_empty() else "None"), TEXT_PRIMARY)
+	_add_panel_note("Cashout %s" % GameState.get_extraction_bonus_status_text(), TEXT_SOFT)
 
 
 func _add_pause_metrics() -> void:
 	_clear_operation_buttons()
 	_add_panel_note("Elapsed %s" % GameState.formatted_time(), TEXT_PRIMARY)
 	_add_panel_note("Combo %d // Health %d" % [GameState.combo_count, GameState.health], TEXT_MUTED)
+	_add_panel_note("Cashout %s" % GameState.get_extraction_bonus_status_text(), TEXT_SOFT)
 	_add_panel_note("Objective remains active. No score is lost while paused.", TEXT_MUTED)
 
 

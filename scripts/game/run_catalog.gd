@@ -63,6 +63,14 @@ const OPERATIONS := [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1510, 188)},
 				],
 			},
+			{
+				"time": 31.0,
+				"toast": "Convoy counter-rush. Front guards are doubling back through the upper lane.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1960, 126)},
+					{"scene": RUNNER_SCENE, "position": Vector2(2146, 126)},
+				],
+			},
 		],
 		"core_events": [
 			{
@@ -70,6 +78,13 @@ const OPERATIONS := [
 				"toast": "Momentum spike. The convoy is splitting its shield line.",
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1640, 124)},
+				],
+			},
+			{
+				"count": 4,
+				"toast": "Convoy fracture. The upper sprint line is now lethal but faster.",
+				"spawn": [
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2040, 126)},
 				],
 			},
 		],
@@ -84,6 +99,10 @@ const OPERATIONS := [
 		"intro_toast": "Route is hot. Chain boost pads to stay ahead of the response time.",
 		"block_toast": "Extraction lane is still sealed. You need every core.",
 		"completion_toast": "Alarm trip confirmed. The convoy is dumping reinforcements into the lane.",
+		"lane_signals": [
+			"Velocity route. Treat boost pads like offensive tempo, not just traversal.",
+			"Once extraction unlocks, staying alive turns pursuit pressure into a score ladder.",
+		],
 		"base_modifiers": {
 			"health_bonus": 0,
 			"speed_multiplier": 1.06,
@@ -138,6 +157,24 @@ const OPERATIONS := [
 			"base_bounty": 70,
 			"step_bounty": 25,
 		},
+		"cashout_events": [
+			{
+				"elapsed": 8.0,
+				"toast": "Clean-up bikes are cutting across the roofline. Keep the chain alive.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1688, 124)},
+					{"scene": RUNNER_SCENE, "position": Vector2(1980, 126)},
+				],
+			},
+			{
+				"elapsed": 16.0,
+				"toast": "Kill-team suppressors have sight on extraction. Cash out or break them.",
+				"spawn": [
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1824, 88)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2140, 126)},
+				],
+			},
+		],
 	},
 	{
 		"id": "ghost_circuit",
@@ -195,6 +232,14 @@ const OPERATIONS := [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1500, 202)},
 				],
 			},
+			{
+				"time": 34.0,
+				"toast": "Relay flood. Outer towers are feeding runners through the service tier.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1240, 202)},
+					{"scene": RUNNER_SCENE, "position": Vector2(1860, 76)},
+				],
+			},
 		],
 		"core_events": [
 			{
@@ -211,6 +256,13 @@ const OPERATIONS := [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1860, 76)},
 				],
 			},
+			{
+				"count": 4,
+				"toast": "Mirror bloom. Upper ledges are safer, but the relay core is baiting you wide.",
+				"spawn": [
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2096, 74)},
+				],
+			},
 		],
 		"completion_spawns": [
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1210, 282)},
@@ -222,6 +274,10 @@ const OPERATIONS := [
 		"intro_toast": "This route is quieter and meaner. Read the suppressor angles before you leap.",
 		"block_toast": "The relay still has black boxes online. Clear the route first.",
 		"completion_toast": "Relay net compromised. The circuit is broadcasting your position.",
+		"lane_signals": [
+			"Route-reading mission. High ground safety is temporary because suppressor angles mutate.",
+			"Ghost windows reward clean clears, but overstay turns the route into a sniper puzzle.",
+		],
 		"base_modifiers": {
 			"health_bonus": -1,
 			"speed_multiplier": 0.98,
@@ -274,6 +330,23 @@ const OPERATIONS := [
 			"base_bounty": 90,
 			"step_bounty": 35,
 		},
+		"cashout_events": [
+			{
+				"elapsed": 10.0,
+				"toast": "Back-trace active. New suppressor beams are crossing the exit tier.",
+				"spawn": [
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1748, 126)},
+				],
+			},
+			{
+				"elapsed": 19.0,
+				"toast": "Relay harvest spike. Couriers are rushing the low lane for recovery.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1290, 202)},
+					{"scene": RUNNER_SCENE, "position": Vector2(1534, 126)},
+				],
+			},
+		],
 	},
 	{
 		"id": "overdrive_protocol",
@@ -341,6 +414,14 @@ const OPERATIONS := [
 					{"scene": RUNNER_SCENE, "position": Vector2(2104, 92)},
 				],
 			},
+			{
+				"time": 40.0,
+				"toast": "Hunter retask. The sector is rewriting itself around your route.",
+				"spawn": [
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1078, 250)},
+					{"scene": RUNNER_SCENE, "position": Vector2(1830, 152)},
+				],
+			},
 		],
 		"core_events": [
 			{
@@ -348,6 +429,14 @@ const OPERATIONS := [
 				"toast": "The protocol is changing shape. Expect a mixed wave ahead.",
 				"spawn": [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1580, 170)},
+				],
+			},
+			{
+				"count": 4,
+				"toast": "Kill-switch instability. Upper and lower lines are both compromised now.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(980, 338)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2048, 90)},
 				],
 			},
 		],
@@ -362,6 +451,10 @@ const OPERATIONS := [
 		"intro_toast": "This mode draws a fresh directive every run. Build your route around it immediately.",
 		"block_toast": "Kill-switch matrix incomplete. Finish the sweep before you run.",
 		"completion_toast": "Protocol breach confirmed. The sector is now fully hostile.",
+		"lane_signals": [
+			"Hybrid route. The sector keeps escalating against greed, not just survival.",
+			"This is the highest replay lane: build choice, score pressure and cashout timing all matter.",
+		],
 		"base_modifiers": {
 			"health_bonus": 0,
 			"speed_multiplier": 1.0,
@@ -423,6 +516,25 @@ const OPERATIONS := [
 			"base_bounty": 110,
 			"step_bounty": 45,
 		},
+		"cashout_events": [
+			{
+				"elapsed": 7.0,
+				"toast": "Dividend spike. Hunters are feeding directly into the payout lane.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1710, 254)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2210, 90)},
+				],
+			},
+			{
+				"elapsed": 15.0,
+				"toast": "Protocol panic. Every extra second now is greed made visible.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1216, 248)},
+					{"scene": RUNNER_SCENE, "position": Vector2(1948, 152)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1498, 170)},
+				],
+			},
+		],
 	},
 ]
 
