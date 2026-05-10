@@ -61,6 +61,7 @@
 - `DataCore` / `ExtractionGate`：短局目标层，负责“为什么要继续跑”
 - `BoostPad`：地形节奏层，负责让推进更快更立体
 - `Player` / `EnemyRunner` / `EnemySuppressor`：只做角色行为，不管理全局状态
+- `EnemyBastion`：精英封锁敌人，负责近中距压线与 shockwave 区域压迫
 - `EnemyBolt`：远程敌人的轻量投射物，不接 UI 和分数
 
 当前有两条已经踩过的手感结论，不要回退：

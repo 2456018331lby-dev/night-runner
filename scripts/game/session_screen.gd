@@ -174,6 +174,9 @@ func _refresh_focus(operation: Dictionary) -> void:
 			int(extraction_bonus.get("step_bounty", 0)),
 		]
 		bonus_summary.text += "\nThis lane also has %d live cashout escalation beat(s)." % int(Array(selected.get("cashout_events", [])).size())
+	var bastion_count := _count_scene_mentions(selected, "EnemyBastion")
+	if bastion_count > 0:
+		bonus_summary.text += "\nElite pressure: %d bastion blockade node(s) are baked into this route." % bastion_count
 	record_title.text = "FIELD RECORDS"
 	_populate_record_grid(record)
 	if current_phase == FrontendBridge.PHASE_HUB:
@@ -341,6 +344,10 @@ func _add_debrief_metrics(operation: Dictionary) -> void:
 		int(metrics.get("hazard_hits", 0)),
 		int(metrics.get("max_combo", 0)),
 	], TEXT_MUTED)
+	_add_panel_note("Cashout kills %d // Verdict %s" % [
+		int(metrics.get("cashout_kills", 0)),
+		"Clean" if int(metrics.get("hazard_hits", 0)) <= 0 and int(metrics.get("hits_taken", 0)) <= 1 else "Contested",
+	], TEXT_SUCCESS if GameState.run_success else TEXT_ALERT)
 
 
 func _add_pause_metrics() -> void:
@@ -548,3 +555,23 @@ func _format_time(time_value: float) -> String:
 	var minutes := total_seconds / 60
 	var seconds := total_seconds % 60
 	return "%02d:%02d" % [minutes, seconds]
+
+
+func _count_scene_mentions(operation: Dictionary, scene_name: String) -> int:
+	var total := 0
+	for bucket_name in ["encounters", "completion_spawns"]:
+		for setup in operation.get(bucket_name, []):
+			if _scene_matches_name(setup.get("scene"), scene_name):
+				total += 1
+	for event_name in ["timeline_events", "core_events", "cashout_events"]:
+		for event in operation.get(event_name, []):
+			for setup in event.get("spawn", []):
+				if _scene_matches_name(setup.get("scene"), scene_name):
+					total += 1
+	return total
+
+
+func _scene_matches_name(scene: PackedScene, scene_name: String) -> bool:
+	if scene == null:
+		return false
+	return scene.resource_path.get_file().get_basename().capitalize().replace("_", "") == scene_name

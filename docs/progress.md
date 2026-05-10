@@ -4,6 +4,10 @@
 
 ### 已完成
 
+- 新增精英敌人 `EnemyBastion`，提供蓄力 shockwave 的封锁压迫模型
+- 把三条行动的敌人编组继续拉开，让部分关键阶段会出现 bastion 压线节点
+- 让中枢直接提示路线中的 elite pressure 数量，让局前阅读更接近正式战术界面
+- 继续扩展结果页战术回顾，补足 cashout 击杀与 clean / contested verdict
 - 把 `RouteHazard` 从单一激光梁扩展成三类数据驱动机关：`pulse_beam`、`sweep_wall`、`collapse_zone`
 - 给三条行动补了更有记忆点的机关组合，让 `Blitz Pursuit`、`Ghost Circuit`、`Overdrive Protocol` 在空间风险上进一步分化
 - 让 `World` 持续汇总路线阶段、环境压力和 hazard 状态，并把这些信息推送给 HUD
@@ -40,13 +44,13 @@
 ### 当前问题
 
 - 观感已经比原型完整很多，但仍未达到“高端商业成品”的特效密度
-- 行动路线虽然已经有多类机关，但仍缺少真正的分支地形、更多高级敌人机制和 boss 级记忆点
+- 行动路线虽然已经有多类机关和首个精英封锁敌人，但仍缺少真正的分支地形、更多精英 archetype 和 boss 级记忆点
 - 还没有标题动效、音效、命中停顿、敌人预警特效和设置菜单
 - Android APK 仍需在 Godot 编辑器里补 export preset、SDK、keystore
 
 ### 下一步建议
 
-- 给每条行动补更强的地形分支、专属精英敌人与更明确的阶段演出
+- 给每条行动继续补更强的地形分支、第二类精英敌人与更明确的阶段演出
 - 做打击反馈、镜头语言、音效和命中停顿
 - 继续提升中枢和结果页美术层级，补设置、图标系统和移动端安全区
 - 接 Android 导出 preset，并开始真机触控调优

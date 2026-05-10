@@ -106,6 +106,12 @@
 - 只关心和玩家维持射击距离、发射投射物、被击退和掉落死亡
 - 继续复用 `enemy` 组、`receive_hit` 和 `defeated` 接口
 
+### `EnemyBastion`
+
+- 精英封锁敌人
+- 负责制造 windup -> shockwave 的近中距压迫区
+- 仍只输出自身受击、碰撞伤害和区域压制，不接 UI、进度或结算
+
 ### `EnemyBolt`
 
 - 由 `EnemySuppressor` 生成

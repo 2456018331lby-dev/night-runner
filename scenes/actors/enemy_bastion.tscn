@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/enemy_bastion.gd" id="1_jap3w"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(36, 56)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pulse"]
+size = Vector2(170, 64)
+
+[node name="EnemyBastion" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 13
+script = ExtResource("1_jap3w")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Rig" type="Node2D" parent="."]
+
+[node name="Body" type="Polygon2D" parent="Rig"]
+polygon = PackedVector2Array(-18, -28, 18, -28, 18, 28, -18, 28)
+color = Color(0.96, 0.42, 0.34, 0.1)
+
+[node name="Shield" type="Polygon2D" parent="Rig"]
+polygon = PackedVector2Array(4, -20, 34, -16, 40, 0, 32, 18, 0, 18, -4, 0)
+color = Color(1, 0.72, 0.42, 0.14)
+
+[node name="Core" type="Polygon2D" parent="Rig"]
+polygon = PackedVector2Array(-2, -10, 12, -14, 18, -2, 10, 10, -2, 8, -8, -2)
+color = Color(1, 0.9, 0.68, 0.18)
+
+[node name="PulseZone" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PulseZone"]
+shape = SubResource("RectangleShape2D_pulse")
+disabled = true
+
+[node name="PulseRing" type="Polygon2D" parent="PulseZone"]
+visible = false
+polygon = PackedVector2Array(-88, -36, 88, -36, 88, 36, -88, 36)
+color = Color(1, 0.72, 0.42, 0.18)

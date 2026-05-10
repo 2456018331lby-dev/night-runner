@@ -3,6 +3,7 @@ extends RefCounted
 
 const RUNNER_SCENE := preload("res://scenes/actors/enemy_runner.tscn")
 const SUPPRESSOR_SCENE := preload("res://scenes/actors/enemy_suppressor.tscn")
+const BASTION_SCENE := preload("res://scenes/actors/enemy_bastion.tscn")
 
 const OPERATIONS := [
 	{
@@ -40,6 +41,7 @@ const OPERATIONS := [
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1700, 88)},
 			{"scene": RUNNER_SCENE, "position": Vector2(1870, 124)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(2108, 126)},
+			{"scene": BASTION_SCENE, "position": Vector2(1536, 206)},
 		],
 		"data_cores": [
 			Vector2(690, 364),
@@ -110,6 +112,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(936, 350)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1510, 188)},
+					{"scene": BASTION_SCENE, "position": Vector2(1838, 126)},
 				],
 			},
 			{
@@ -221,6 +224,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1824, 88)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2140, 126)},
+					{"scene": BASTION_SCENE, "position": Vector2(2020, 126)},
 				],
 			},
 		],
@@ -260,6 +264,7 @@ const OPERATIONS := [
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1416, 204)},
 			{"scene": RUNNER_SCENE, "position": Vector2(1680, 124)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1996, 74)},
+			{"scene": BASTION_SCENE, "position": Vector2(1108, 282)},
 		],
 		"data_cores": [
 			Vector2(506, 470),
@@ -330,6 +335,7 @@ const OPERATIONS := [
 				"toast": "Relay mirrors are pivoting. Expect new suppressor sight-lines.",
 				"spawn": [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1500, 202)},
+					{"scene": BASTION_SCENE, "position": Vector2(1720, 124)},
 				],
 			},
 			{
@@ -361,6 +367,7 @@ const OPERATIONS := [
 				"toast": "Mirror bloom. Upper ledges are safer, but the relay core is baiting you wide.",
 				"spawn": [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2096, 74)},
+					{"scene": BASTION_SCENE, "position": Vector2(1880, 76)},
 				],
 			},
 		],
@@ -436,6 +443,7 @@ const OPERATIONS := [
 				"toast": "Back-trace active. New suppressor beams are crossing the exit tier.",
 				"spawn": [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1748, 126)},
+					{"scene": BASTION_SCENE, "position": Vector2(1980, 76)},
 				],
 			},
 			{
@@ -484,6 +492,7 @@ const OPERATIONS := [
 			{"scene": RUNNER_SCENE, "position": Vector2(1736, 254)},
 			{"scene": RUNNER_SCENE, "position": Vector2(1914, 152)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(2204, 90)},
+			{"scene": BASTION_SCENE, "position": Vector2(1766, 254)},
 		],
 		"data_cores": [
 			Vector2(620, 420),
@@ -556,6 +565,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1328, 250)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1828, 152)},
+					{"scene": BASTION_SCENE, "position": Vector2(1228, 250)},
 				],
 			},
 			{
@@ -588,6 +598,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(980, 338)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2048, 90)},
+					{"scene": BASTION_SCENE, "position": Vector2(1990, 152)},
 				],
 			},
 		],
@@ -683,6 +694,7 @@ const OPERATIONS := [
 					{"scene": RUNNER_SCENE, "position": Vector2(1216, 248)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1948, 152)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1498, 170)},
+					{"scene": BASTION_SCENE, "position": Vector2(2142, 90)},
 				],
 			},
 		],

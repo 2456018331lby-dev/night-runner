@@ -1,0 +1,20 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bastionArmor" x1="68" y1="30" x2="192" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB36F"/>
+      <stop offset="1" stop-color="#FF5E4A"/>
+    </linearGradient>
+    <linearGradient id="bastionShield" x1="110" y1="92" x2="232" y2="166" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF0B5"/>
+      <stop offset="1" stop-color="#FF8D52"/>
+    </linearGradient>
+  </defs>
+  <path d="M126 30C108 30 94 46 94 64C94 82 108 96 126 96C144 96 158 82 158 64C158 46 144 30 126 30Z" fill="url(#bastionArmor)"/>
+  <path d="M92 96L160 96L182 126L178 174L150 188L142 222H110L106 188L82 172L74 128L92 96Z" fill="url(#bastionArmor)"/>
+  <path d="M154 104L206 110L230 134L228 156L208 168L152 166L142 138L154 104Z" fill="url(#bastionShield)"/>
+  <path d="M82 118L108 126L112 152L92 162L66 154L60 132L82 118Z" fill="#FFD6A8"/>
+  <path d="M108 188L92 216H60L78 190L94 172L108 188Z" fill="#FFB089"/>
+  <path d="M142 188L166 204L188 226H154L132 206L142 188Z" fill="#FFD780"/>
+  <path d="M112 62H144" stroke="#FFF2C8" stroke-width="10" stroke-linecap="round"/>
+  <path d="M94 226H182" stroke="#FF734A" stroke-width="8" stroke-linecap="round" opacity="0.45"/>
+</svg>

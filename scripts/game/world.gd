@@ -107,7 +107,7 @@ func _process(_delta: float) -> void:
 
 func _spawn_initial_encounters() -> void:
 	for setup in active_operation.get("encounters", []):
-		_spawn_enemy(setup["scene"], setup["position"])
+		_spawn_enemy_from_setup(setup)
 
 
 func _build_platforms() -> void:
@@ -212,7 +212,7 @@ func _check_core_events() -> void:
 
 func _trigger_spawn_event(event: Dictionary) -> void:
 	for spawn_data in event.get("spawn", []):
-		_spawn_enemy(spawn_data["scene"], spawn_data["position"])
+		_spawn_enemy_from_setup(spawn_data)
 	var toast := String(event.get("toast", ""))
 	if not toast.is_empty():
 		_show_toast(toast, 2.4)
@@ -270,7 +270,14 @@ func _spawn_completion_wave() -> void:
 		return
 	reinforcements_spawned = true
 	for spawn_data in active_operation.get("completion_spawns", []):
-		_spawn_enemy(spawn_data["scene"], spawn_data["position"])
+		_spawn_enemy_from_setup(spawn_data)
+
+
+func _spawn_enemy_from_setup(setup: Dictionary) -> void:
+	var scene: PackedScene = setup.get("scene")
+	if scene == null:
+		return
+	_spawn_enemy(scene, Vector2(setup.get("position", Vector2.ZERO)))
 
 
 func _on_enemy_defeated(points: int) -> void:
