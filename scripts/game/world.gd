@@ -198,6 +198,8 @@ func _spawn_completion_wave() -> void:
 
 func _on_enemy_defeated(points: int) -> void:
 	GameState.register_enemy_defeat(points)
+	if GameState.extraction_bonus_active and GameState.extraction_unlocked and GameState.pending_extraction_bonus > 0:
+		_show_toast(GameState.get_extraction_bonus_status_text(), 1.5)
 	if GameState.combo_count >= 3:
 		_show_toast("Combo x%d. Keep pressure for bonus score." % GameState.combo_count, 1.6)
 
@@ -236,7 +238,10 @@ func _on_data_core_collected() -> void:
 		extraction_gate.call("set_unlocked", true)
 	_spawn_completion_wave()
 	_set_objective(String(active_operation.get("objective_complete", "Extraction is now available.")))
-	_show_toast(String(active_operation.get("completion_toast", "Extraction route is live.")), 2.5)
+	var completion_text := String(active_operation.get("completion_toast", "Extraction route is live."))
+	if GameState.extraction_bonus_active:
+		completion_text += " %s" % GameState.get_extraction_bonus_status_text()
+	_show_toast(completion_text, 2.8)
 
 
 func _on_extraction_blocked() -> void:
@@ -255,12 +260,18 @@ func _on_extraction_entered() -> void:
 	finish_bonus = int(round(float(finish_bonus) * GameState.get_modifier_value("finish_bonus_multiplier", 1.0)))
 	if GameState.health == max(1, 3 + int(GameState.run_modifiers.get("health_bonus", 0))):
 		finish_bonus += int(GameState.run_modifiers.get("silent_bonus", 0))
+	var objective_result := GameState.evaluate_secondary_objective()
+	if bool(objective_result.get("completed", false)):
+		finish_bonus += int(objective_result.get("reward_score", 0))
+	finish_bonus += GameState.pending_extraction_bonus
 	GameState.add_score(finish_bonus)
 	var rank := _calculate_rank()
-	var summary := "Rank %s // Score %04d // Directive %s" % [
+	var summary := "Rank %s // Score %04d // Directive %s // %s // %s" % [
 		rank,
 		GameState.score,
 		GameState.get_current_directive_name() if not GameState.get_current_directive_name().is_empty() else "Base Protocol",
+		GameState.secondary_objective_summary if not GameState.secondary_objective_summary.is_empty() else "No optional objective",
+		GameState.get_extraction_bonus_status_text(),
 	]
 	GameState.set_result(rank, summary)
 	GameState.finish_run(true)

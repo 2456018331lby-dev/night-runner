@@ -159,6 +159,20 @@ text = "Brief"
 autowrap_mode = 3
 text = "Intel"
 
+[node name="MissionTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+text = "MISSION OBJECTIVE"
+
+[node name="MissionSummary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+autowrap_mode = 3
+text = "Objective details"
+
+[node name="BonusTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+text = "CASHOUT WINDOW"
+
+[node name="BonusSummary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+autowrap_mode = 3
+text = "Cashout details"
+
 [node name="RecordsTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
 text = "FIELD RECORDS"
 
@@ -176,6 +190,22 @@ text = "Adaptive directives appear here."
 [node name="DirectiveSummary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
 autowrap_mode = 3
 text = "Directive summary"
+
+[node name="DirectiveDeckTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+text = "TACTICAL LOADOUT"
+
+[node name="DirectiveDeckSubtitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+autowrap_mode = 3
+text = "Directive cards appear here."
+
+[node name="DirectiveScroll" type="ScrollContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+custom_minimum_size = Vector2(0, 208)
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="DirectiveFlow" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/DirectiveScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
 [node name="FooterRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column"]
 theme_override_constants/separation = 18

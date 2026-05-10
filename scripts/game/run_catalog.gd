@@ -125,6 +125,19 @@ const OPERATIONS := [
 				},
 			},
 		],
+		"secondary_objective": {
+			"id": "shock_exit",
+			"name": "Shock Exit",
+			"type": "time_limit",
+			"description": "Extract within 00:45 to cash the pursuit bonus.",
+			"target_time": 45.0,
+			"reward_score": 320,
+		},
+		"extraction_bonus": {
+			"label": "Pursuit Bonus",
+			"base_bounty": 70,
+			"step_bounty": 25,
+		},
 	},
 	{
 		"id": "ghost_circuit",
@@ -249,6 +262,18 @@ const OPERATIONS := [
 				},
 			},
 		],
+		"secondary_objective": {
+			"id": "ghost_clause",
+			"name": "Ghost Clause",
+			"type": "no_hit",
+			"description": "Extract without taking damage to secure the silent bonus.",
+			"reward_score": 420,
+		},
+		"extraction_bonus": {
+			"label": "Relay Harvest",
+			"base_bounty": 90,
+			"step_bounty": 35,
+		},
 	},
 	{
 		"id": "overdrive_protocol",
@@ -385,6 +410,19 @@ const OPERATIONS := [
 				},
 			},
 		],
+		"secondary_objective": {
+			"id": "dividend_hunter",
+			"name": "Dividend Hunter",
+			"type": "score_threshold",
+			"description": "Reach 2600 score before extraction to trigger the dividend payout.",
+			"target_score": 2600,
+			"reward_score": 460,
+		},
+		"extraction_bonus": {
+			"label": "Dividend Chain",
+			"base_bounty": 110,
+			"step_bounty": 45,
+		},
 	},
 ]
 

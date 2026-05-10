@@ -137,9 +137,11 @@ text = "Steal all data cores and extract."
 
 [node name="DirectiveRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
 size_flags_horizontal = 3
+theme_override_constants/separation = 14
 
 [node name="DirectiveCard" type="PanelContainer" parent="MarginContainer/RootColumn/DirectiveRow"]
 custom_minimum_size = Vector2(520, 82)
+size_flags_horizontal = 3
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/DirectiveRow/DirectiveCard"]
 theme_override_constants/margin_left = 16
@@ -159,6 +161,51 @@ text = "Base Protocol"
 [node name="DirectiveSummary" type="Label" parent="MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox"]
 autowrap_mode = 3
 text = "No adaptive directive active."
+
+[node name="SecondaryCard" type="PanelContainer" parent="MarginContainer/RootColumn/DirectiveRow"]
+custom_minimum_size = Vector2(360, 82)
+size_flags_horizontal = 3
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/DirectiveRow/SecondaryCard"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/DirectiveRow/SecondaryCard/Margin"]
+theme_override_constants/separation = 4
+
+[node name="SecondaryTitle" type="Label" parent="MarginContainer/RootColumn/DirectiveRow/SecondaryCard/Margin/VBox"]
+text = "OPTIONAL OBJECTIVE"
+
+[node name="SecondaryName" type="Label" parent="MarginContainer/RootColumn/DirectiveRow/SecondaryCard/Margin/VBox"]
+text = "No optional objective"
+
+[node name="SecondaryStatus" type="Label" parent="MarginContainer/RootColumn/DirectiveRow/SecondaryCard/Margin/VBox"]
+autowrap_mode = 3
+text = "Objective status"
+
+[node name="CashoutRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
+size_flags_horizontal = 3
+
+[node name="CashoutCard" type="PanelContainer" parent="MarginContainer/RootColumn/CashoutRow"]
+custom_minimum_size = Vector2(500, 76)
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/CashoutRow/CashoutCard"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/CashoutRow/CashoutCard/Margin"]
+theme_override_constants/separation = 4
+
+[node name="CashoutTitle" type="Label" parent="MarginContainer/RootColumn/CashoutRow/CashoutCard/Margin/VBox"]
+text = "CASHOUT WINDOW"
+
+[node name="CashoutStatus" type="Label" parent="MarginContainer/RootColumn/CashoutRow/CashoutCard/Margin/VBox"]
+autowrap_mode = 3
+text = "Cashout status"
 
 [node name="ToastAnchor" type="Control" parent="."]
 layout_mode = 3

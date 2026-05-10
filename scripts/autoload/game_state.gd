@@ -11,6 +11,7 @@ const DEFAULT_COMBO_WINDOW := 4.0
 const DEFAULT_META_PROGRESS := {
 	"highest_score": 0,
 	"selected_operation_id": "blitz_pursuit",
+	"selected_directives": {},
 	"unlocked_operations": ["blitz_pursuit"],
 	"career_runs": 0,
 	"career_successes": 0,
@@ -36,8 +37,18 @@ var current_operation_id: String = ""
 var current_operation_title: String = ""
 var current_operation_summary: String = ""
 var current_directive: Dictionary = {}
+var current_secondary_objective: Dictionary = {}
 var run_modifiers: Dictionary = {}
 var meta_progress: Dictionary = {}
+var hits_taken: int = 0
+var max_combo_reached: int = 0
+var secondary_objective_completed: bool = false
+var secondary_objective_summary: String = ""
+var extraction_bonus_config: Dictionary = {}
+var extraction_bonus_label: String = ""
+var extraction_bonus_active: bool = false
+var extraction_bonus_kills: int = 0
+var pending_extraction_bonus: int = 0
 
 
 func _ready() -> void:
@@ -65,6 +76,9 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	current_operation_title = String(operation.get("title", ""))
 	current_operation_summary = String(operation.get("summary", ""))
 	current_directive = directive.duplicate(true)
+	current_secondary_objective = Dictionary(operation.get("secondary_objective", {})).duplicate(true)
+	extraction_bonus_config = Dictionary(operation.get("extraction_bonus", {})).duplicate(true)
+	extraction_bonus_label = String(extraction_bonus_config.get("label", "Cashout Bonus"))
 	run_modifiers = _build_run_modifiers(operation, directive)
 	score = 0
 	health = max(1, 3 + int(run_modifiers.get("health_bonus", 0)))
@@ -75,6 +89,13 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	combo_count = 0
 	combo_timer = 0.0
 	combo_window = maxf(1.2, DEFAULT_COMBO_WINDOW * float(run_modifiers.get("combo_window_multiplier", 1.0)))
+	max_combo_reached = 0
+	hits_taken = 0
+	secondary_objective_completed = false
+	secondary_objective_summary = ""
+	extraction_bonus_active = false
+	extraction_bonus_kills = 0
+	pending_extraction_bonus = 0
 	data_cores_collected = 0
 	data_cores_total = 0
 	extraction_unlocked = false
@@ -98,9 +119,13 @@ func register_enemy_defeat(base_points: int) -> void:
 		combo_count += 1
 	else:
 		combo_count = 1
+	max_combo_reached = maxi(max_combo_reached, combo_count)
 	combo_timer = combo_window
 	var total_points := int(round((base_points + max(0, combo_count - 1) * 50) * float(run_modifiers.get("score_multiplier", 1.0))))
 	score += total_points
+	if extraction_bonus_active and extraction_unlocked:
+		extraction_bonus_kills += 1
+		pending_extraction_bonus += get_next_extraction_bonus_value()
 	_update_high_score()
 	state_changed.emit()
 
@@ -117,6 +142,7 @@ func collect_data_core(points: int = 250) -> void:
 	score += int(round(points * float(run_modifiers.get("score_multiplier", 1.0))))
 	if data_cores_collected >= data_cores_total:
 		extraction_unlocked = true
+		activate_extraction_bonus()
 	_update_high_score()
 	state_changed.emit()
 
@@ -124,8 +150,13 @@ func collect_data_core(points: int = 250) -> void:
 func lose_health(amount: int = 1) -> void:
 	if is_run_failed:
 		return
+	hits_taken += amount
 	health = max(0, health - amount)
 	if health == 0:
+		var summary := "Run collapsed under suppressive fire."
+		if pending_extraction_bonus > 0:
+			summary += " Lost %s +%d." % [get_extraction_bonus_label(), pending_extraction_bonus]
+		set_result("FAIL", summary)
 		finish_run(false)
 	else:
 		state_changed.emit()
@@ -230,6 +261,109 @@ func get_current_directive_summary() -> String:
 	return String(current_directive.get("summary", ""))
 
 
+func get_secondary_objective_name() -> String:
+	return String(current_secondary_objective.get("name", ""))
+
+
+func get_secondary_objective_description() -> String:
+	return String(current_secondary_objective.get("description", ""))
+
+
+func evaluate_secondary_objective() -> Dictionary:
+	if current_secondary_objective.is_empty():
+		return {"completed": false, "summary": "", "reward_score": 0}
+	var objective_type := String(current_secondary_objective.get("type", ""))
+	var completed := false
+	match objective_type:
+		"time_limit":
+			completed = elapsed_time <= float(current_secondary_objective.get("target_time", 0.0))
+		"no_hit":
+			completed = hits_taken <= 0
+		"score_threshold":
+			completed = score >= int(current_secondary_objective.get("target_score", 0))
+		_:
+			completed = false
+	var reward_score := int(current_secondary_objective.get("reward_score", 0)) if completed else 0
+	var summary := "Secondary objective complete: %s" % get_secondary_objective_name() if completed else "Secondary objective failed: %s" % get_secondary_objective_name()
+	secondary_objective_completed = completed
+	secondary_objective_summary = summary
+	return {
+		"completed": completed,
+		"summary": summary,
+		"reward_score": reward_score,
+	}
+
+
+func get_secondary_objective_status_text() -> String:
+	if current_secondary_objective.is_empty():
+		return "No optional objective."
+	var objective_type := String(current_secondary_objective.get("type", ""))
+	match objective_type:
+		"time_limit":
+			var target_time := float(current_secondary_objective.get("target_time", 0.0))
+			return "Extract before %s" % _format_raw_time(target_time)
+		"no_hit":
+			return "No hits taken: %s" % ("BROKEN" if hits_taken > 0 else "INTACT")
+		"score_threshold":
+			return "Reach %d score (%d current)" % [int(current_secondary_objective.get("target_score", 0)), score]
+		_:
+			return get_secondary_objective_description()
+
+
+func get_secondary_objective_progress_ratio() -> float:
+	if current_secondary_objective.is_empty():
+		return 0.0
+	var objective_type := String(current_secondary_objective.get("type", ""))
+	match objective_type:
+		"time_limit":
+			var target_time := float(current_secondary_objective.get("target_time", 0.0))
+			if target_time <= 0.0:
+				return 0.0
+			return clampf(elapsed_time / target_time, 0.0, 1.0)
+		"no_hit":
+			return 0.0 if hits_taken > 0 else 1.0
+		"score_threshold":
+			var target_score: int = maxi(1, int(current_secondary_objective.get("target_score", 1)))
+			return clampf(float(score) / float(target_score), 0.0, 1.0)
+		_:
+			return 0.0
+
+
+func activate_extraction_bonus() -> void:
+	extraction_bonus_active = not extraction_bonus_config.is_empty()
+	extraction_bonus_kills = 0
+	pending_extraction_bonus = 0
+	state_changed.emit()
+
+
+func get_next_extraction_bonus_value() -> int:
+	if extraction_bonus_config.is_empty():
+		return 0
+	var base_value := int(extraction_bonus_config.get("base_bounty", 0))
+	var step_value := int(extraction_bonus_config.get("step_bounty", 0))
+	return base_value + max(0, extraction_bonus_kills - 1) * step_value
+
+
+func get_extraction_bonus_label() -> String:
+	return extraction_bonus_label if not extraction_bonus_label.is_empty() else "Cashout Bonus"
+
+
+func get_extraction_bonus_status_text() -> String:
+	if not extraction_unlocked:
+		return "Locked until all data cores are secured."
+	if not extraction_bonus_active:
+		return "No extraction bonus active."
+	if pending_extraction_bonus <= 0:
+		return "%s online. Stay in the route for a higher payout." % get_extraction_bonus_label()
+	return "%s +%d banked across %d takedowns." % [get_extraction_bonus_label(), pending_extraction_bonus, extraction_bonus_kills]
+
+
+func get_extraction_bonus_progress_ratio() -> float:
+	if not extraction_bonus_active:
+		return 0.0
+	return clampf(float(mini(extraction_bonus_kills, 5)) / 5.0, 0.0, 1.0)
+
+
 func _build_run_modifiers(operation: Dictionary, directive: Dictionary) -> Dictionary:
 	var merged: Dictionary = {
 		"health_bonus": 0,
@@ -318,3 +452,10 @@ func _pick_best_rank(existing_rank: String, next_rank: String) -> String:
 	if order.find(existing_rank) == -1:
 		return next_rank
 	return next_rank if order.find(next_rank) < order.find(existing_rank) else existing_rank
+
+
+func _format_raw_time(time_value: float) -> String:
+	var total_seconds := int(time_value)
+	var minutes := total_seconds / 60
+	var seconds := total_seconds % 60
+	return "%02d:%02d" % [minutes, seconds]

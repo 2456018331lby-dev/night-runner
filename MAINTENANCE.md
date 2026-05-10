@@ -31,11 +31,12 @@
 每条行动都包含：
 
 1. 局前中枢选行动
-2. 开局抽取基础或自适应 `directive`
+2. 局前明确选择 `directive`
 3. 过程中抢核心、维持连击、处理阶段增援
-4. 达成全部核心后解锁撤离
-5. 成功或失败后进入结果页
-6. 局外记录最佳分数、最佳评级、成功次数和解锁进度
+4. 同时追次级目标
+5. 达成全部核心后解锁撤离，并进入可继续贪分的兑现窗口
+6. 成功或失败后进入结果页
+7. 局外记录最佳分数、最佳评级、成功次数和解锁进度
 
 如果以后 AI 接手时发现又变回“场上打怪但没有目标”，优先检查：
 
@@ -52,7 +53,7 @@
 - `PlatformProfile`：平台差异入口
 - `InputRouter`：触屏、键盘、未来手柄的统一输入层
 - `FrontendBridge`：应用壳和玩法之间的前端桥接层
-- `RunCatalog`：行动目录、模式差异和随机指令池的数据源
+- `RunCatalog`：行动目录、模式差异、directive 池、次级目标和兑现规则的数据源
 - `World`：按行动定义装配关卡和本局事件
 - `Presentation`：纯视觉氛围层，负责背景城市、雾、灯带和后续环境演出
 - `SessionScreen`：中枢 / 结果 / 暂停产品壳
@@ -71,7 +72,7 @@
 - 角色和关键目标物已有首批原创 SVG 资产
 - 背景氛围层已存在，但仍是程序化几何主导
 - 现在已有完整中枢 / 行动卡 / 结果页 / 暂停层壳体，但仍是逻辑优先版本
-- HUD 已升级为“行动卡 + 任务卡 + 指令卡 + 短提示”
+- HUD 已升级为“行动卡 + 任务卡 + 指令卡 + 次级目标卡 + cashout 卡 + 短提示”
 - 还没有正式音效、命中特效、角色动画状态机、完整 UI 图标系统
 
 不要在后续迭代里重新回到“纯色方块 + 默认按钮”状态。
@@ -106,8 +107,9 @@
 
 ## 已验证
 
-- `Godot_v4.6.2-stable_win64_console.exe --headless --path C:\\Users\\24560\\Desktop\\study\\gametwo --quit-after 3`
+- `C:\\Users\\24560\\AppData\\Local\\Microsoft\\WinGet\\Packages\\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\\Godot_v4.6.2-stable_win64_console.exe --headless --path C:\\Users\\24560\\Desktop\\study\\gametwo --quit-after 3`
 - 结果：项目可加载，脚本可解析
 - 2026-05-06：新增 `EnemySuppressor` / `EnemyBolt` 后再次执行同一命令，结果通过
 - 2026-05-06：新增 `DataCore` / `ExtractionGate` / 结算逻辑后再次执行同一命令，结果通过
 - 2026-05-10：新增 `RunCatalog` / `FrontendBridge` / `SessionScreen` / 存档与行动目录后再次执行同一命令，结果通过
+- 2026-05-10：新增 directive 预选、次级目标展示、cashout 风险收益和中枢/HUD 扩展后再次执行同一命令，结果通过

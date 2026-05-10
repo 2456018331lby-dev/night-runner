@@ -11,8 +11,9 @@ func _ready() -> void:
 	FrontendBridge.retry_requested.connect(_on_retry_requested)
 	FrontendBridge.return_to_hub_requested.connect(_on_return_to_hub_requested)
 	FrontendBridge.pause_state_changed.connect(_on_pause_state_changed)
+	FrontendBridge.operation_selected.connect(_on_frontend_operation_selected)
+	FrontendBridge.directive_selected.connect(_on_frontend_directive_selected)
 	GameState.run_finished.connect(_on_run_finished)
-	session_screen.operation_chosen.connect(_on_operation_chosen)
 	session_screen.launch_requested.connect(_on_launch_requested)
 	session_screen.retry_requested.connect(_on_retry_requested)
 	session_screen.resume_requested.connect(_on_resume_requested)
@@ -31,8 +32,13 @@ func _input(event: InputEvent) -> void:
 			FrontendBridge.resume_run()
 
 
-func _on_operation_chosen(operation_id: String) -> void:
-	FrontendBridge.select_operation(operation_id)
+func _on_frontend_operation_selected(operation_id: String) -> void:
+	session_screen.build_hub(FrontendBridge.get_operations(), operation_id)
+
+
+func _on_frontend_directive_selected(_operation_id: String, _directive_id: String) -> void:
+	if FrontendBridge.app_phase == FrontendBridge.PHASE_HUB:
+		session_screen.build_hub(FrontendBridge.get_operations(), FrontendBridge.selected_operation_id)
 
 
 func _on_launch_requested() -> void:
@@ -43,7 +49,7 @@ func _on_start_requested(operation_id: String) -> void:
 	var operation := RunCatalog.get_operation(operation_id)
 	if operation.is_empty():
 		return
-	var directive := _pick_directive(operation)
+	var directive := FrontendBridge.get_selected_directive(operation_id)
 	GameState.start_run(operation, directive)
 	if world.has_method("begin"):
 		world.call("begin", operation)
@@ -82,12 +88,3 @@ func _on_run_finished(_success: bool) -> void:
 	FrontendBridge.notify_run_finished()
 	var operation := RunCatalog.get_operation(GameState.current_operation_id)
 	session_screen.build_results(operation)
-
-
-func _pick_directive(operation: Dictionary) -> Dictionary:
-	var pool: Array = operation.get("directive_pool", [])
-	if pool.is_empty():
-		return {}
-	var index := randi() % pool.size()
-	var picked: Dictionary = pool[index]
-	return picked.duplicate(true)

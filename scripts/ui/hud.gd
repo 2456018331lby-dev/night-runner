@@ -17,6 +17,8 @@ const HEALTH_OFF := Color(0.13, 0.2, 0.31, 1.0)
 @onready var telemetry_card: PanelContainer = $MarginContainer/RootColumn/TopRow/TelemetryCard
 @onready var objective_card: PanelContainer = $MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard
 @onready var directive_card: PanelContainer = $MarginContainer/RootColumn/DirectiveRow/DirectiveCard
+@onready var secondary_card: PanelContainer = $MarginContainer/RootColumn/DirectiveRow/SecondaryCard
+@onready var cashout_card: PanelContainer = $MarginContainer/RootColumn/CashoutRow/CashoutCard
 @onready var title_label: Label = $MarginContainer/RootColumn/TopRow/OperationCard/Margin/VBox/TitleLabel
 @onready var subtitle_label: Label = $MarginContainer/RootColumn/TopRow/OperationCard/Margin/VBox/SubtitleLabel
 @onready var score_caption: Label = $MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox/ScoreCaption
@@ -34,6 +36,11 @@ const HEALTH_OFF := Color(0.13, 0.2, 0.31, 1.0)
 @onready var directive_title: Label = $MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox/DirectiveTitle
 @onready var directive_name: Label = $MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox/DirectiveName
 @onready var directive_summary: Label = $MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox/DirectiveSummary
+@onready var secondary_title: Label = $MarginContainer/RootColumn/DirectiveRow/SecondaryCard/Margin/VBox/SecondaryTitle
+@onready var secondary_name: Label = $MarginContainer/RootColumn/DirectiveRow/SecondaryCard/Margin/VBox/SecondaryName
+@onready var secondary_status: Label = $MarginContainer/RootColumn/DirectiveRow/SecondaryCard/Margin/VBox/SecondaryStatus
+@onready var cashout_title: Label = $MarginContainer/RootColumn/CashoutRow/CashoutCard/Margin/VBox/CashoutTitle
+@onready var cashout_status: Label = $MarginContainer/RootColumn/CashoutRow/CashoutCard/Margin/VBox/CashoutStatus
 @onready var toast_card: PanelContainer = $ToastAnchor/ToastCard
 @onready var toast_label: Label = $ToastAnchor/ToastCard/Margin/ToastLabel
 @onready var health_pips: Array[PanelContainer] = [
@@ -93,21 +100,43 @@ func _refresh() -> void:
 		directive_title.text = "DIRECTIVE"
 		directive_name.text = String(directive_context.get("name", "Adaptive Protocol"))
 		directive_summary.text = String(directive_context.get("summary", ""))
+	secondary_title.text = "OPTIONAL OBJECTIVE"
+	secondary_name.text = GameState.get_secondary_objective_name() if not GameState.get_secondary_objective_name().is_empty() else "No optional objective"
+	secondary_status.text = GameState.get_secondary_objective_status_text()
+	cashout_title.text = GameState.get_extraction_bonus_label().to_upper() if not GameState.get_extraction_bonus_label().is_empty() else "CASHOUT WINDOW"
+	cashout_status.text = GameState.get_extraction_bonus_status_text()
 	if GameState.run_success:
 		rank_label.text = "RANK %s" % GameState.final_rank
 		rank_label.add_theme_color_override("font_color", TEXT_SUCCESS)
 		objective_title.text = "RUN COMPLETE"
 		objective_label.add_theme_color_override("font_color", TEXT_SUCCESS)
+		secondary_status.add_theme_color_override("font_color", TEXT_SUCCESS if GameState.secondary_objective_completed else TEXT_ALERT)
+		cashout_status.add_theme_color_override("font_color", TEXT_SUCCESS if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
 	elif GameState.is_run_failed:
 		rank_label.text = "FAILED"
 		rank_label.add_theme_color_override("font_color", TEXT_ALERT)
 		objective_title.text = "RUN FAILED"
 		objective_label.add_theme_color_override("font_color", TEXT_ALERT)
+		secondary_status.add_theme_color_override("font_color", TEXT_ALERT)
+		cashout_status.add_theme_color_override("font_color", TEXT_ALERT if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
 	else:
 		rank_label.text = "RANK --"
 		rank_label.add_theme_color_override("font_color", TEXT_MUTED)
 		objective_title.text = "OBJECTIVE"
 		objective_label.add_theme_color_override("font_color", TEXT_PRIMARY)
+		if GameState.current_secondary_objective.is_empty():
+			secondary_status.add_theme_color_override("font_color", TEXT_MUTED)
+		else:
+			var progress_ratio := GameState.get_secondary_objective_progress_ratio()
+			var secondary_color := TEXT_PRIMARY
+			if String(GameState.current_secondary_objective.get("type", "")) == "time_limit" and progress_ratio >= 0.8:
+				secondary_color = TEXT_ALERT
+			elif String(GameState.current_secondary_objective.get("type", "")) == "no_hit" and GameState.hits_taken > 0:
+				secondary_color = TEXT_ALERT
+			elif String(GameState.current_secondary_objective.get("type", "")) == "score_threshold" and progress_ratio >= 1.0:
+				secondary_color = TEXT_SUCCESS
+			secondary_status.add_theme_color_override("font_color", secondary_color)
+		cashout_status.add_theme_color_override("font_color", TEXT_ACCENT if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
 	_refresh_health_pips()
 	_apply_operation_palette()
 
@@ -130,8 +159,10 @@ func _apply_theme() -> void:
 	telemetry_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
 	objective_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, PANEL_BORDER, 18))
 	directive_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, PANEL_ACCENT, 18))
+	secondary_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(0.82, 0.84, 1.0, 0.3), 18))
+	cashout_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(1.0, 0.72, 0.35, 0.4), 18))
 	toast_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_ACCENT, 18, 2, 12))
-	for label in [score_caption, best_label, combo_label, health_caption, core_caption, time_caption, objective_title, directive_title]:
+	for label in [score_caption, best_label, combo_label, health_caption, core_caption, time_caption, objective_title, directive_title, secondary_title, cashout_title]:
 		_style_caption(label)
 	_style_metric(score_label, 30, TEXT_ACCENT)
 	_style_metric(core_label, 22, TEXT_PRIMARY)
@@ -147,6 +178,12 @@ func _apply_theme() -> void:
 	directive_name.add_theme_color_override("font_color", TEXT_PRIMARY)
 	directive_summary.add_theme_font_size_override("font_size", 14)
 	directive_summary.add_theme_color_override("font_color", TEXT_MUTED)
+	secondary_name.add_theme_font_size_override("font_size", 17)
+	secondary_name.add_theme_color_override("font_color", TEXT_PRIMARY)
+	secondary_status.add_theme_font_size_override("font_size", 14)
+	secondary_status.add_theme_color_override("font_color", TEXT_MUTED)
+	cashout_status.add_theme_font_size_override("font_size", 14)
+	cashout_status.add_theme_color_override("font_color", TEXT_MUTED)
 	toast_label.add_theme_font_size_override("font_size", 16)
 	toast_label.add_theme_color_override("font_color", TEXT_PRIMARY)
 
@@ -177,8 +214,11 @@ func _apply_operation_palette() -> void:
 	operation_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, primary, 22))
 	directive_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, secondary, 18))
 	objective_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, primary, 18))
+	secondary_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, primary.lightened(0.12), 18))
+	cashout_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, secondary.lightened(0.08), 18))
 	title_label.add_theme_color_override("font_color", primary.lightened(0.18))
 	directive_title.add_theme_color_override("font_color", secondary.lightened(0.1))
+	cashout_title.add_theme_color_override("font_color", secondary.lightened(0.12))
 
 
 func _make_panel_style(fill: Color, border: Color, radius: int, border_width: int = 2, shadow_size: int = 10) -> StyleBoxFlat:
