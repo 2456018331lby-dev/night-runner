@@ -23,7 +23,7 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 18
 
 [node name="ScoreCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
-custom_minimum_size = Vector2(252, 142)
+custom_minimum_size = Vector2(232, 152)
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/ScoreCard"]
 theme_override_constants/margin_left = 18
@@ -47,64 +47,78 @@ text = "BEST 0000"
 text = "COMBO READY"
 
 [node name="CenterColumn" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow"]
+size_flags_horizontal = 0
+
+[node name="OperationCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
+custom_minimum_size = Vector2(332, 152)
 size_flags_horizontal = 3
-alignment = 1
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/CenterColumn"]
-size_flags_horizontal = 4
-text = "NIGHT RUNNER"
-horizontal_alignment = 1
-
-[node name="RightCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
-custom_minimum_size = Vector2(252, 168)
-
-[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/RightCard"]
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/OperationCard"]
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin"]
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/OperationCard/Margin"]
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/OperationCard/Margin/VBox"]
+text = "NIGHT RUNNER"
+
+[node name="SubtitleLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/OperationCard/Margin/VBox"]
+autowrap_mode = 3
+text = "Urban combat archive"
+
+[node name="TelemetryCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
+custom_minimum_size = Vector2(252, 192)
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin"]
 theme_override_constants/separation = 8
 
-[node name="HealthRow" type="HBoxContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
+[node name="HealthRow" type="HBoxContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 theme_override_constants/separation = 10
 
-[node name="HealthCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow"]
+[node name="HealthCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow"]
 text = "HP"
 
-[node name="PipRow" type="HBoxContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow"]
+[node name="PipRow" type="HBoxContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow"]
 theme_override_constants/separation = 8
 
-[node name="Pip1" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+[node name="Pip1" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow"]
 custom_minimum_size = Vector2(28, 14)
 
-[node name="Pip2" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+[node name="Pip2" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow"]
 custom_minimum_size = Vector2(28, 14)
 
-[node name="Pip3" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox/HealthRow/PipRow"]
+[node name="Pip3" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow"]
 custom_minimum_size = Vector2(28, 14)
 
-[node name="CoreCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
+[node name="CoreCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 text = "DATA CORES"
 
-[node name="CoreLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
+[node name="CoreLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 text = "0 / 0"
 
-[node name="TimeCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
+[node name="TimeCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 text = "RUN CLOCK"
 
-[node name="TimeLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
+[node name="TimeLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 text = "00:00"
 
-[node name="RankLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/RightCard/Margin/VBox"]
+[node name="RankLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 text = "RANK --"
 
 [node name="ObjectiveRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
 size_flags_horizontal = 3
 
 [node name="ObjectiveCard" type="PanelContainer" parent="MarginContainer/RootColumn/ObjectiveRow"]
-custom_minimum_size = Vector2(360, 74)
+custom_minimum_size = Vector2(460, 78)
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard"]
 theme_override_constants/margin_left = 16
@@ -120,6 +134,31 @@ text = "OBJECTIVE"
 
 [node name="ObjectiveLabel" type="Label" parent="MarginContainer/RootColumn/ObjectiveRow/ObjectiveCard/Margin/VBox"]
 text = "Steal all data cores and extract."
+
+[node name="DirectiveRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
+size_flags_horizontal = 3
+
+[node name="DirectiveCard" type="PanelContainer" parent="MarginContainer/RootColumn/DirectiveRow"]
+custom_minimum_size = Vector2(520, 82)
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/DirectiveRow/DirectiveCard"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin"]
+theme_override_constants/separation = 4
+
+[node name="DirectiveTitle" type="Label" parent="MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox"]
+text = "DIRECTIVE"
+
+[node name="DirectiveName" type="Label" parent="MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox"]
+text = "Base Protocol"
+
+[node name="DirectiveSummary" type="Label" parent="MarginContainer/RootColumn/DirectiveRow/DirectiveCard/Margin/VBox"]
+autowrap_mode = 3
+text = "No adaptive directive active."
 
 [node name="ToastAnchor" type="Control" parent="."]
 layout_mode = 3

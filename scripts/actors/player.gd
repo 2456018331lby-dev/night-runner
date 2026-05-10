@@ -83,14 +83,15 @@ func _collect_actions() -> void:
 
 	if dash_timer <= 0.0:
 		var control := 1.0 if is_on_floor() else AIR_CONTROL
-		velocity.x = move_toward(velocity.x, axis * SPEED, SPEED * control * 0.18)
+		var move_speed := SPEED * GameState.get_modifier_value("speed_multiplier", 1.0)
+		velocity.x = move_toward(velocity.x, axis * move_speed, move_speed * control * 0.18)
 
 
 func _try_jump() -> void:
 	if jumps_remaining <= 0:
 		return
 	jumps_remaining -= 1
-	velocity.y = JUMP_VELOCITY
+	velocity.y = JUMP_VELOCITY * GameState.get_modifier_value("jump_multiplier", 1.0)
 
 
 func _try_dash() -> void:
@@ -99,7 +100,7 @@ func _try_dash() -> void:
 	dash_timer = DASH_TIME
 	dash_cooldown_timer = DASH_COOLDOWN
 	velocity.y = minf(velocity.y, -40.0)
-	velocity.x = facing * DASH_SPEED
+	velocity.x = facing * DASH_SPEED * GameState.get_modifier_value("dash_multiplier", 1.0)
 	action_pop_timer = 0.1
 	_trigger_camera_shake(4.0, 0.1)
 
@@ -115,7 +116,8 @@ func _try_attack() -> void:
 		var delta_pos: Vector2 = enemy.global_position - global_position
 		var forward_distance := delta_pos.x * facing
 		if forward_distance >= -20.0 and forward_distance <= ATTACK_RANGE_X and absf(delta_pos.y) <= ATTACK_RANGE_Y:
-			enemy.receive_hit(Vector2(facing * ATTACK_FORCE, -240.0))
+			var attack_force := ATTACK_FORCE * GameState.get_modifier_value("attack_force_multiplier", 1.0)
+			enemy.receive_hit(Vector2(facing * attack_force, -240.0))
 			hit_any = true
 	action_pop_timer = 0.08
 	_trigger_camera_shake(3.0 if not hit_any else 5.5, 0.12)
@@ -130,10 +132,10 @@ func _apply_gravity(delta: float) -> void:
 
 func _handle_horizontal_motion(delta: float) -> void:
 	if dash_timer > 0.0:
-		velocity.x = facing * DASH_SPEED
+		velocity.x = facing * DASH_SPEED * GameState.get_modifier_value("dash_multiplier", 1.0)
 		return
 	if is_on_floor() and absf(Input.get_axis("move_left", "move_right")) < 0.1 and absf(InputRouter.move_axis) < 0.1:
-		velocity.x = move_toward(velocity.x, 0.0, SPEED * delta * 5.0)
+		velocity.x = move_toward(velocity.x, 0.0, SPEED * GameState.get_modifier_value("speed_multiplier", 1.0) * delta * 5.0)
 
 
 func _handle_fall_check() -> void:

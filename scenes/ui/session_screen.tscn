@@ -1,0 +1,201 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/session_screen.gd" id="1_x0u22"]
+
+[node name="SessionScreen" type="CanvasLayer"]
+script = ExtResource("1_x0u22")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="AmbientA" type="ColorRect" parent="Backdrop"]
+anchors_preset = 0
+offset_left = -120.0
+offset_top = -120.0
+offset_right = 760.0
+offset_bottom = 440.0
+rotation = 0.18
+
+[node name="AmbientB" type="ColorRect" parent="Backdrop"]
+anchors_preset = 0
+offset_left = 740.0
+offset_top = 250.0
+offset_right = 1560.0
+offset_bottom = 950.0
+rotation = -0.26
+
+[node name="Grain" type="ColorRect" parent="Backdrop"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 34.0
+offset_top = 26.0
+offset_right = -34.0
+offset_bottom = -26.0
+
+[node name="Layout" type="VBoxContainer" parent="Margin"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Frame" type="PanelContainer" parent="Margin/Layout"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Margin" type="MarginContainer" parent="Margin/Layout/Frame"]
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Column" type="VBoxContainer" parent="Margin/Layout/Frame/Margin"]
+theme_override_constants/separation = 20
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column"]
+theme_override_constants/separation = 18
+
+[node name="HeaderBox" type="PanelContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow"]
+size_flags_horizontal = 3
+
+[node name="HeaderMargin" type="MarginContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox"]
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 18
+
+[node name="TitleFlow" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin"]
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin/TitleFlow"]
+text = "NIGHT RUNNER"
+
+[node name="Subtitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin/TitleFlow"]
+text = "Neon operation archive"
+
+[node name="StatusBox" type="PanelContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow"]
+custom_minimum_size = Vector2(250, 0)
+
+[node name="StatusMargin" type="MarginContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/StatusBox"]
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 18
+
+[node name="Status" type="Label" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/StatusBox/StatusMargin"]
+text = "OPERATIONS"
+horizontal_alignment = 2
+
+[node name="BodyRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="Deck" type="PanelContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow"]
+custom_minimum_size = Vector2(338, 0)
+
+[node name="DeckMargin" type="MarginContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
+
+[node name="DeckColumn" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin"]
+theme_override_constants/separation = 10
+size_flags_vertical = 3
+
+[node name="DeckTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn"]
+text = "AVAILABLE RUNS"
+
+[node name="DeckSubtitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn"]
+autowrap_mode = 3
+text = "Operations appear here."
+
+[node name="DeckScroll" type="ScrollContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn"]
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="DeckFlow" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn/DeckScroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="FocusPanel" type="PanelContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="FocusMargin" type="MarginContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel"]
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 22
+
+[node name="FocusColumn" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin"]
+theme_override_constants/separation = 12
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Mode" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+text = "MODE"
+
+[node name="Title" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+text = "Select an operation"
+
+[node name="Summary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+autowrap_mode = 3
+text = "Summary"
+
+[node name="Brief" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+autowrap_mode = 3
+text = "Brief"
+
+[node name="Intel" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+autowrap_mode = 3
+text = "Intel"
+
+[node name="RecordsTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+text = "FIELD RECORDS"
+
+[node name="RecordGrid" type="GridContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+columns = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 8
+
+[node name="DirectiveTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+text = "DIRECTIVE DRAW"
+
+[node name="DirectiveName" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+text = "Adaptive directives appear here."
+
+[node name="DirectiveSummary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+autowrap_mode = 3
+text = "Directive summary"
+
+[node name="FooterRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column"]
+theme_override_constants/separation = 18
+
+[node name="FooterHint" type="Label" parent="Margin/Layout/Frame/Margin/Column/FooterRow"]
+size_flags_horizontal = 3
+autowrap_mode = 3
+text = "Hint"
+
+[node name="ActionRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column/FooterRow"]
+theme_override_constants/separation = 12
+
+[node name="Primary" type="Button" parent="Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow"]
+custom_minimum_size = Vector2(188, 52)
+text = "PRIMARY"
+
+[node name="Secondary" type="Button" parent="Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow"]
+custom_minimum_size = Vector2(166, 52)
+text = "SECONDARY"
+
+[node name="Tertiary" type="Button" parent="Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow"]
+custom_minimum_size = Vector2(132, 52)
+text = "TERTIARY"

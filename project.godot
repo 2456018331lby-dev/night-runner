@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 GameState="*res://scripts/autoload/game_state.gd"
 PlatformProfile="*res://scripts/autoload/platform_profile.gd"
 InputRouter="*res://scripts/autoload/input_router.gd"
+FrontendBridge="*res://scripts/autoload/frontend_bridge.gd"
 
 [display]
 

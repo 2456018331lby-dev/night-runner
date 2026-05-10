@@ -78,7 +78,7 @@ func _update_motion(delta: float) -> void:
 	if absf(delta_pos.x) < TOO_CLOSE_RANGE:
 		velocity.x = -facing * RETREAT_SPEED
 	elif absf(delta_pos.x) > COMFORT_RANGE + 80.0:
-		velocity.x = facing * WALK_SPEED
+		velocity.x = facing * WALK_SPEED * GameState.get_modifier_value("speed_multiplier", 1.0)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, WALK_SPEED * delta * 6.0)
 

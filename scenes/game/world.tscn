@@ -29,84 +29,77 @@ script = ExtResource("1_u5v1w")
 [node name="Presentation" type="Node2D" parent="."]
 script = ExtResource("5_5locr")
 
-[node name="Backdrop" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(0, 0, 2048, 0, 2048, 900, 0, 900)
-color = Color(0.027451, 0.0470588, 0.0901961, 1)
+[node name="Geometry" type="Node2D" parent="."]
 
-[node name="Moon" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(0, -52, 36, -36, 52, 0, 36, 36, 0, 52, -36, 36, -52, 0, -36, -36)
-position = Vector2(1090, 110)
-color = Color(1, 0.858824, 0.4, 1)
-
-[node name="Ground" type="StaticBody2D" parent="."]
+[node name="Ground" type="StaticBody2D" parent="Geometry"]
 collision_layer = 4
 collision_mask = 0
 position = Vector2(790, 666)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/Ground"]
 shape = SubResource("RectangleShape2D_ground")
 
-[node name="Visual" type="Polygon2D" parent="Ground"]
+[node name="Visual" type="Polygon2D" parent="Geometry/Ground"]
 polygon = PackedVector2Array(-950, -32, 950, -32, 950, 32, -950, 32)
 color = Color(0.101961, 0.137255, 0.227451, 1)
 
-[node name="RoofA" type="StaticBody2D" parent="."]
+[node name="RoofA" type="StaticBody2D" parent="Geometry"]
 collision_layer = 4
 collision_mask = 0
 position = Vector2(690, 426)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofA"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofA"]
 shape = SubResource("RectangleShape2D_roof_a")
 
-[node name="Visual" type="Polygon2D" parent="RoofA"]
+[node name="Visual" type="Polygon2D" parent="Geometry/RoofA"]
 polygon = PackedVector2Array(-140, -15, 140, -15, 140, 15, -140, 15)
 color = Color(0.141176, 0.2, 0.317647, 1)
 
-[node name="RoofB" type="StaticBody2D" parent="."]
+[node name="RoofB" type="StaticBody2D" parent="Geometry"]
 collision_layer = 4
 collision_mask = 0
 position = Vector2(1124, 340)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofB"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofB"]
 shape = SubResource("RectangleShape2D_roof_b")
 
-[node name="Visual" type="Polygon2D" parent="RoofB"]
+[node name="Visual" type="Polygon2D" parent="Geometry/RoofB"]
 polygon = PackedVector2Array(-130, -15, 130, -15, 130, 15, -130, 15)
 color = Color(0.117647, 0.176471, 0.294118, 1)
 
-[node name="RoofC" type="StaticBody2D" parent="."]
+[node name="RoofC" type="StaticBody2D" parent="Geometry"]
 collision_layer = 4
 collision_mask = 0
 position = Vector2(1500, 240)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofC"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofC"]
 shape = SubResource("RectangleShape2D_roof_b")
 
-[node name="Visual" type="Polygon2D" parent="RoofC"]
+[node name="Visual" type="Polygon2D" parent="Geometry/RoofC"]
 polygon = PackedVector2Array(-130, -15, 130, -15, 130, 15, -130, 15)
 color = Color(0.117647, 0.176471, 0.294118, 1)
 
-[node name="RoofD" type="StaticBody2D" parent="."]
+[node name="RoofD" type="StaticBody2D" parent="Geometry"]
 collision_layer = 4
 collision_mask = 0
 position = Vector2(1760, 160)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofD"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofD"]
 shape = SubResource("RectangleShape2D_roof_d")
 
-[node name="Visual" type="Polygon2D" parent="RoofD"]
+[node name="Visual" type="Polygon2D" parent="Geometry/RoofD"]
 polygon = PackedVector2Array(-110, -15, 110, -15, 110, 15, -110, 15)
 color = Color(0.12549, 0.188235, 0.313726, 1)
 
-[node name="RoofE" type="StaticBody2D" parent="."]
+[node name="RoofE" type="StaticBody2D" parent="Geometry"]
 collision_layer = 4
 collision_mask = 0
 position = Vector2(2050, 190)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RoofE"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofE"]
 shape = SubResource("RectangleShape2D_roof_e")
 
-[node name="Visual" type="Polygon2D" parent="RoofE"]
+[node name="Visual" type="Polygon2D" parent="Geometry/RoofE"]
 polygon = PackedVector2Array(-120, -15, 120, -15, 120, 15, -120, 15)
 color = Color(0.133333, 0.196078, 0.32549, 1)
 

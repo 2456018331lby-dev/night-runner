@@ -13,6 +13,8 @@ var sweep_time: float = 0.0
 var fog_nodes: Array[Polygon2D] = []
 var fog_offsets: Array[Vector2] = []
 var beam_nodes: Array[Polygon2D] = []
+var backdrop: Polygon2D
+var moon: Polygon2D
 
 
 func _ready() -> void:
@@ -57,6 +59,13 @@ func _ready() -> void:
 	_build_neon_rails()
 
 
+func set_theme(theme: Dictionary) -> void:
+	if backdrop != null:
+		backdrop.color = theme.get("backdrop", Color(0.03, 0.05, 0.09))
+	if moon != null:
+		moon.color = theme.get("moon", Color(1.0, 0.86, 0.4))
+
+
 func _process(delta: float) -> void:
 	sweep_time += delta
 	for index in fog_nodes.size():
@@ -69,6 +78,10 @@ func _process(delta: float) -> void:
 
 
 func _build_glows() -> void:
+	backdrop = _make_rect(Vector2(1024.0, 450.0), Vector2(2200.0, 980.0), Color(0.03, 0.05, 0.09, 1.0), -25)
+	add_child(backdrop)
+	moon = _make_ellipse(Vector2(1090.0, 112.0), Vector2(54.0, 54.0), Color(1.0, 0.83, 0.38, 0.98), -20)
+	add_child(moon)
 	var moon_halo := _make_ellipse(Vector2(1090.0, 112.0), Vector2(148.0, 148.0), Color(1.0, 0.83, 0.38, 0.12), -18)
 	add_child(moon_halo)
 	var skyline_glow := _make_ellipse(Vector2(1220.0, 265.0), Vector2(720.0, 220.0), Color(0.1, 0.55, 0.92, 0.08), -19)

@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 		knocked_velocity = knocked_velocity.move_toward(Vector2.ZERO, 900.0 * delta)
 	elif is_instance_valid(player) and not GameState.is_run_failed:
 		var direction := signf(player.global_position.x - global_position.x)
-		velocity.x = direction * SPEED
+		velocity.x = direction * SPEED * GameState.get_modifier_value("speed_multiplier", 1.0)
 		body_visual.scale.x = direction if direction != 0.0 else body_visual.scale.x
 	move_and_slide()
 	_try_contact_damage()
