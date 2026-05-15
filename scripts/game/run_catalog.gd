@@ -4,6 +4,7 @@ extends RefCounted
 const RUNNER_SCENE := preload("res://scenes/actors/enemy_runner.tscn")
 const SUPPRESSOR_SCENE := preload("res://scenes/actors/enemy_suppressor.tscn")
 const BASTION_SCENE := preload("res://scenes/actors/enemy_bastion.tscn")
+const PHANTOM_SCENE := preload("res://scenes/actors/enemy_phantom.tscn")
 
 const OPERATIONS := [
 	{
@@ -42,6 +43,7 @@ const OPERATIONS := [
 			{"scene": RUNNER_SCENE, "position": Vector2(1870, 124)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(2108, 126)},
 			{"scene": BASTION_SCENE, "position": Vector2(1536, 206)},
+			{"scene": PHANTOM_SCENE, "position": Vector2(1188, 214)},
 		],
 		"data_cores": [
 			Vector2(690, 364),
@@ -121,6 +123,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1960, 126)},
 					{"scene": RUNNER_SCENE, "position": Vector2(2146, 126)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1688, 124)},
 				],
 			},
 		],
@@ -216,6 +219,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1688, 124)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1980, 126)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1846, 88)},
 				],
 			},
 			{
@@ -265,6 +269,7 @@ const OPERATIONS := [
 			{"scene": RUNNER_SCENE, "position": Vector2(1680, 124)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1996, 74)},
 			{"scene": BASTION_SCENE, "position": Vector2(1108, 282)},
+			{"scene": PHANTOM_SCENE, "position": Vector2(1508, 204)},
 		],
 		"data_cores": [
 			Vector2(506, 470),
@@ -344,6 +349,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1240, 202)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1860, 76)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1600, 124)},
 				],
 			},
 		],
@@ -452,6 +458,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1290, 202)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1534, 126)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1820, 76)},
 				],
 			},
 		],
@@ -493,6 +500,7 @@ const OPERATIONS := [
 			{"scene": RUNNER_SCENE, "position": Vector2(1914, 152)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(2204, 90)},
 			{"scene": BASTION_SCENE, "position": Vector2(1766, 254)},
+			{"scene": PHANTOM_SCENE, "position": Vector2(1398, 170)},
 		],
 		"data_cores": [
 			Vector2(620, 420),
@@ -573,6 +581,7 @@ const OPERATIONS := [
 				"toast": "Overdrive spike. Any greed from here on is a deliberate choice.",
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(2104, 92)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1862, 152)},
 				],
 			},
 			{
@@ -581,6 +590,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1078, 250)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1830, 152)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1548, 170)},
 				],
 			},
 		],
@@ -685,6 +695,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1710, 254)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2210, 90)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1948, 152)},
 				],
 			},
 			{

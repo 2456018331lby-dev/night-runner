@@ -501,6 +501,14 @@ func get_last_damage_source_summary() -> String:
 					return "suppressor impact"
 				"suppressor_bolt":
 					return "suppressor fire"
+				"bastion_body":
+					return "bastion collision"
+				"bastion_shockwave":
+					return "bastion shockwave"
+				"phantom_body":
+					return "phantom slash"
+				"phantom_dive":
+					return "phantom dive"
 				_:
 					return "hostile pressure"
 		_:

@@ -50,7 +50,7 @@ func _physics_process(delta: float) -> void:
 	_try_begin_shockwave()
 	_refresh_visuals()
 	if global_position.y > 920.0:
-		_defeat()
+		_defeat(false)
 
 
 func receive_hit(force: Vector2) -> void:
@@ -133,7 +133,10 @@ func _try_contact_damage() -> void:
 	if not is_instance_valid(player) or GameState.is_run_failed:
 		return
 	if global_position.distance_to(player.global_position) <= CONTACT_RANGE:
-		player.take_contact_hit(signf(player.global_position.x - global_position.x), "enemy", "bastion_body")
+		var push_direction := signf(player.global_position.x - global_position.x)
+		if push_direction == 0.0:
+			push_direction = facing if facing != 0.0 else 1.0
+		player.take_contact_hit(push_direction, "enemy", "bastion_body")
 
 
 func _refresh_visuals() -> void:
@@ -177,9 +180,10 @@ func _on_pulse_zone_body_entered(body: Node) -> void:
 		body.take_contact_hit(facing, "enemy", "bastion_shockwave")
 
 
-func _defeat() -> void:
+func _defeat(award_points: bool = true) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
-	defeated.emit(POINTS_AWARD)
+	if award_points:
+		defeated.emit(POINTS_AWARD)
 	queue_free()

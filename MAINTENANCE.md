@@ -62,6 +62,7 @@
 - `BoostPad`：地形节奏层，负责让推进更快更立体
 - `Player` / `EnemyRunner` / `EnemySuppressor`：只做角色行为，不管理全局状态
 - `EnemyBastion`：精英封锁敌人，负责近中距压线与 shockwave 区域压迫
+- `EnemyPhantom`：高速切入型精英，负责贴身追切、俯冲突脸和中近距节奏打断
 - `EnemyBolt`：远程敌人的轻量投射物，不接 UI 和分数
 
 当前有两条已经踩过的手感结论，不要回退：
@@ -92,6 +93,7 @@
 - 做功能：完工后更 `docs/progress.md`
 - 新想法：先进 `docs/backlog.md`
 - 改中枢 / 结果 / UI 壳时，优先经 `FrontendBridge`
+- 前端 / UI 层只改 `SessionScreen`、`HUD` 或它们的替身层，不直接改 `World`、角色脚本或存档写入
 - 避免把平台判断散写在玩法脚本里
 - 如果删文档，先确认内容已经并入现存入口，避免再长回重复说明
 

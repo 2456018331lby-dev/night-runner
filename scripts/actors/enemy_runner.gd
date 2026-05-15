@@ -5,6 +5,7 @@ signal defeated(points: int)
 const SPEED := 150.0
 const GRAVITY := 1500.0
 const CONTACT_RANGE := 34.0
+const POINTS_AWARD := 100
 
 @onready var body_visual: Polygon2D = $Body
 @onready var art_sprite: Sprite2D = $Art
@@ -37,7 +38,7 @@ func _physics_process(delta: float) -> void:
 	_try_contact_damage()
 	_update_flash(delta)
 	if global_position.y > 920.0:
-		_defeat()
+		_defeat(false)
 
 
 func receive_hit(force: Vector2) -> void:
@@ -49,7 +50,10 @@ func _try_contact_damage() -> void:
 	if not is_instance_valid(player) or GameState.is_run_failed:
 		return
 	if global_position.distance_to(player.global_position) <= CONTACT_RANGE:
-		player.take_contact_hit(signf(player.global_position.x - global_position.x), "enemy", "runner_body")
+		var push_direction := signf(player.global_position.x - global_position.x)
+		if push_direction == 0.0:
+			push_direction = signf(body_visual.scale.x) if body_visual.scale.x != 0.0 else 1.0
+		player.take_contact_hit(push_direction, "enemy", "runner_body")
 
 
 func _update_flash(delta: float) -> void:
@@ -65,9 +69,10 @@ func _update_flash(delta: float) -> void:
 	art_sprite.scale.y = 0.22 * (1.0 + (squash - 1.0) * 0.6)
 
 
-func _defeat() -> void:
+func _defeat(award_points: bool = true) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
-	defeated.emit(100)
+	if award_points:
+		defeated.emit(POINTS_AWARD)
 	queue_free()

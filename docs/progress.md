@@ -1,5 +1,30 @@
 # Progress Log
 
+## 2026-05-15
+
+### 已完成
+
+- 新增精英敌人 `EnemyPhantom`，补上一种高速贴身压迫 archetype，能在中近距蓄势后执行横向俯冲
+- 把 `EnemyPhantom` 接入三条行动的常驻与阶段增援编组，让 `Blitz Pursuit`、`Ghost Circuit`、`Overdrive Protocol` 都出现更立体的精英混编压力
+- 扩展 `GameState` 伤害来源摘要，结果页现在能区分 phantom slash / phantom dive 与 bastion 压迫
+- 更新中枢焦点卡的 elite pressure 摘要，局前可直接看到 bastion / phantom 的路线分布
+- 修正 `EnemyPhantom` 的玩法边界：受击后 dive 冷却、命中后收招、撞墙/落地提前结束 dive、接触推力兜底
+- 顺手统一敌人接触推力兜底与“掉坑离场不计分”规则，避免白送分或 0 水平击退
+- 在架构文档里补前端接管约定，明确 `FrontendBridge` 是未来 UI 重做的唯一流程入口
+- 重新通过一轮 Godot headless 加载校验
+
+### 当前问题
+
+- `EnemyPhantom` 目前已有轮廓、颜色反馈和俯冲节奏，但还没有专门预警特效、音效和命中演出
+- 关卡里已经有 bastion + phantom 两类精英，但仍缺少真正的 boss 级节点与地形分支演出
+- Android APK 仍需在 Godot 编辑器里补 export preset、SDK、keystore
+
+### 下一步建议
+
+- 继续给 `EnemyPhantom` 补预警视觉、残影/落点提示和更明确的受击反馈
+- 再做第二类阶段记忆点：更强地形分支、Boss 级封锁事件或行动专属遭遇
+- 开始补音效、设置菜单和移动端安全区适配
+
 ## 2026-05-10
 
 ### 已完成

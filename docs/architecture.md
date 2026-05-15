@@ -47,6 +47,7 @@
 - 统一对 UI / 前端暴露应用流程和局内展示状态
 - 提供行动选择、开局 directive 选择、开始、暂停、重试、返回中枢等接口
 - 未来如果别的 AI 重做前端，优先接这一层，不直接改玩法节点
+- 约定：前端只调用桥接信号/方法，不直接操作 `World`、`Player`、敌人节点或 `GameState` 内部字段
 
 ## 玩法边界
 
@@ -112,6 +113,13 @@
 - 负责制造 windup -> shockwave 的近中距压迫区
 - 仍只输出自身受击、碰撞伤害和区域压制，不接 UI、进度或结算
 
+### `EnemyPhantom`
+
+- 高速切入型精英
+- 负责 windup -> dive 的近身追切、突脸打断和中近距节奏扰动
+- 只输出自身受击、碰撞伤害和俯冲压迫，不直接接 UI、进度或结算
+- 掉落离场不计分，避免把高机动失足变成白送分数
+
 ### `EnemyBolt`
 
 - 由 `EnemySuppressor` 生成
@@ -131,7 +139,24 @@
 
 - `SessionScreen` 负责中枢甲板、结果页、暂停页和局前构筑展示
 - `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标和 cashout 状态
-- 这两层都只读桥接状态，不直接驱动玩法判定，便于后续完全重做前端
+- 这两层都只读 `FrontendBridge` 和 `GameState` 暴露出来的展示数据，不直接驱动玩法判定，便于后续完全重做前端
+
+## 前端重做接管约定
+
+- 重做中枢 / HUD / 结果页时，优先保留 `FrontendBridge` 作为唯一流程入口
+- 当前职责拆分：
+  - `FrontendBridge`：前端可调用入口、phase 与 operation/directive 选择协议
+  - `main.gd`：把桥接请求路由到 `World` / `SessionScreen` / `GameState`
+  - `SessionScreen` / `HUD`：只负责展示，不直接改玩法
+- 新前端应消费：
+  - `FrontendBridge` 的 phase / operation / directive 选择接口
+  - `GameState` 的只读运行态文本与结算数据
+- 新前端不应：
+  - 直接改 `World` 内部刷怪、目标、关卡事件
+  - 直接改敌人脚本数值或角色碰撞逻辑
+  - 直接写存档文件
+- 如果要增加更复杂前端特效、动画编排或独立 UI 框架，尽量挂在 `SessionScreen` / `HUD` 替身层，而不是把玩法代码挪进 UI
+- 当前这是文档化边界与入口收敛，不是完全封闭的硬接口层；后续如需更强隔离，再继续封装
 
 ## AI 维护约定
 

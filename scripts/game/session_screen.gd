@@ -175,8 +175,13 @@ func _refresh_focus(operation: Dictionary) -> void:
 		]
 		bonus_summary.text += "\nThis lane also has %d live cashout escalation beat(s)." % int(Array(selected.get("cashout_events", [])).size())
 	var bastion_count := _count_scene_mentions(selected, "EnemyBastion")
-	if bastion_count > 0:
-		bonus_summary.text += "\nElite pressure: %d bastion blockade node(s) are baked into this route." % bastion_count
+	var phantom_count := _count_scene_mentions(selected, "EnemyPhantom")
+	if bastion_count > 0 or phantom_count > 0:
+		bonus_summary.text += "\nElite pressure:"
+		if bastion_count > 0:
+			bonus_summary.text += " bastion x%d" % bastion_count
+		if phantom_count > 0:
+			bonus_summary.text += " // phantom x%d" % phantom_count
 	record_title.text = "FIELD RECORDS"
 	_populate_record_grid(record)
 	if current_phase == FrontendBridge.PHASE_HUB:
