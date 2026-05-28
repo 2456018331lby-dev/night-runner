@@ -107,6 +107,7 @@ func build_pause(operation: Dictionary) -> void:
 	secondary_button.disabled = false
 	primary_button.disabled = false
 	_add_pause_metrics()
+	_add_pause_settings()
 	_refresh_focus(operation)
 
 
@@ -255,6 +256,26 @@ func _add_debrief_metrics(operation: Dictionary) -> void:
 func _add_pause_metrics() -> void:
 	_add_route_note("Time %s" % GameState.formatted_time(), TEXT_PRIMARY)
 	_add_route_note("Combo %d · HP %d" % [GameState.combo_count, GameState.health], TEXT_MUTED)
+
+
+func _add_pause_settings() -> void:
+	_add_route_note("", TEXT_MUTED)
+	var vol_label := Label.new()
+	vol_label.text = "VOLUME"
+	vol_label.add_theme_font_size_override("font_size", int(12 * PlatformProfile.get_mobile_ui_scale()))
+	vol_label.add_theme_color_override("font_color", TEXT_MUTED)
+	route_list.add_child(vol_label)
+	var vol_slider := HSlider.new()
+	vol_slider.min_value = 0.0
+	vol_slider.max_value = 1.0
+	vol_slider.step = 0.05
+	vol_slider.value = db_to_linear(AudioServer.get_bus_volume_db(0))
+	vol_slider.custom_minimum_size = Vector2(200, 24)
+	vol_slider.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	vol_slider.value_changed.connect(func(val: float) -> void:
+		AudioServer.set_bus_volume_db(0, linear_to_db(val))
+	)
+	route_list.add_child(vol_slider)
 
 
 func _add_route_note(text: String, color: Color) -> void:

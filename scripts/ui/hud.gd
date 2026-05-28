@@ -229,6 +229,20 @@ func _refresh() -> void:
 		directive_summary.text = ""
 		phase_status.text = GameState.get_route_pressure_text()
 		cashout_status.text = GameState.get_extraction_bonus_status_text().split(" // ")[0]
+		operation_card.visible = false
+		phase_card.visible = false
+		secondary_card.visible = false
+		nav_card.visible = true
+		directive_card.visible = false
+		best_label.visible = false
+		combo_bar.visible = false
+	else:
+		operation_card.visible = true
+		phase_card.visible = true
+		secondary_card.visible = true
+		directive_card.visible = true
+		best_label.visible = true
+		combo_bar.visible = true
 	_refresh_navigation()
 	_refresh_health_pips()
 	_apply_operation_palette()
@@ -264,6 +278,11 @@ func show_toast(text: String, duration: float = 2.3) -> void:
 
 func _apply_theme() -> void:
 	var mobile_scale := PlatformProfile.get_mobile_ui_scale()
+	var card_h: int = 100 if PlatformProfile.is_mobile else 152
+	var card_w_score: int = 180 if PlatformProfile.is_mobile else 232
+	var card_w_telem: int = 200 if PlatformProfile.is_mobile else 252
+	score_card.custom_minimum_size = Vector2(card_w_score, card_h)
+	telemetry_card.custom_minimum_size = Vector2(card_w_telem, card_h + 40 if not PlatformProfile.is_mobile else card_h)
 	score_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
 	operation_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
 	telemetry_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
@@ -272,6 +291,9 @@ func _apply_theme() -> void:
 	directive_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, PANEL_ACCENT, 18))
 	secondary_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(0.82, 0.84, 1.0, 0.3), 18))
 	cashout_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(1.0, 0.72, 0.35, 0.4), 18))
+	if PlatformProfile.is_mobile:
+		objective_card.custom_minimum_size = Vector2(300, 60)
+		cashout_card.custom_minimum_size = Vector2(300, 56)
 	nav_card.add_theme_stylebox_override("panel", _make_panel_style(Color(0.08, 0.13, 0.21, 0.74), Color(0.42, 0.94, 1.0, 0.42), 18))
 	toast_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_ACCENT, 18, 2, 12))
 	_combo_bar_style()
