@@ -46,10 +46,16 @@ var facing: float = -1.0
 var cling_origin: Vector2 = Vector2.ZERO
 var landing_flash_timer: float = 0.0
 var shadow_phase: float = randf() * TAU
+var max_hp: int = 4
+var current_hp: int = 4
+var hp_bar_bg: Polygon2D
+var hp_bar_fill: Polygon2D
 
 
 func _ready() -> void:
 	add_to_group("enemy")
+	current_hp = max_hp
+	_setup_hp_bar()
 	landing_zone.monitoring = true
 	landing_zone.monitorable = false
 	landing_zone.body_entered.connect(_on_landing_zone_body_entered)
@@ -72,6 +78,79 @@ func _setup_warning_marker() -> void:
 	warning_marker.visible = false
 
 
+
+
+func _setup_hp_bar() -> void:
+	hp_bar_bg = Polygon2D.new()
+	hp_bar_bg.polygon = PackedVector2Array([
+		Vector2(-20.0, -2.0), Vector2(20.0, -2.0), Vector2(20.0, 2.0), Vector2(-20.0, 2.0),
+	])
+	hp_bar_bg.color = Color(0.12, 0.15, 0.22, 0.7)
+	hp_bar_bg.position = Vector2(0.0, -36.0)
+	hp_bar_bg.z_index = 20
+	hp_bar_bg.visible = false
+	add_child(hp_bar_bg)
+	hp_bar_fill = Polygon2D.new()
+	hp_bar_fill.polygon = PackedVector2Array([
+		Vector2(-19.0, -1.5), Vector2(19.0, -1.5), Vector2(19.0, 1.5), Vector2(-19.0, 1.5),
+	])
+	hp_bar_fill.color = Color(0.3, 0.92, 0.4, 0.9)
+	hp_bar_fill.position = Vector2(0.0, -36.0)
+	hp_bar_fill.z_index = 21
+	hp_bar_fill.visible = false
+	add_child(hp_bar_fill)
+
+
+func _refresh_hp_bar() -> void:
+	if current_hp >= max_hp:
+		hp_bar_bg.visible = false
+		hp_bar_fill.visible = false
+		return
+	hp_bar_bg.visible = true
+	hp_bar_fill.visible = true
+	var ratio: float = float(current_hp) / float(max_hp)
+	hp_bar_fill.scale.x = ratio
+	hp_bar_fill.position.x = -19.0 * (1.0 - ratio)
+	if ratio > 0.5:
+		hp_bar_fill.color = Color(0.3, 0.92, 0.4, 0.9)
+	elif ratio > 0.25:
+		hp_bar_fill.color = Color(1.0, 0.82, 0.2, 0.9)
+	else:
+		hp_bar_fill.color = Color(1.0, 0.22, 0.18, 0.95)
+
+
+func _spawn_hit_number() -> void:
+	var text_label := Label.new()
+	text_label.text = "1"
+	text_label.add_theme_font_size_override("font_size", 16)
+	text_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.7, 1.0))
+	text_label.z_index = 25
+	text_label.global_position = global_position + Vector2(randf_range(-8.0, 8.0), -42.0)
+	get_parent().add_child(text_label)
+	var tween := text_label.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(text_label, "global_position:y", text_label.global_position.y - 28.0, 0.4)
+	tween.tween_property(text_label, "modulate:a", 0.0, 0.45)
+	tween.set_parallel(false)
+	tween.tween_callback(text_label.queue_free)
+
+
+func _spawn_defeat_number() -> void:
+	var text_label := Label.new()
+	text_label.text = "+240"
+	text_label.add_theme_font_size_override("font_size", 20)
+	text_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.32, 1.0))
+	text_label.z_index = 25
+	text_label.global_position = global_position + Vector2(-12.0, -46.0)
+	get_parent().add_child(text_label)
+	var tween := text_label.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(text_label, "global_position:y", text_label.global_position.y - 36.0, 0.5)
+	tween.tween_property(text_label, "modulate:a", 0.0, 0.55)
+	tween.tween_property(text_label, "scale", Vector2.ONE * 1.3, 0.2)
+	tween.set_parallel(false)
+	tween.tween_callback(text_label.queue_free)
+
 func _physics_process(delta: float) -> void:
 	if defeated_once:
 		return
@@ -87,8 +166,13 @@ func _physics_process(delta: float) -> void:
 
 
 func receive_hit(force: Vector2) -> void:
+	current_hp -= 1
 	knocked_velocity = force * 0.9
 	hit_flash_timer = 0.2
+	_refresh_hp_bar()
+	_spawn_hit_number()
+	if current_hp <= 0:
+		_defeat(true, false)
 	if state == "cling":
 		state = "reposition"
 		reposition_timer = REPOSITION_TIME * 0.6
@@ -347,6 +431,7 @@ func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
+	_spawn_defeat_number()
 	if award_points:
 		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
 		defeated.emit(pts)
