@@ -171,6 +171,7 @@ func _can_plunge() -> bool:
 func _begin_warning() -> void:
 	state = "warning"
 	warning_timer = WARNING_TIME
+	AudioEngine.play_stalker_warn()
 	if is_instance_valid(player):
 		facing = signf(player.global_position.x - global_position.x)
 		if facing == 0.0:

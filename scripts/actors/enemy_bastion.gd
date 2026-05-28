@@ -115,6 +115,7 @@ func _activate_shockwave() -> void:
 	shock_active_timer = 0.32
 	_set_pulse_active(true)
 	_damage_players_in_pulse_zone()
+	AudioEngine.play_bastion_shock()
 
 
 func _set_pulse_active(active: bool) -> void:

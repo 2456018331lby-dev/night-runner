@@ -126,6 +126,7 @@ func _try_dash() -> void:
 	velocity.x = facing * DASH_SPEED * GameState.get_modifier_value("dash_multiplier", 1.0)
 	action_pop_timer = 0.1
 	_trigger_camera_shake(4.0, 0.1)
+	AudioEngine.play_dash()
 
 
 func _try_attack() -> void:
@@ -151,6 +152,9 @@ func _try_attack() -> void:
 	strike_flash_timer = 0.16
 	if hit_any:
 		hit_stop_timer = 0.05
+		AudioEngine.play_hit()
+	else:
+		AudioEngine.play_attack()
 	_trigger_camera_shake(3.5 if not hit_any else 7.0, 0.14)
 
 
@@ -183,6 +187,7 @@ func take_contact_hit(push_direction: float, source_kind: String = "enemy", sour
 	action_pop_timer = 0.16
 	_trigger_camera_shake(8.0, 0.18)
 	player_hit.emit()
+	AudioEngine.play_damage()
 
 
 func apply_launch_boost(boost_velocity: Vector2) -> void:
@@ -302,6 +307,7 @@ func _spawn_dash_afterimage() -> void:
 func _detect_landing() -> void:
 	if is_on_floor() and not was_on_floor:
 		_spawn_landing_dust()
+		AudioEngine.play_land()
 	was_on_floor = is_on_floor()
 
 

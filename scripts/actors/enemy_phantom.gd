@@ -153,6 +153,7 @@ func _launch_dive() -> void:
 	dive_cooldown_timer = DIVE_COOLDOWN
 	velocity.x = facing * DIVE_SPEED_X
 	velocity.y = DIVE_SPEED_Y
+	AudioEngine.play_phantom_dive()
 
 
 func _try_contact_damage() -> void:

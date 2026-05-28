@@ -27,6 +27,7 @@ GameState="*res://scripts/autoload/game_state.gd"
 PlatformProfile="*res://scripts/autoload/platform_profile.gd"
 InputRouter="*res://scripts/autoload/input_router.gd"
 FrontendBridge="*res://scripts/autoload/frontend_bridge.gd"
+AudioEngine="*res://scripts/autoload/audio_engine.gd"
 
 [display]
 

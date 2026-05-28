@@ -73,6 +73,7 @@ func _process(delta: float) -> void:
 		_apply_visuals(active_now)
 		if active_now:
 			_damage_overlapping_players()
+			AudioEngine.play_hazard_warn()
 	else:
 		_animate_visuals()
 

@@ -405,6 +405,8 @@ func _on_enemy_defeated(points: int, source: Node2D) -> void:
 		if hud.has_method("spawn_score_popup"):
 			hud.call("spawn_score_popup", points, _world_to_hud_position(source.global_position), Color(1.0, 0.84, 0.42))
 	GameState.register_enemy_defeat(points)
+	AudioEngine.play_enemy_defeat()
+	AudioEngine.play_combo(GameState.combo_count)
 	if GameState.extraction_bonus_active and GameState.extraction_unlocked and GameState.pending_extraction_bonus > 0:
 		_show_toast(GameState.get_extraction_bonus_status_text(), 1.5)
 	if GameState.combo_count >= 3:
@@ -425,6 +427,7 @@ func _on_player_hit() -> void:
 
 func _on_player_fell() -> void:
 	_spawn_screen_impact(Color(0.12, 0.08, 0.18, 0.4), 0.3)
+	AudioEngine.play_fail()
 	GameState.set_result("FAIL", "Route collapse. Re-enter the operation from hub or retry immediately.")
 	GameState.finish_run(false)
 	_set_objective("Route failed. Rebuild your line and try again.")
@@ -437,13 +440,17 @@ func _on_run_failed() -> void:
 
 func _on_run_finished(success: bool) -> void:
 	if success:
+		AudioEngine.play_success()
 		_set_objective("Extraction complete. The dossier has been archived.")
 		_show_toast(GameState.result_summary, 3.0)
+	else:
+		AudioEngine.play_fail()
 
 
 func _on_data_core_collected(core: Area2D) -> void:
 	active_data_cores.erase(core)
 	GameState.collect_data_core(250)
+	AudioEngine.play_core_collect()
 	if hud.has_method("spawn_score_popup"):
 		hud.call("spawn_score_popup", 250, _world_to_hud_position(core.global_position), Color(0.36, 0.95, 1.0))
 	_check_core_events()
@@ -454,6 +461,7 @@ func _on_data_core_collected(core: Area2D) -> void:
 		return
 	if extraction_gate.has_method("set_unlocked"):
 		extraction_gate.call("set_unlocked", true)
+	AudioEngine.play_extraction_unlock()
 	_spawn_completion_wave()
 	_set_objective(String(active_operation.get("objective_complete", "Extraction is now available.")))
 	var completion_text := String(active_operation.get("completion_toast", "Extraction route is live."))
