@@ -14,9 +14,11 @@ const OVERDRIVE_BORDER := Color(1.0, 0.78, 0.36, 0.95)
 @onready var glow: Polygon2D = $Glow
 @onready var art_sprite: Sprite2D = $Art
 @onready var signal_ring: Polygon2D = $SignalRing
+@onready var lock_chain: Polygon2D = $LockChain
 
 var unlocked: bool = false
 var pulse_time: float = 0.0
+var chain_shatter_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -26,6 +28,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	pulse_time += delta
+	if chain_shatter_timer > 0.0:
+		chain_shatter_timer -= delta
+		lock_chain.modulate.a = chain_shatter_timer / 0.3
+		lock_chain.scale = Vector2.ONE * (1.0 + (0.3 - chain_shatter_timer) * 3.0)
 	var pulse := 0.78 + sin(pulse_time * 2.5) * 0.12
 	glow.scale = Vector2.ONE * pulse
 	var greed_mix := clampf(GameState.get_extraction_bonus_progress_ratio(), 0.0, 1.0) if unlocked else 0.0
@@ -40,9 +46,10 @@ func _process(delta: float) -> void:
 func set_unlocked(value: bool) -> void:
 	var was_locked := not unlocked
 	unlocked = value
-	_apply_visual_state()
 	if unlocked and was_locked:
+		chain_shatter_timer = 0.3
 		_spawn_unlock_burst()
+	_apply_visual_state()
 	if unlocked:
 		for body in get_overlapping_bodies():
 			if body.is_in_group("player"):
@@ -87,6 +94,7 @@ func _apply_visual_state() -> void:
 	gate_frame.color = UNLOCKED_BORDER if unlocked else LOCKED_BORDER
 	art_sprite.modulate = Color(1.0, 1.0, 1.0) if unlocked else Color(1.0, 0.86, 0.76)
 	signal_ring.visible = unlocked
+	lock_chain.visible = not unlocked and chain_shatter_timer <= 0.0
 
 
 func _on_body_entered(body: Node) -> void:

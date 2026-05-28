@@ -16,6 +16,7 @@ var beam_nodes: Array[Polygon2D] = []
 var rail_nodes: Array[Polygon2D] = []
 var rail_glow_nodes: Array[Polygon2D] = []
 var event_pulse_nodes: Array[Polygon2D] = []
+var moving_lights: Array[Dictionary] = []
 var backdrop: Polygon2D
 var moon: Polygon2D
 
@@ -61,6 +62,7 @@ func _ready() -> void:
 	_build_fog()
 	_build_neon_rails()
 	_build_event_pulses()
+	_build_moving_lights()
 
 
 func set_theme(theme: Dictionary) -> void:
@@ -99,6 +101,19 @@ func _process(delta: float) -> void:
 		var pulse := event_pulse_nodes[index]
 		pulse.scale = Vector2.ONE * (1.0 + total_heat * 0.22 + sin(sweep_time * (0.8 + index * 0.14)) * 0.04)
 		pulse.modulate.a = clampf(0.06 + total_heat * 0.18 + sin(sweep_time * (1.1 + index * 0.2)) * 0.03, 0.04, 0.28)
+	for light_data in moving_lights:
+		var light_node: Polygon2D = light_data["light"]
+		var glow_node: Polygon2D = light_data["glow"]
+		var speed: float = light_data["speed"]
+		var base_y: float = light_data["base_y"]
+		light_node.position.x += speed * delta
+		glow_node.position.x = light_node.position.x
+		glow_node.position.y = base_y + sin(sweep_time * 0.8) * 3.0
+		# Wrap around
+		if speed > 0.0 and light_node.position.x > 2600.0:
+			light_node.position.x = -200.0
+		elif speed < 0.0 and light_node.position.x < -200.0:
+			light_node.position.x = 2600.0
 
 
 func _build_glows() -> void:
@@ -211,6 +226,20 @@ func _build_event_pulses() -> void:
 		var pulse := _make_ellipse(pulse_setup["position"], pulse_setup["radius"], pulse_setup["color"], -6)
 		add_child(pulse)
 		event_pulse_nodes.append(pulse)
+
+
+func _build_moving_lights() -> void:
+	for light_setup in [
+		{"y": 160.0, "speed": 85.0, "color": Color(0.4, 0.9, 1.0, 0.28), "size": Vector2(24.0, 3.0), "start_x": -100.0},
+		{"y": 240.0, "speed": -62.0, "color": Color(1.0, 0.6, 0.3, 0.22), "size": Vector2(18.0, 2.5), "start_x": 2500.0},
+		{"y": 480.0, "speed": 45.0, "color": Color(0.3, 1.0, 0.7, 0.18), "size": Vector2(14.0, 2.0), "start_x": -200.0},
+	]:
+		var light := _make_rect(Vector2(light_setup["start_x"], light_setup["y"]), light_setup["size"], light_setup["color"], -7)
+		add_child(light)
+		# Glow behind the light
+		var glow := _make_rect(Vector2(light_setup["start_x"], light_setup["y"]), Vector2(light_setup["size"].x * 3.0, light_setup["size"].y * 4.0), Color(light_setup["color"].r, light_setup["color"].g, light_setup["color"].b, 0.06), -8)
+		add_child(glow)
+		moving_lights.append({"light": light, "glow": glow, "speed": light_setup["speed"], "base_y": light_setup["y"]})
 
 func _make_rect(center: Vector2, size: Vector2, color: Color, z_order: int) -> Polygon2D:
 	var polygon := Polygon2D.new()

@@ -156,9 +156,32 @@ func _build_platforms() -> void:
 		])
 		visual.color = platform_data["color"]
 		static_body.add_child(visual)
+		# Top edge neon line
+		var theme: Dictionary = active_operation.get("theme", {})
+		var edge_color: Color = theme.get("primary", Color(0.3, 0.8, 1.0, 0.6))
+		var edge_line := Polygon2D.new()
+		edge_line.polygon = PackedVector2Array([
+			Vector2(-half.x, -half.y),
+			Vector2(half.x, -half.y),
+			Vector2(half.x, -half.y + 2.0),
+			Vector2(-half.x, -half.y + 2.0),
+		])
+		edge_line.color = Color(edge_color.r, edge_color.g, edge_color.b, 0.55)
+		static_body.add_child(edge_line)
+		# Bottom glow
+		var glow := Polygon2D.new()
+		glow.polygon = PackedVector2Array([
+			Vector2(-half.x * 0.9, half.y),
+			Vector2(half.x * 0.9, half.y),
+			Vector2(half.x * 0.7, half.y + 8.0),
+			Vector2(-half.x * 0.7, half.y + 8.0),
+		])
+		glow.color = Color(edge_color.r * 0.4, edge_color.g * 0.4, edge_color.b * 0.4, 0.18)
+		static_body.add_child(glow)
 		ground_container.add_child(static_body)
 		static_body.add_to_group("platform")
 		generated_platforms.append(static_body)
+	_build_ground_reference()
 
 
 func _position_player() -> void:
@@ -320,6 +343,35 @@ func _ensure_collapse_wall_hidden() -> void:
 	collapse_wall_visual = null
 
 
+func _build_ground_reference() -> void:
+	var theme: Dictionary = active_operation.get("theme", {})
+	var primary: Color = theme.get("primary", Color(0.3, 0.8, 1.0))
+	# Danger line near fall threshold
+	var danger_line := Polygon2D.new()
+	danger_line.polygon = PackedVector2Array([
+		Vector2(-200.0, 880.0),
+		Vector2(2800.0, 880.0),
+		Vector2(2800.0, 882.0),
+		Vector2(-200.0, 882.0),
+	])
+	danger_line.color = Color(1.0, 0.18, 0.12, 0.2)
+	danger_line.z_index = -3
+	ground_container.add_child(danger_line)
+	generated_platforms.append(danger_line)
+	# Glow below danger line
+	var danger_glow := Polygon2D.new()
+	danger_glow.polygon = PackedVector2Array([
+		Vector2(-200.0, 882.0),
+		Vector2(2800.0, 882.0),
+		Vector2(2800.0, 920.0),
+		Vector2(-200.0, 920.0),
+	])
+	danger_glow.color = Color(1.0, 0.12, 0.08, 0.06)
+	danger_glow.z_index = -4
+	ground_container.add_child(danger_glow)
+	generated_platforms.append(danger_glow)
+
+
 func _show_lane_signals() -> void:
 	var signals: Array = active_operation.get("lane_signals", [])
 	if signals.is_empty():
@@ -417,7 +469,7 @@ func _on_enemy_defeated(points: int, source: Node2D) -> void:
 
 func _on_player_hit() -> void:
 	var damage_summary := GameState.get_last_damage_source_summary()
-	_spawn_screen_impact(Color(1.0, 0.18, 0.12, 0.36), 0.22)
+	_spawn_screen_impact(Color(1.0, 0.12, 0.08, 0.45), 0.28)
 	GameState.lose_health(1)
 	if GameState.pending_extraction_bonus > 0:
 		_show_toast("%s hit. Cash out before %s slips away." % [damage_summary.capitalize(), GameState.get_extraction_bonus_label()], 1.8)
