@@ -152,7 +152,8 @@ func register_enemy_defeat(base_points: int) -> void:
 		combo_count = 1
 	max_combo_reached = maxi(max_combo_reached, combo_count)
 	combo_timer = combo_window
-	var total_points := int(round((base_points + max(0, combo_count - 1) * 40) * float(run_modifiers.get("score_multiplier", 1.0))))
+	var combo_multiplier: float = 1.0 + max(0, combo_count - 1) * 0.15
+	var total_points := int(round((base_points * combo_multiplier + max(0, combo_count - 1) * 40) * float(run_modifiers.get("score_multiplier", 1.0))))
 	score += total_points
 	enemy_score_total += total_points
 	if extraction_bonus_active and extraction_unlocked:

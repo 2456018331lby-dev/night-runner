@@ -96,6 +96,11 @@ var low_health_overlay: ColorRect
 var cashout_border: ColorRect
 var combo_celebration_timer: float = 0.0
 var last_combo_milestone: int = 0
+var combo_multiplier_label: Label
+var combo_edge_left: Polygon2D
+var combo_edge_right: Polygon2D
+var combo_break_timer: float = 0.0
+var last_combo_count: int = 0
 
 
 func _ready() -> void:
@@ -449,6 +454,33 @@ func _create_screen_overlays() -> void:
 	cashout_border.z_index = 77
 	cashout_border.visible = false
 	add_child(cashout_border)
+	# Combo multiplier - big center display
+	combo_multiplier_label = Label.new()
+	combo_multiplier_label.text = ""
+	combo_multiplier_label.add_theme_font_size_override("font_size", 48)
+	combo_multiplier_label.add_theme_color_override("font_color", Color(1.0, 0.88, 0.3, 0.0))
+	combo_multiplier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	combo_multiplier_label.z_index = 88
+	combo_multiplier_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	combo_multiplier_label.position = Vector2(560, 45)
+	combo_multiplier_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(combo_multiplier_label)
+	# Combo edge flames
+	combo_edge_left = Polygon2D.new()
+	combo_edge_left.polygon = PackedVector2Array([
+		Vector2(0, 0), Vector2(60, 0), Vector2(30, 360), Vector2(0, 360),
+	])
+	combo_edge_left.color = Color(1.0, 0.55, 0.15, 0.0)
+	combo_edge_left.z_index = 76
+	combo_edge_left.position = Vector2.ZERO
+	add_child(combo_edge_left)
+	combo_edge_right = Polygon2D.new()
+	combo_edge_right.polygon = PackedVector2Array([
+		Vector2(0, 0), Vector2(60, 0), Vector2(60, 360), Vector2(30, 360),
+	])
+	combo_edge_right.color = Color(1.0, 0.55, 0.15, 0.0)
+	combo_edge_right.z_index = 76
+	add_child(combo_edge_right)
 
 
 func _check_combo_celebration() -> void:
@@ -458,6 +490,9 @@ func _check_combo_celebration() -> void:
 	if GameState.is_run_failed:
 		low_health_overlay.visible = false
 		cashout_border.visible = false
+		combo_multiplier_label.text = ""
+		combo_edge_left.visible = false
+		combo_edge_right.visible = false
 		return
 	if health_ratio <= 0.34 and not GameState.run_success:
 		low_health_overlay.visible = true
@@ -472,6 +507,38 @@ func _check_combo_celebration() -> void:
 		cashout_border.color = Color(1.0, 0.68, 0.22, 0.02 + heat * 0.06 + border_pulse * 0.03)
 	else:
 		cashout_border.visible = false
+	# Combo multiplier display
+	var combo := GameState.combo_count
+	var multiplier: float = 1.0 + max(0, combo - 1) * 0.15
+	if combo >= 3 and GameState.combo_timer > 0.0 and not GameState.run_success:
+		combo_multiplier_label.text = "x%.1f" % multiplier
+		var intensity := clampf(float(combo) / 8.0, 0.0, 1.0)
+		var label_pulse := sin(cashout_pulse * 8.0) * 0.12 + 0.88
+		combo_multiplier_label.add_theme_color_override("font_color", Color(1.0, 0.85 - intensity * 0.3, 0.3 - intensity * 0.2, label_pulse))
+		combo_multiplier_label.scale = Vector2.ONE * (1.0 + intensity * 0.3 + sin(cashout_pulse * 6.0) * 0.04)
+		# Edge flames
+		combo_edge_left.visible = true
+		combo_edge_right.visible = true
+		var vp_size := get_viewport().get_visible_rect().size
+		combo_edge_right.position = Vector2(vp_size.x - 60, vp_size.y - 360)
+		var flame_alpha := 0.04 + intensity * 0.1 + sin(cashout_pulse * 5.0) * 0.02
+		combo_edge_left.color = Color(1.0, 0.55 - intensity * 0.2, 0.15 - intensity * 0.1, flame_alpha)
+		combo_edge_right.color = combo_edge_left.color
+		combo_edge_left.scale.y = 0.7 + intensity * 0.5 + sin(cashout_pulse * 3.0) * 0.08
+		combo_edge_right.scale.y = combo_edge_left.scale.y
+	else:
+		combo_multiplier_label.text = ""
+		combo_edge_left.visible = false
+		combo_edge_right.visible = false
+	# Combo break shake
+	if combo == 0 and last_combo_count >= 3:
+		combo_break_timer = 0.25
+	if combo_break_timer > 0.0:
+		combo_break_timer -= get_process_delta_time()
+		combo_multiplier_label.text = "BREAK"
+		combo_multiplier_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2, combo_break_timer / 0.25))
+		combo_multiplier_label.scale = Vector2.ONE * (1.0 + combo_break_timer * 1.5)
+	last_combo_count = combo
 
 
 func _spawn_combo_burst() -> void:

@@ -20,6 +20,14 @@ var current_hp: int = 2
 var hp_bar_bg: Polygon2D
 var hp_bar_fill: Polygon2D
 var hit_text_timer: float = 0.0
+var dash_attack_timer: float = 0.0
+var dash_attack_cooldown: float = 0.0
+var is_dashing: bool = false
+var dash_direction: float = 0.0
+const DASH_ATTACK_SPEED := 320.0
+const DASH_ATTACK_DURATION := 0.22
+const DASH_ATTACK_COOLDOWN := 2.8
+const DASH_ATTACK_RANGE := 220.0
 
 
 func _ready() -> void:
@@ -76,15 +84,42 @@ func _physics_process(delta: float) -> void:
 		velocity = knocked_velocity
 		knocked_velocity = knocked_velocity.move_toward(Vector2.ZERO, 900.0 * delta)
 	elif is_instance_valid(player) and not GameState.is_run_failed:
-		var direction := signf(player.global_position.x - global_position.x)
-		velocity.x = direction * SPEED * GameState.get_modifier_value("speed_multiplier", 1.0)
-		body_visual.scale.x = direction if direction != 0.0 else body_visual.scale.x
+		_update_dash_attack(delta)
+		if is_dashing:
+			velocity.x = dash_direction * DASH_ATTACK_SPEED
+		else:
+			var direction := signf(player.global_position.x - global_position.x)
+			velocity.x = direction * SPEED * GameState.get_modifier_value("speed_multiplier", 1.0)
+			body_visual.scale.x = direction if direction != 0.0 else body_visual.scale.x
 	stride_phase += delta * clampf(absf(velocity.x) / 80.0, 0.8, 2.6)
 	move_and_slide()
 	_try_contact_damage()
 	_update_flash(delta)
 	if global_position.y > 920.0:
 		_defeat(true, true)
+
+
+func _update_dash_attack(delta: float) -> void:
+	if dash_attack_cooldown > 0.0:
+		dash_attack_cooldown -= delta
+	if is_dashing:
+		dash_attack_timer -= delta
+		if dash_attack_timer <= 0.0:
+			is_dashing = false
+			dash_attack_cooldown = DASH_ATTACK_COOLDOWN
+		return
+	if dash_attack_cooldown > 0.0:
+		return
+	if knocked_velocity.length() > 1.0:
+		return
+	var dist := global_position.distance_to(player.global_position)
+	if dist <= DASH_ATTACK_RANGE and dist > 40.0:
+		is_dashing = true
+		dash_attack_timer = DASH_ATTACK_DURATION
+		dash_direction = signf(player.global_position.x - global_position.x)
+		if dash_direction == 0.0:
+			dash_direction = 1.0
+		body_visual.scale.x = dash_direction
 
 
 func receive_hit(force: Vector2) -> void:
@@ -112,6 +147,9 @@ func _update_flash(delta: float) -> void:
 		hit_flash_timer -= delta
 		body_visual.color = Color(1.0, 0.95, 0.72)
 		art_sprite.modulate = Color(1.0, 0.96, 0.78)
+	elif is_dashing:
+		body_visual.color = Color(1.0, 0.55, 0.28)
+		art_sprite.modulate = Color(1.0, 0.82, 0.68)
 	else:
 		body_visual.color = Color(0.21, 0.95, 0.8)
 		art_sprite.modulate = Color(1.0, 1.0, 1.0)
