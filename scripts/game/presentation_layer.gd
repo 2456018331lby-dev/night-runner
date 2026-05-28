@@ -75,23 +75,30 @@ func _process(delta: float) -> void:
 	var combat_heat := 0.0
 	if has_node("/root/GameState"):
 		combat_heat = clampf(GameState.get_extraction_bonus_progress_ratio(), 0.0, 1.0)
+	var low_health_heat := 0.0
+	if has_node("/root/GameState") and GameState.is_run_active and not GameState.is_run_failed:
+		var health_bonus_val: int = int(GameState.run_modifiers.get("health_bonus", 0))
+		var max_hp: float = max(1.0, float(max(1, 3 + health_bonus_val)))
+		var health_ratio: float = float(GameState.health) / max_hp
+		low_health_heat = clampf(1.0 - health_ratio * 2.0, 0.0, 1.0)
+	var total_heat := clampf(combat_heat + low_health_heat * 0.4, 0.0, 1.0)
 	for index in fog_nodes.size():
 		var fog := fog_nodes[index]
 		var offset := fog_offsets[index]
 		fog.position = offset + Vector2(sin(sweep_time * (0.22 + index * 0.07)) * (26.0 + index * 18.0), cos(sweep_time * (0.16 + index * 0.05)) * 8.0)
-		fog.modulate.a = 0.62 + sin(sweep_time * (0.5 + index * 0.08)) * 0.16 + combat_heat * 0.12
+		fog.modulate.a = 0.62 + sin(sweep_time * (0.5 + index * 0.08)) * 0.16 + total_heat * 0.12
 	for index in beam_nodes.size():
-		beam_nodes[index].modulate.a = 0.34 + sin(sweep_time * (1.4 + index * 0.33)) * 0.18 + combat_heat * 0.08
+		beam_nodes[index].modulate.a = 0.34 + sin(sweep_time * (1.4 + index * 0.33)) * 0.18 + total_heat * 0.08
 	for index in rail_nodes.size():
-		var pulse := 0.76 + sin(sweep_time * (2.0 + index * 0.34)) * 0.18 + combat_heat * 0.18
+		var pulse := 0.76 + sin(sweep_time * (2.0 + index * 0.34)) * 0.18 + total_heat * 0.18
 		rail_nodes[index].modulate.a = clampf(pulse, 0.25, 1.0)
 	for index in rail_glow_nodes.size():
-		var glow_pulse := 0.24 + sin(sweep_time * (1.3 + index * 0.21)) * 0.09 + combat_heat * 0.24
+		var glow_pulse := 0.24 + sin(sweep_time * (1.3 + index * 0.21)) * 0.09 + total_heat * 0.24
 		rail_glow_nodes[index].modulate.a = clampf(glow_pulse, 0.12, 0.72)
 	for index in event_pulse_nodes.size():
 		var pulse := event_pulse_nodes[index]
-		pulse.scale = Vector2.ONE * (1.0 + combat_heat * 0.22 + sin(sweep_time * (0.8 + index * 0.14)) * 0.04)
-		pulse.modulate.a = clampf(0.06 + combat_heat * 0.18 + sin(sweep_time * (1.1 + index * 0.2)) * 0.03, 0.04, 0.28)
+		pulse.scale = Vector2.ONE * (1.0 + total_heat * 0.22 + sin(sweep_time * (0.8 + index * 0.14)) * 0.04)
+		pulse.modulate.a = clampf(0.06 + total_heat * 0.18 + sin(sweep_time * (1.1 + index * 0.2)) * 0.03, 0.04, 0.28)
 
 
 func _build_glows() -> void:

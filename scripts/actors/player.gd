@@ -32,6 +32,11 @@ var attack_timer: float = 0.0
 var hit_stop_timer: float = 0.0
 var strike_flash_timer: float = 0.0
 var trail_phase: float = 0.0
+var dash_afterimages: Array[Polygon2D] = []
+var dash_afterimage_timer: float = 0.0
+var was_on_floor: bool = true
+var landing_dust_timer: float = 0.0
+var speed_line_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -74,7 +79,14 @@ func _update_timers(delta: float) -> void:
 		boost_flash_timer -= delta
 	if strike_flash_timer > 0.0:
 		strike_flash_timer -= delta
+	if landing_dust_timer > 0.0:
+		landing_dust_timer -= delta
+	if speed_line_timer > 0.0:
+		speed_line_timer -= delta
 	trail_phase += delta * 7.0
+	_update_dash_afterimages(delta)
+	_detect_landing()
+	_maybe_spawn_speed_lines(delta)
 
 
 func _collect_actions() -> void:
@@ -251,3 +263,92 @@ func _spawn_hit_flash(at_position: Vector2) -> void:
 func _trigger_camera_shake(strength: float, duration: float) -> void:
 	camera_shake_strength = maxf(camera_shake_strength, strength)
 	camera_shake_timer = duration
+
+
+func _update_dash_afterimages(delta: float) -> void:
+	for index in range(dash_afterimages.size() - 1, -1, -1):
+		var image := dash_afterimages[index]
+		if not is_instance_valid(image):
+			dash_afterimages.remove_at(index)
+			continue
+		var life := float(image.get_meta("life", 0.22)) - delta
+		if life <= 0.0:
+			image.queue_free()
+			dash_afterimages.remove_at(index)
+			continue
+		image.set_meta("life", life)
+		image.modulate.a = clampf(life / 0.22, 0.0, 1.0) * 0.3
+	if dash_timer <= 0.0:
+		dash_afterimage_timer = 0.0
+		return
+	dash_afterimage_timer -= delta
+	if dash_afterimage_timer <= 0.0:
+		dash_afterimage_timer = 0.045
+		_spawn_dash_afterimage()
+
+
+func _spawn_dash_afterimage() -> void:
+	var image := Polygon2D.new()
+	image.polygon = body_visual.polygon
+	image.global_position = global_position
+	image.scale = body_visual.scale
+	image.color = Color(0.45, 0.85, 1.0, 0.3)
+	image.z_index = body_visual.z_index - 1
+	image.set_meta("life", 0.22)
+	get_tree().current_scene.add_child(image)
+	dash_afterimages.append(image)
+
+
+func _detect_landing() -> void:
+	if is_on_floor() and not was_on_floor:
+		_spawn_landing_dust()
+	was_on_floor = is_on_floor()
+
+
+func _spawn_landing_dust() -> void:
+	if landing_dust_timer > 0.0:
+		return
+	landing_dust_timer = 0.15
+	for index in 5:
+		var dust := Polygon2D.new()
+		var angle := PI + float(index) / 4.0 * PI
+		dust.polygon = PackedVector2Array([
+			Vector2(-3.0, -2.0), Vector2(3.0, -2.0), Vector2(4.0, 2.0), Vector2(-4.0, 2.0),
+		])
+		dust.global_position = global_position + Vector2(0.0, 4.0)
+		dust.color = Color(0.6, 0.55, 0.5, 0.35)
+		dust.z_index = -1
+		get_tree().current_scene.add_child(dust)
+		var tween := dust.create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(dust, "global_position", dust.global_position + Vector2(cos(angle) * 28.0, -absf(sin(angle)) * 8.0), 0.18)
+		tween.tween_property(dust, "modulate:a", 0.0, 0.2)
+		tween.set_parallel(false)
+		tween.tween_callback(dust.queue_free)
+
+
+func _maybe_spawn_speed_lines(delta: float) -> void:
+	if not is_on_floor() or absf(velocity.x) < SPEED * 0.85:
+		return
+	speed_line_timer -= delta
+	if speed_line_timer > 0.0:
+		return
+	speed_line_timer = 0.08
+	var line := Polygon2D.new()
+	var line_length := randf_range(18.0, 36.0)
+	var line_y := randf_range(-20.0, 16.0)
+	var direction := signf(velocity.x)
+	line.polygon = PackedVector2Array([
+		Vector2(0.0, -0.8), Vector2(line_length * direction, -0.4),
+		Vector2(line_length * direction, 0.4), Vector2(0.0, 0.8),
+	])
+	line.global_position = global_position + Vector2(-direction * randf_range(12.0, 28.0), line_y)
+	line.color = Color(0.7, 0.88, 1.0, 0.22)
+	line.z_index = -2
+	get_tree().current_scene.add_child(line)
+	var tween := line.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(line, "global_position:x", line.global_position.x - direction * 40.0, 0.12)
+	tween.tween_property(line, "modulate:a", 0.0, 0.14)
+	tween.set_parallel(false)
+	tween.tween_callback(line.queue_free)

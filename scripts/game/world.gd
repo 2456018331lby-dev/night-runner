@@ -424,6 +424,7 @@ func _on_player_hit() -> void:
 
 
 func _on_player_fell() -> void:
+	_spawn_screen_impact(Color(0.12, 0.08, 0.18, 0.4), 0.3)
 	GameState.set_result("FAIL", "Route collapse. Re-enter the operation from hub or retry immediately.")
 	GameState.finish_run(false)
 	_set_objective("Route failed. Rebuild your line and try again.")

@@ -92,11 +92,16 @@ var navigation_active: bool = false
 var score_popups: Array[Dictionary] = []
 var popup_container: Control
 var health_target_scale: Array[float] = [1.0, 1.0, 1.0]
+var low_health_overlay: ColorRect
+var cashout_border: ColorRect
+var combo_celebration_timer: float = 0.0
+var last_combo_milestone: int = 0
 
 
 func _ready() -> void:
 	_apply_theme()
 	_create_popup_container()
+	_create_screen_overlays()
 	toast_card.visible = false
 	last_score = GameState.score
 	last_health = GameState.health
@@ -429,6 +434,68 @@ func _update_health_animation(delta: float) -> void:
 			health_pips[i].scale = Vector2.ONE * health_target_scale[i]
 
 
+func _create_screen_overlays() -> void:
+	low_health_overlay = ColorRect.new()
+	low_health_overlay.color = Color(0.9, 0.12, 0.08, 0.0)
+	low_health_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	low_health_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	low_health_overlay.z_index = 78
+	low_health_overlay.visible = false
+	add_child(low_health_overlay)
+	cashout_border = ColorRect.new()
+	cashout_border.color = Color(1.0, 0.72, 0.28, 0.0)
+	cashout_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cashout_border.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cashout_border.z_index = 77
+	cashout_border.visible = false
+	add_child(cashout_border)
+
+
+func _check_combo_celebration() -> void:
+	var health_bonus_val: int = int(GameState.run_modifiers.get("health_bonus", 0))
+	var max_hp: float = max(1.0, float(max(1, 3 + health_bonus_val)))
+	var health_ratio: float = float(GameState.health) / max_hp
+	if GameState.is_run_failed:
+		low_health_overlay.visible = false
+		cashout_border.visible = false
+		return
+	if health_ratio <= 0.34 and not GameState.run_success:
+		low_health_overlay.visible = true
+		var pulse := sin(cashout_pulse * 6.0) * 0.5 + 0.5
+		low_health_overlay.color = Color(0.9, 0.12, 0.08, 0.06 + pulse * 0.08)
+	else:
+		low_health_overlay.visible = false
+	if GameState.extraction_unlocked and not GameState.run_success and not GameState.is_run_failed:
+		cashout_border.visible = true
+		var heat := GameState.get_extraction_bonus_progress_ratio()
+		var border_pulse := sin(cashout_pulse * 3.5) * 0.5 + 0.5
+		cashout_border.color = Color(1.0, 0.68, 0.22, 0.02 + heat * 0.06 + border_pulse * 0.03)
+	else:
+		cashout_border.visible = false
+
+
+func _spawn_combo_burst() -> void:
+	var center := score_label.global_position + score_label.size * 0.5
+	for index in 6:
+		var spark := Polygon2D.new()
+		spark.polygon = PackedVector2Array([
+			Vector2(0.0, -4.0), Vector2(10.0, 0.0), Vector2(0.0, 4.0), Vector2(-10.0, 0.0),
+		])
+		var angle := TAU * float(index) / 6.0
+		spark.global_position = center
+		spark.rotation = angle
+		spark.color = Color(1.0, 0.84, 0.32, 0.8)
+		spark.z_index = 92
+		popup_container.add_child(spark)
+		var tween := spark.create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(spark, "global_position", center + Vector2(cos(angle), sin(angle)) * 36.0, 0.22)
+		tween.tween_property(spark, "modulate:a", 0.0, 0.24)
+		tween.tween_property(spark, "scale", Vector2.ONE * 0.3, 0.22)
+		tween.set_parallel(false)
+		tween.tween_callback(spark.queue_free)
+
+
 func _refresh_health_pips() -> void:
 	for index in health_pips.size():
 		var fill := HEALTH_ON if index < GameState.health else HEALTH_OFF
@@ -438,6 +505,14 @@ func _refresh_health_pips() -> void:
 
 func _update_pulses(delta: float) -> void:
 	cashout_pulse += delta
+	if combo_celebration_timer > 0.0:
+		combo_celebration_timer -= delta
+	_check_combo_celebration()
+	var current_combo := GameState.combo_count
+	if current_combo > last_combo_milestone and current_combo >= 3:
+		combo_celebration_timer = 0.4
+		_spawn_combo_burst()
+	last_combo_milestone = current_combo
 	if score_pulse_timer > 0.0:
 		score_pulse_timer -= delta
 		var combo_bonus := clampf(float(GameState.combo_count) / 6.0, 0.0, 1.0) * 0.12
