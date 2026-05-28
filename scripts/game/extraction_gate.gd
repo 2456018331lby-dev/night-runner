@@ -38,13 +38,48 @@ func _process(delta: float) -> void:
 
 
 func set_unlocked(value: bool) -> void:
+	var was_locked := not unlocked
 	unlocked = value
 	_apply_visual_state()
+	if unlocked and was_locked:
+		_spawn_unlock_burst()
 	if unlocked:
 		for body in get_overlapping_bodies():
 			if body.is_in_group("player"):
 				extraction_entered.emit()
 				break
+
+
+func _spawn_unlock_burst() -> void:
+	var ring := Polygon2D.new()
+	ring.polygon = PackedVector2Array()
+	for step in 24:
+		var angle := TAU * float(step) / 24.0
+		ring.polygon.append(Vector2(cos(angle) * 38.0, sin(angle) * 38.0))
+	ring.global_position = global_position
+	ring.color = Color(0.42, 1.0, 0.82, 0.7)
+	ring.z_index = 16
+	get_tree().current_scene.add_child(ring)
+	var beam := Polygon2D.new()
+	beam.polygon = PackedVector2Array([
+		Vector2(-16.0, -140.0),
+		Vector2(16.0, -140.0),
+		Vector2(24.0, 100.0),
+		Vector2(-24.0, 100.0),
+	])
+	beam.global_position = global_position + Vector2(0.0, -28.0)
+	beam.color = Color(0.45, 0.95, 1.0, 0.3)
+	beam.z_index = 14
+	get_tree().current_scene.add_child(beam)
+	var tween := ring.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ring, "scale", Vector2.ONE * 2.8, 0.3).from(Vector2.ONE * 0.2)
+	tween.tween_property(ring, "modulate:a", 0.0, 0.32)
+	tween.tween_property(beam, "scale", Vector2(1.3, 1.0), 0.24).from(Vector2(0.4, 0.5))
+	tween.tween_property(beam, "modulate:a", 0.0, 0.28)
+	tween.set_parallel(false)
+	tween.tween_callback(ring.queue_free)
+	tween.tween_callback(beam.queue_free)
 
 
 func _apply_visual_state() -> void:

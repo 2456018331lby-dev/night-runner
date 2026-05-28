@@ -299,6 +299,7 @@ func _refresh_visuals() -> void:
 	var windup_mix := clampf(1.0 - warning_timer / WARNING_TIME, 0.0, 1.0) if state == "warning" else 0.0
 	var plunge_mix := 1.0 if state == "plunge" else 0.0
 	var recovery_mix := clampf(1.0 - recovery_timer / RECOVERY_TIME, 0.0, 1.0) if state == "recovery" else 0.0
+	var cling_pulse := sin(shadow_phase * 2.2) * 0.5 + 0.5 if state == "cling" else 0.0
 	if hit_flash_timer > 0.0:
 		body_visual.color = Color(1.0, 0.88, 0.72)
 		mask_visual.color = Color(1.0, 0.92, 0.78)
@@ -316,17 +317,17 @@ func _refresh_visuals() -> void:
 		mask_visual.color = Color(1.0, 0.58, 0.36)
 		eye_visual.color = Color(1.0, 0.9, 0.5)
 	else:
-		body_visual.color = Color(0.82, 0.2, 0.18)
-		mask_visual.color = Color(0.88, 0.36, 0.22)
-		eye_visual.color = Color(0.96, 0.78, 0.48)
+		body_visual.color = Color(0.82 + cling_pulse * 0.08, 0.2 + cling_pulse * 0.04, 0.18)
+		mask_visual.color = Color(0.88 + cling_pulse * 0.04, 0.36, 0.22)
+		eye_visual.color = Color(0.96, 0.78 + cling_pulse * 0.1, 0.48)
 	var body_squash := 1.0 + plunge_mix * 0.18 - plunge_mix * 0.12
 	body_visual.scale.y = body_squash
-	body_visual.scale.x = absf(body_visual.scale.x)
+	body_visual.scale.x = absf(body_visual.scale.x) * (1.0 + cling_pulse * 0.03)
 	shadow_visual.visible = state == "cling" or state == "warning"
 	if shadow_visual.visible:
-		var shadow_alpha := 0.22 + sin(shadow_phase) * 0.06
+		var shadow_alpha := 0.22 + sin(shadow_phase) * 0.06 + windup_mix * 0.14
 		shadow_visual.modulate.a = shadow_alpha
-		shadow_visual.scale = Vector2.ONE * (0.8 + windup_mix * 0.3)
+		shadow_visual.scale = Vector2.ONE * (0.8 + windup_mix * 0.3 + cling_pulse * 0.12)
 	warning_marker.visible = state == "warning"
 	if warning_marker.visible:
 		warning_marker.color = Color(1.0, 0.28, 0.22, 0.35 + windup_mix * 0.45)

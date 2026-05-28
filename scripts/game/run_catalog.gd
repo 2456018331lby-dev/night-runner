@@ -691,6 +691,16 @@ const OPERATIONS := [
 					"finish_bonus_multiplier": 1.22,
 				},
 			},
+			{
+				"id": "signal_jammer",
+				"name": "Signal Jammer",
+				"summary": "Higher jump and dash, but the sector adapts faster to your position.",
+				"modifiers": {
+					"jump_multiplier": 1.1,
+					"dash_multiplier": 1.12,
+					"score_multiplier": 1.06,
+				},
+			},
 		],
 		"secondary_objective": {
 			"id": "dividend_hunter",

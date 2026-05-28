@@ -104,6 +104,9 @@ custom_minimum_size = Vector2(28, 14)
 custom_minimum_size = Vector2(0, 6)
 show_percentage = false
 
+[node name="DashLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
+text = "DASH"
+
 [node name="CoreCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 text = "DATA CORES"
 

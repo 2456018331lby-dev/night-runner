@@ -133,12 +133,13 @@ func _try_attack() -> void:
 			var attack_force := ATTACK_FORCE * GameState.get_modifier_value("attack_force_multiplier", 1.0)
 			enemy.receive_hit(Vector2(facing * attack_force, -240.0))
 			_spawn_hit_spark(enemy_node.global_position - Vector2(facing * 18.0, 8.0))
+			_spawn_hit_flash(enemy_node.global_position)
 			hit_any = true
-	action_pop_timer = 0.08
-	strike_flash_timer = 0.12
+	action_pop_timer = 0.1
+	strike_flash_timer = 0.16
 	if hit_any:
-		hit_stop_timer = 0.035
-	_trigger_camera_shake(3.0 if not hit_any else 5.5, 0.12)
+		hit_stop_timer = 0.05
+	_trigger_camera_shake(3.5 if not hit_any else 7.0, 0.14)
 
 
 func _apply_gravity(delta: float) -> void:
@@ -226,6 +227,25 @@ func _spawn_hit_spark(at_position: Vector2) -> void:
 	tween.tween_property(spark, "modulate:a", 0.0, 0.14)
 	tween.set_parallel(false)
 	tween.tween_callback(spark.queue_free)
+
+
+func _spawn_hit_flash(at_position: Vector2) -> void:
+	var flash := Polygon2D.new()
+	flash.polygon = PackedVector2Array()
+	for step in 10:
+		var angle := TAU * float(step) / 10.0
+		var radius := 16.0 if step % 2 == 0 else 6.0
+		flash.polygon.append(Vector2(cos(angle) * radius, sin(angle) * radius))
+	flash.global_position = at_position
+	flash.color = Color(1.0, 1.0, 1.0, 0.8)
+	flash.z_index = 19
+	get_tree().current_scene.add_child(flash)
+	var tween := flash.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(flash, "scale", Vector2.ONE * 1.5, 0.08).from(Vector2.ONE * 0.3)
+	tween.tween_property(flash, "modulate:a", 0.0, 0.1)
+	tween.set_parallel(false)
+	tween.tween_callback(flash.queue_free)
 
 
 func _trigger_camera_shake(strength: float, duration: float) -> void:

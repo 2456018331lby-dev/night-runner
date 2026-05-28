@@ -61,6 +61,7 @@ const DASH_BAR_BG := Color(0.08, 0.14, 0.24, 0.7)
 @onready var toast_label: Label = $ToastAnchor/ToastCard/Margin/ToastLabel
 @onready var combo_bar: ProgressBar = $MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox/ComboBar
 @onready var dash_bar: ProgressBar = $MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/DashBar
+@onready var dash_label: Label = $MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/DashLabel
 @onready var health_pips: Array[PanelContainer] = [
 	$MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow/Pip1,
 	$MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow/Pip2,
@@ -267,6 +268,7 @@ func _apply_theme() -> void:
 	_dash_bar_style()
 	for label in [score_caption, best_label, combo_label, health_caption, core_caption, time_caption, objective_title, phase_title, directive_title, secondary_title, cashout_title, nav_title]:
 		_style_caption(label)
+	_style_caption(dash_label)
 	_style_metric(score_label, int(34 * mobile_scale), TEXT_ACCENT)
 	_style_metric(core_label, int(22 * mobile_scale), TEXT_PRIMARY)
 	_style_metric(time_label, int(24 * mobile_scale), TEXT_PRIMARY)
@@ -387,6 +389,7 @@ func _update_bars(delta: float) -> void:
 		fill_ready.corner_radius_bottom_left = 6
 		fill_ready.corner_radius_bottom_right = 6
 		dash_bar.add_theme_stylebox_override("fill", fill_ready)
+		dash_label.add_theme_color_override("font_color", Color(0.42, 0.94, 1.0, 0.85))
 	else:
 		var fill_cd := StyleBoxFlat.new()
 		fill_cd.bg_color = Color(0.18, 0.42, 0.62, 0.8)
@@ -395,6 +398,7 @@ func _update_bars(delta: float) -> void:
 		fill_cd.corner_radius_bottom_left = 6
 		fill_cd.corner_radius_bottom_right = 6
 		dash_bar.add_theme_stylebox_override("fill", fill_cd)
+		dash_label.add_theme_color_override("font_color", Color(0.32, 0.52, 0.68, 0.6))
 
 
 func _update_popups(delta: float) -> void:
@@ -436,9 +440,10 @@ func _update_pulses(delta: float) -> void:
 	cashout_pulse += delta
 	if score_pulse_timer > 0.0:
 		score_pulse_timer -= delta
-		var score_scale := 1.0 + clampf(score_pulse_timer / 0.32, 0.0, 1.0) * 0.16
+		var combo_bonus := clampf(float(GameState.combo_count) / 6.0, 0.0, 1.0) * 0.12
+		var score_scale := 1.0 + clampf(score_pulse_timer / 0.32, 0.0, 1.0) * (0.16 + combo_bonus)
 		score_label.scale = Vector2.ONE * score_scale
-		score_card.modulate = Color(1.0, 0.9 + score_pulse_timer, 0.72, 1.0)
+		score_card.modulate = Color(1.0, 0.9 + score_pulse_timer, 0.72 - combo_bonus * 0.4, 1.0)
 	else:
 		score_label.scale = score_label.scale.move_toward(Vector2.ONE, delta * 8.0)
 		score_card.modulate = score_card.modulate.lerp(Color.WHITE, delta * 8.0)

@@ -157,6 +157,7 @@ func _build_platforms() -> void:
 		visual.color = platform_data["color"]
 		static_body.add_child(visual)
 		ground_container.add_child(static_body)
+		static_body.add_to_group("platform")
 		generated_platforms.append(static_body)
 
 
@@ -238,6 +239,8 @@ func _check_core_events() -> void:
 
 func _trigger_spawn_event(event: Dictionary) -> void:
 	for spawn_data in event.get("spawn", []):
+		var spawn_pos := Vector2(spawn_data.get("position", Vector2.ZERO))
+		_spawn_enemy_burst(spawn_pos)
 		_spawn_enemy_from_setup(spawn_data)
 	var toast := String(event.get("toast", ""))
 	if not toast.is_empty():
@@ -363,6 +366,37 @@ func _spawn_enemy_from_setup(setup: Dictionary) -> void:
 	if scene == null:
 		return
 	_spawn_enemy(scene, Vector2(setup.get("position", Vector2.ZERO)))
+
+
+func _spawn_enemy_burst(at_position: Vector2) -> void:
+	var flash := Polygon2D.new()
+	flash.polygon = PackedVector2Array()
+	for step in 12:
+		var angle := TAU * float(step) / 12.0
+		var radius := 22.0 if step % 2 == 0 else 8.0
+		flash.polygon.append(Vector2(cos(angle) * radius, sin(angle) * radius))
+	flash.global_position = at_position
+	flash.color = Color(1.0, 0.42, 0.22, 0.7)
+	flash.z_index = 16
+	add_child(flash)
+	var ring := Polygon2D.new()
+	ring.polygon = PackedVector2Array()
+	for step in 16:
+		var angle := TAU * float(step) / 16.0
+		ring.polygon.append(Vector2(cos(angle) * 18.0, sin(angle) * 18.0))
+	ring.global_position = at_position
+	ring.color = Color(1.0, 0.68, 0.38, 0.4)
+	ring.z_index = 15
+	add_child(ring)
+	var tween := flash.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(flash, "scale", Vector2.ONE * 1.6, 0.15).from(Vector2.ONE * 0.3)
+	tween.tween_property(flash, "modulate:a", 0.0, 0.17)
+	tween.tween_property(ring, "scale", Vector2.ONE * 2.0, 0.2).from(Vector2.ONE * 0.5)
+	tween.tween_property(ring, "modulate:a", 0.0, 0.2)
+	tween.set_parallel(false)
+	tween.tween_callback(flash.queue_free)
+	tween.tween_callback(ring.queue_free)
 
 
 func _on_enemy_defeated(points: int, source: Node2D) -> void:
