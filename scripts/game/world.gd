@@ -21,9 +21,14 @@ var reinforcements_spawned: bool = false
 var triggered_timeline_events: Dictionary = {}
 var triggered_core_events: Dictionary = {}
 var triggered_cashout_events: Dictionary = {}
+var triggered_setpiece_events: Dictionary = {}
 var generated_platforms: Array[Node2D] = []
 var spawned_hazards: Array[Area2D] = []
+var active_data_cores: Array[Area2D] = []
 var last_hazard_status_text: String = ""
+var active_setpiece_label: String = ""
+var collapse_wall_node: StaticBody2D
+var collapse_wall_visual: Polygon2D
 
 
 func _ready() -> void:
@@ -34,12 +39,20 @@ func _ready() -> void:
 	player.player_hit.connect(_on_player_hit)
 	extraction_gate.extraction_entered.connect(_on_extraction_entered)
 	extraction_gate.extraction_blocked.connect(_on_extraction_blocked)
-	configure_touch_controls()
+	set_run_ui_visible(false)
 
 
 func configure_touch_controls() -> void:
+	set_run_ui_visible(GameState.is_run_active and not GameState.is_run_failed and not GameState.run_success)
+
+
+func set_run_ui_visible(run_visible: bool) -> void:
+	hud.visible = run_visible
+	var show_touch := run_visible and PlatformProfile.should_show_touch_controls()
 	if touch_controls.has_method("configure"):
-		touch_controls.call("configure", PlatformProfile.should_show_touch_controls())
+		touch_controls.call("configure", show_touch)
+	else:
+		touch_controls.visible = show_touch
 
 
 func begin(operation: Dictionary) -> void:
@@ -49,7 +62,10 @@ func begin(operation: Dictionary) -> void:
 	triggered_timeline_events.clear()
 	triggered_core_events.clear()
 	triggered_cashout_events.clear()
+	triggered_setpiece_events.clear()
 	last_hazard_status_text = ""
+	active_setpiece_label = ""
+	active_data_cores.clear()
 	_build_platforms()
 	_apply_operation_theme()
 	_position_player()
@@ -65,8 +81,10 @@ func begin(operation: Dictionary) -> void:
 		extraction_gate.call("set_unlocked", false)
 	extraction_gate.global_position = Vector2(active_operation.get("extraction_position", Vector2(2124, 128)))
 	_set_objective(String(active_operation.get("objective_intro", "Steal the data cores and extract.")))
+	GameState.push_event_banner(String(active_operation.get("title", "ROUTE LIVE")), 0.82)
 	_show_toast(String(active_operation.get("intro_toast", "Route live.")), 3.0)
 	_show_lane_signals()
+	_ensure_collapse_wall_hidden()
 	_refresh_live_route_status()
 	if hud.has_method("set_operation_context"):
 		hud.call("set_operation_context", active_operation, GameState.current_directive)
@@ -86,14 +104,19 @@ func reset_world() -> void:
 			platform.queue_free()
 	generated_platforms.clear()
 	spawned_hazards.clear()
+	active_data_cores.clear()
 	active_operation.clear()
 	current_objective = ""
 	last_hazard_status_text = ""
+	active_setpiece_label = ""
+	_ensure_collapse_wall_hidden()
 	GameState.set_live_route_status("INGRESS", "Route cold.", "Hazard net dormant.")
 	if hud.has_method("set_operation_context"):
 		hud.call("set_operation_context", {}, {})
 	if hud.has_method("set_objective"):
 		hud.call("set_objective", "")
+	if hud.has_method("clear_navigation_target"):
+		hud.call("clear_navigation_target")
 
 
 func _process(_delta: float) -> void:
@@ -101,8 +124,10 @@ func _process(_delta: float) -> void:
 		return
 	_check_timeline_events()
 	_check_cashout_events()
+	_check_setpiece_events()
 	_update_hazard_states()
 	_refresh_live_route_status()
+	_refresh_navigation_target()
 
 
 func _spawn_initial_encounters() -> void:
@@ -153,7 +178,7 @@ func _spawn_enemy(scene: PackedScene, at_position: Vector2) -> void:
 	enemy.global_position = at_position
 	enemy.set("player", player)
 	if enemy.has_signal("defeated"):
-		enemy.connect("defeated", Callable(self, "_on_enemy_defeated"))
+		enemy.connect("defeated", Callable(self, "_on_enemy_defeated").bind(enemy))
 	enemy_container.add_child(enemy)
 
 
@@ -162,8 +187,9 @@ func _spawn_data_core(at_position: Vector2) -> void:
 	if core == null:
 		return
 	core.global_position = at_position
-	core.collected.connect(_on_data_core_collected)
+	core.collected.connect(_on_data_core_collected.bind(core))
 	data_core_container.add_child(core)
+	active_data_cores.append(core)
 
 
 func _spawn_boost_pad(at_position: Vector2, boost_velocity: Vector2) -> void:
@@ -232,11 +258,70 @@ func _check_cashout_events() -> void:
 		_trigger_spawn_event(event)
 
 
+func _check_setpiece_events() -> void:
+	var setpiece: Dictionary = active_operation.get("phase_setpiece", {})
+	if setpiece.is_empty():
+		return
+	if triggered_setpiece_events.get("phase_setpiece", false):
+		return
+	var trigger := String(setpiece.get("trigger", ""))
+	if trigger == "core_4" and GameState.data_cores_collected < 4:
+		return
+	triggered_setpiece_events["phase_setpiece"] = true
+	active_setpiece_label = String(setpiece.get("label", ""))
+	GameState.push_event_banner(active_setpiece_label, 1.0)
+	for hazard in spawned_hazards:
+		if not is_instance_valid(hazard):
+			continue
+		var hazard_setup: Dictionary = hazard.get("setup")
+		if Array(setpiece.get("hazard_ids", [])).has(String(hazard_setup.get("id", ""))) and hazard.has_method("set_stage_enabled"):
+			hazard.call("set_stage_enabled", true)
+	for spawn_data in setpiece.get("spawn", []):
+		_spawn_enemy_from_setup(spawn_data)
+	if String(active_operation.get("id", "")) == "overdrive_protocol":
+		_activate_collapse_wall()
+	var toast := String(setpiece.get("toast", ""))
+	if not toast.is_empty():
+		_show_toast(toast, 2.8)
+
+
+func _activate_collapse_wall() -> void:
+	if collapse_wall_node != null:
+		return
+	collapse_wall_node = StaticBody2D.new()
+	collapse_wall_node.collision_layer = 4
+	collapse_wall_node.collision_mask = 0
+	collapse_wall_node.position = Vector2(1822, 234)
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(44, 208)
+	var collider := CollisionShape2D.new()
+	collider.shape = shape
+	collapse_wall_node.add_child(collider)
+	collapse_wall_visual = Polygon2D.new()
+	collapse_wall_visual.polygon = PackedVector2Array([
+		Vector2(-22, -104),
+		Vector2(22, -104),
+		Vector2(22, 104),
+		Vector2(-22, 104),
+	])
+	collapse_wall_visual.color = Color(1.0, 0.54, 0.32, 0.82)
+	collapse_wall_node.add_child(collapse_wall_visual)
+	ground_container.add_child(collapse_wall_node)
+	generated_platforms.append(collapse_wall_node)
+
+
+func _ensure_collapse_wall_hidden() -> void:
+	if collapse_wall_node != null and is_instance_valid(collapse_wall_node):
+		collapse_wall_node.queue_free()
+	collapse_wall_node = null
+	collapse_wall_visual = null
+
+
 func _show_lane_signals() -> void:
 	var signals: Array = active_operation.get("lane_signals", [])
 	if signals.is_empty():
 		return
-	_show_toast(" // ".join(signals), 3.5)
+	_show_toast(" // ".join(signals), 4.2)
 
 
 func _update_hazard_states() -> void:
@@ -280,20 +365,28 @@ func _spawn_enemy_from_setup(setup: Dictionary) -> void:
 	_spawn_enemy(scene, Vector2(setup.get("position", Vector2.ZERO)))
 
 
-func _on_enemy_defeated(points: int) -> void:
+func _on_enemy_defeated(points: int, source: Node2D) -> void:
+	if source != null:
+		_spawn_defeat_burst(source.global_position)
+		if hud.has_method("spawn_score_popup"):
+			hud.call("spawn_score_popup", points, _world_to_hud_position(source.global_position), Color(1.0, 0.84, 0.42))
 	GameState.register_enemy_defeat(points)
 	if GameState.extraction_bonus_active and GameState.extraction_unlocked and GameState.pending_extraction_bonus > 0:
 		_show_toast(GameState.get_extraction_bonus_status_text(), 1.5)
 	if GameState.combo_count >= 3:
 		_show_toast("Combo x%d. Keep pressure for bonus score." % GameState.combo_count, 1.6)
+	if GameState.extraction_unlocked and GameState.extraction_bonus_active and GameState.extraction_bonus_kills in [1, 3, 5]:
+		_show_toast("Cashout ladder // %s" % GameState.get_extraction_bonus_status_text(), 1.9)
 
 
 func _on_player_hit() -> void:
+	var damage_summary := GameState.get_last_damage_source_summary()
+	_spawn_screen_impact(Color(1.0, 0.18, 0.12, 0.36), 0.22)
 	GameState.lose_health(1)
 	if GameState.pending_extraction_bonus > 0:
-		_show_toast("Hit taken under pressure. Cash out before %s slips away." % GameState.get_extraction_bonus_label(), 1.8)
+		_show_toast("%s hit. Cash out before %s slips away." % [damage_summary.capitalize(), GameState.get_extraction_bonus_label()], 1.8)
 	else:
-		_show_toast("Hit taken. Protect your health for the extraction payout.", 1.8)
+		_show_toast("%s hit. Protect your health for the extraction payout." % damage_summary.capitalize(), 1.8)
 
 
 func _on_player_fell() -> void:
@@ -313,8 +406,11 @@ func _on_run_finished(success: bool) -> void:
 		_show_toast(GameState.result_summary, 3.0)
 
 
-func _on_data_core_collected() -> void:
+func _on_data_core_collected(core: Area2D) -> void:
+	active_data_cores.erase(core)
 	GameState.collect_data_core(250)
+	if hud.has_method("spawn_score_popup"):
+		hud.call("spawn_score_popup", 250, _world_to_hud_position(core.global_position), Color(0.36, 0.95, 1.0))
 	_check_core_events()
 	var remaining := GameState.data_cores_total - GameState.data_cores_collected
 	if remaining > 0:
@@ -344,7 +440,9 @@ func _on_extraction_blocked() -> void:
 func _on_extraction_entered() -> void:
 	if GameState.is_run_failed or GameState.run_success:
 		return
-	var finish_bonus: int = GameState.health * 120 + max(0, 420 - int(GameState.elapsed_time * 18.0))
+	_spawn_extraction_burst(extraction_gate.global_position)
+	_spawn_screen_impact(Color(0.32, 0.95, 1.0, 0.24), 0.28)
+	var finish_bonus: int = GameState.health * 150 + max(0, 620 - int(GameState.elapsed_time * 8.0))
 	finish_bonus = int(round(float(finish_bonus) * GameState.get_modifier_value("finish_bonus_multiplier", 1.0)))
 	if GameState.health == max(1, 3 + int(GameState.run_modifiers.get("health_bonus", 0))):
 		finish_bonus += int(GameState.run_modifiers.get("silent_bonus", 0))
@@ -364,6 +462,91 @@ func _on_extraction_entered() -> void:
 	GameState.finish_run(true)
 
 
+func _spawn_defeat_burst(at_position: Vector2) -> void:
+	for index in 6:
+		var shard := Polygon2D.new()
+		shard.polygon = PackedVector2Array([
+			Vector2(0.0, -5.0),
+			Vector2(18.0, 0.0),
+			Vector2(0.0, 5.0),
+		])
+		var angle := TAU * float(index) / 6.0
+		shard.global_position = at_position
+		shard.rotation = angle
+		shard.color = Color(1.0, 0.62, 0.28, 0.9)
+		shard.z_index = 17
+		add_child(shard)
+		var tween := shard.create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(shard, "global_position", at_position + Vector2(cos(angle), sin(angle)) * 54.0, 0.18)
+		tween.tween_property(shard, "modulate:a", 0.0, 0.18)
+		tween.tween_property(shard, "scale", Vector2.ONE * 0.35, 0.18)
+		tween.set_parallel(false)
+		tween.tween_callback(shard.queue_free)
+	var flash := Polygon2D.new()
+	flash.polygon = PackedVector2Array()
+	for step in 16:
+		var angle := TAU * float(step) / 16.0
+		var radius := 30.0 if step % 2 == 0 else 12.0
+		flash.polygon.append(Vector2(cos(angle) * radius, sin(angle) * radius))
+	flash.global_position = at_position
+	flash.color = Color(1.0, 0.9, 0.55, 0.72)
+	flash.z_index = 16
+	add_child(flash)
+	var flash_tween := flash.create_tween()
+	flash_tween.set_parallel(true)
+	flash_tween.tween_property(flash, "scale", Vector2.ONE * 1.7, 0.14).from(Vector2.ONE * 0.45)
+	flash_tween.tween_property(flash, "modulate:a", 0.0, 0.16)
+	flash_tween.set_parallel(false)
+	flash_tween.tween_callback(flash.queue_free)
+
+
+func _spawn_screen_impact(color: Color, duration: float) -> void:
+	if hud == null:
+		return
+	var flash := ColorRect.new()
+	flash.color = color
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.z_index = 80
+	hud.add_child(flash)
+	var tween := flash.create_tween()
+	tween.tween_property(flash, "modulate:a", 0.0, duration)
+	tween.tween_callback(flash.queue_free)
+
+
+func _spawn_extraction_burst(at_position: Vector2) -> void:
+	var ring := Polygon2D.new()
+	ring.polygon = PackedVector2Array()
+	for step in 32:
+		var angle := TAU * float(step) / 32.0
+		ring.polygon.append(Vector2(cos(angle) * 34.0, sin(angle) * 34.0))
+	ring.global_position = at_position
+	ring.color = Color(0.36, 1.0, 0.9, 0.52)
+	ring.z_index = 18
+	add_child(ring)
+	var beam := Polygon2D.new()
+	beam.polygon = PackedVector2Array([
+		Vector2(-22.0, -180.0),
+		Vector2(22.0, -180.0),
+		Vector2(34.0, 128.0),
+		Vector2(-34.0, 128.0),
+	])
+	beam.global_position = at_position + Vector2(0.0, -36.0)
+	beam.color = Color(0.45, 0.92, 1.0, 0.2)
+	beam.z_index = 14
+	add_child(beam)
+	var tween := ring.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ring, "scale", Vector2.ONE * 3.2, 0.32).from(Vector2.ONE * 0.35)
+	tween.tween_property(ring, "modulate:a", 0.0, 0.34)
+	tween.tween_property(beam, "scale", Vector2(1.25, 1.0), 0.24).from(Vector2(0.55, 0.6))
+	tween.tween_property(beam, "modulate:a", 0.0, 0.32)
+	tween.set_parallel(false)
+	tween.tween_callback(ring.queue_free)
+	tween.tween_callback(beam.queue_free)
+
+
 func _refresh_live_route_status() -> void:
 	var phase_text := "INGRESS"
 	if GameState.extraction_unlocked:
@@ -372,7 +555,19 @@ func _refresh_live_route_status() -> void:
 		phase_text = "BREACH"
 	var pressure_text := ""
 	if GameState.extraction_unlocked:
-		pressure_text = "Extraction open. Greed converts survival into payout."
+		var operation_id := String(active_operation.get("id", ""))
+		if not active_setpiece_label.is_empty() and operation_id == "overdrive_protocol":
+			pressure_text = String(active_operation.get("phase_setpiece", {}).get("pressure_text", "Extraction open. The sector is feeding greed back into score pressure."))
+		else:
+			match operation_id:
+				"blitz_pursuit":
+					pressure_text = "Extraction open. Fast cashout stays clean, but every extra takedown turns pursuit into payout."
+				"ghost_circuit":
+					pressure_text = "Extraction open. The route is blown; overstay turns stealth into a sniper puzzle."
+				"overdrive_protocol":
+					pressure_text = "Extraction open. The sector is feeding greed back into score pressure."
+				_:
+					pressure_text = "Extraction open. Greed converts survival into payout."
 	elif GameState.data_cores_collected >= max(1, GameState.data_cores_total - 1) and GameState.data_cores_total > 0:
 		pressure_text = "Final vault pressure. Finish the sweep and choose your exit."
 	else:
@@ -382,6 +577,31 @@ func _refresh_live_route_status() -> void:
 		return
 	last_hazard_status_text = hazard_text
 	GameState.set_live_route_status(phase_text, pressure_text, hazard_text)
+
+
+func _refresh_navigation_target() -> void:
+	if not hud.has_method("set_navigation_target"):
+		return
+	var target_position := Vector2.ZERO
+	var label := "DATA CORE"
+	if GameState.extraction_unlocked:
+		target_position = extraction_gate.global_position
+		label = "EXTRACT"
+	else:
+		var nearest_distance := INF
+		for core in active_data_cores:
+			if not is_instance_valid(core):
+				continue
+			var distance: float = player.global_position.distance_to(core.global_position)
+			if distance < nearest_distance:
+				nearest_distance = distance
+				target_position = core.global_position
+		if nearest_distance == INF:
+			if hud.has_method("clear_navigation_target"):
+				hud.call("clear_navigation_target")
+			return
+	var vector_to_target: Vector2 = target_position - player.global_position
+	hud.call("set_navigation_target", label, vector_to_target.length(), vector_to_target.normalized(), true)
 
 
 func _build_hazard_status_text() -> String:
@@ -404,13 +624,13 @@ func _build_hazard_status_text() -> String:
 
 
 func _calculate_rank() -> String:
-	if GameState.score >= 2900:
+	if GameState.score >= 2400:
 		return "S"
-	if GameState.score >= 2250:
+	if GameState.score >= 1850:
 		return "A"
-	if GameState.score >= 1700:
+	if GameState.score >= 1400:
 		return "B"
-	if GameState.score >= 1150:
+	if GameState.score >= 950:
 		return "C"
 	return "D"
 
@@ -431,6 +651,15 @@ func _set_objective(text: String) -> void:
 func _show_toast(text: String, duration: float = 2.3) -> void:
 	if hud.has_method("show_toast"):
 		hud.call("show_toast", text, duration)
+
+
+func _world_to_hud_position(world_pos: Vector2) -> Vector2:
+	if player is Node2D:
+		var cam_offset := Vector2.ZERO
+		if player.has_node("Camera2D"):
+			cam_offset = player.get_node("Camera2D").get_screen_center_position() - get_viewport().get_visible_rect().size * 0.5
+		return world_pos - cam_offset
+	return world_pos
 
 
 func _get_data_core_positions() -> Array[Vector2]:

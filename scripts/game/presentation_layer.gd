@@ -15,6 +15,7 @@ var fog_offsets: Array[Vector2] = []
 var beam_nodes: Array[Polygon2D] = []
 var rail_nodes: Array[Polygon2D] = []
 var rail_glow_nodes: Array[Polygon2D] = []
+var event_pulse_nodes: Array[Polygon2D] = []
 var backdrop: Polygon2D
 var moon: Polygon2D
 
@@ -59,6 +60,7 @@ func _ready() -> void:
 	_build_beams()
 	_build_fog()
 	_build_neon_rails()
+	_build_event_pulses()
 
 
 func set_theme(theme: Dictionary) -> void:
@@ -86,6 +88,10 @@ func _process(delta: float) -> void:
 	for index in rail_glow_nodes.size():
 		var glow_pulse := 0.24 + sin(sweep_time * (1.3 + index * 0.21)) * 0.09 + combat_heat * 0.24
 		rail_glow_nodes[index].modulate.a = clampf(glow_pulse, 0.12, 0.72)
+	for index in event_pulse_nodes.size():
+		var pulse := event_pulse_nodes[index]
+		pulse.scale = Vector2.ONE * (1.0 + combat_heat * 0.22 + sin(sweep_time * (0.8 + index * 0.14)) * 0.04)
+		pulse.modulate.a = clampf(0.06 + combat_heat * 0.18 + sin(sweep_time * (1.1 + index * 0.2)) * 0.03, 0.04, 0.28)
 
 
 func _build_glows() -> void:
@@ -187,6 +193,17 @@ func _build_neon_rails() -> void:
 		add_child(glow)
 		rail_glow_nodes.append(glow)
 
+
+
+
+func _build_event_pulses() -> void:
+	for pulse_setup in [
+		{"position": Vector2(1040.0, 318.0), "radius": Vector2(220.0, 68.0), "color": Color(0.31, 0.89, 1.0, 0.08)},
+		{"position": Vector2(1760.0, 214.0), "radius": Vector2(190.0, 62.0), "color": Color(1.0, 0.55, 0.32, 0.08)},
+	]:
+		var pulse := _make_ellipse(pulse_setup["position"], pulse_setup["radius"], pulse_setup["color"], -6)
+		add_child(pulse)
+		event_pulse_nodes.append(pulse)
 
 func _make_rect(center: Vector2, size: Vector2, color: Color, z_order: int) -> Polygon2D:
 	var polygon := Polygon2D.new()

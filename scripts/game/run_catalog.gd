@@ -5,6 +5,7 @@ const RUNNER_SCENE := preload("res://scenes/actors/enemy_runner.tscn")
 const SUPPRESSOR_SCENE := preload("res://scenes/actors/enemy_suppressor.tscn")
 const BASTION_SCENE := preload("res://scenes/actors/enemy_bastion.tscn")
 const PHANTOM_SCENE := preload("res://scenes/actors/enemy_phantom.tscn")
+const STALKER_SCENE := preload("res://scenes/actors/enemy_stalker.tscn")
 
 const OPERATIONS := [
 	{
@@ -37,13 +38,11 @@ const OPERATIONS := [
 		"encounters": [
 			{"scene": RUNNER_SCENE, "position": Vector2(520, 348)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(874, 184)},
-			{"scene": RUNNER_SCENE, "position": Vector2(1180, 214)},
-			{"scene": RUNNER_SCENE, "position": Vector2(1380, 214)},
+			{"scene": RUNNER_SCENE, "position": Vector2(1240, 214)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1700, 88)},
-			{"scene": RUNNER_SCENE, "position": Vector2(1870, 124)},
-			{"scene": SUPPRESSOR_SCENE, "position": Vector2(2108, 126)},
+			{"scene": RUNNER_SCENE, "position": Vector2(1900, 124)},
 			{"scene": BASTION_SCENE, "position": Vector2(1536, 206)},
-			{"scene": PHANTOM_SCENE, "position": Vector2(1188, 214)},
+			{"scene": STALKER_SCENE, "position": Vector2(1060, 294)},
 		],
 		"data_cores": [
 			Vector2(690, 364),
@@ -119,12 +118,13 @@ const OPERATIONS := [
 			},
 			{
 				"time": 31.0,
-				"toast": "Convoy counter-rush. Front guards are doubling back through the upper lane.",
-				"spawn": [
-					{"scene": RUNNER_SCENE, "position": Vector2(1960, 126)},
-					{"scene": RUNNER_SCENE, "position": Vector2(2146, 126)},
-					{"scene": PHANTOM_SCENE, "position": Vector2(1688, 124)},
-				],
+			"toast": "Convoy counter-rush. Front guards are doubling back through the upper lane.",
+			"spawn": [
+				{"scene": RUNNER_SCENE, "position": Vector2(1960, 126)},
+				{"scene": RUNNER_SCENE, "position": Vector2(2146, 126)},
+				{"scene": PHANTOM_SCENE, "position": Vector2(1688, 124)},
+				{"scene": STALKER_SCENE, "position": Vector2(1458, 202)},
+			],
 			},
 		],
 		"core_events": [
@@ -150,17 +150,18 @@ const OPERATIONS := [
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(2208, 126)},
 		],
 		"objective_intro": "Blitz through the convoy rooftops, secure all 5 data cores and break out alive.",
-		"objective_complete": "Extraction corridor is live. Run the gauntlet or keep farming the clean-up team.",
+		"objective_complete": "Extraction corridor is live. Cash out now or ride the pursuit ladder for a bigger payout.",
 		"intro_toast": "Route is hot. Chain boost pads to stay ahead of the response time.",
 		"block_toast": "Extraction lane is still sealed. You need every core.",
 		"completion_toast": "Alarm trip confirmed. The convoy is dumping reinforcements into the lane.",
 		"lane_signals": [
 			"Velocity route. Treat boost pads like offensive tempo, not just traversal.",
 			"Once extraction unlocks, staying alive turns pursuit pressure into a score ladder.",
+			"This lane is about controlled greed: fast clear first, then decide how long to overstay.",
 		],
 		"base_modifiers": {
-			"health_bonus": 0,
-			"speed_multiplier": 1.06,
+			"health_bonus": 1,
+			"speed_multiplier": 1.08,
 			"dash_multiplier": 1.08,
 			"jump_multiplier": 1.0,
 			"boost_multiplier": 1.08,
@@ -204,18 +205,18 @@ const OPERATIONS := [
 			"name": "Shock Exit",
 			"type": "time_limit",
 			"description": "Extract within 00:45 to cash the pursuit bonus.",
-			"target_time": 45.0,
-			"reward_score": 320,
+			"target_time": 58.0,
+			"reward_score": 360,
 		},
 		"extraction_bonus": {
 			"label": "Pursuit Bonus",
-			"base_bounty": 70,
-			"step_bounty": 25,
+			"base_bounty": 90,
+			"step_bounty": 20,
 		},
 		"cashout_events": [
 			{
 				"elapsed": 8.0,
-				"toast": "Clean-up bikes are cutting across the roofline. Keep the chain alive.",
+				"toast": "Clean-up bikes are cutting across the roofline. Fast cashout is still clean, but greed is now paying out.",
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1688, 124)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1980, 126)},
@@ -269,7 +270,7 @@ const OPERATIONS := [
 			{"scene": RUNNER_SCENE, "position": Vector2(1680, 124)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1996, 74)},
 			{"scene": BASTION_SCENE, "position": Vector2(1108, 282)},
-			{"scene": PHANTOM_SCENE, "position": Vector2(1508, 204)},
+			{"scene": STALKER_SCENE, "position": Vector2(1362, 194)},
 		],
 		"data_cores": [
 			Vector2(506, 470),
@@ -345,12 +346,13 @@ const OPERATIONS := [
 			},
 			{
 				"time": 34.0,
-				"toast": "Relay flood. Outer towers are feeding runners through the service tier.",
-				"spawn": [
-					{"scene": RUNNER_SCENE, "position": Vector2(1240, 202)},
-					{"scene": RUNNER_SCENE, "position": Vector2(1860, 76)},
-					{"scene": PHANTOM_SCENE, "position": Vector2(1600, 124)},
-				],
+			"toast": "Relay flood. The ghost window is breaking and a hunter is dropping into the upper lane.",
+			"spawn": [
+				{"scene": RUNNER_SCENE, "position": Vector2(1240, 202)},
+				{"scene": RUNNER_SCENE, "position": Vector2(1860, 76)},
+				{"scene": PHANTOM_SCENE, "position": Vector2(1600, 124)},
+				{"scene": STALKER_SCENE, "position": Vector2(1640, 118)},
+			],
 			},
 		],
 		"core_events": [
@@ -393,12 +395,12 @@ const OPERATIONS := [
 		],
 		"base_modifiers": {
 			"health_bonus": -1,
-			"speed_multiplier": 0.98,
+			"speed_multiplier": 1.0,
 			"dash_multiplier": 1.0,
 			"jump_multiplier": 1.02,
 			"boost_multiplier": 0.92,
 			"score_multiplier": 1.08,
-			"combo_window_multiplier": 0.96,
+			"combo_window_multiplier": 1.0,
 			"finish_bonus_multiplier": 1.06,
 			"silent_bonus": 260,
 		},
@@ -436,7 +438,7 @@ const OPERATIONS := [
 			"name": "Ghost Clause",
 			"type": "no_hit",
 			"description": "Extract without taking damage to secure the silent bonus.",
-			"reward_score": 420,
+			"reward_score": 360,
 		},
 		"extraction_bonus": {
 			"label": "Relay Harvest",
@@ -454,7 +456,7 @@ const OPERATIONS := [
 			},
 			{
 				"elapsed": 19.0,
-				"toast": "Relay harvest spike. Couriers are rushing the low lane for recovery.",
+				"toast": "Relay harvest spike. Couriers are rushing the low lane and a hunter is collapsing the exit tier.",
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1290, 202)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1534, 126)},
@@ -501,6 +503,7 @@ const OPERATIONS := [
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(2204, 90)},
 			{"scene": BASTION_SCENE, "position": Vector2(1766, 254)},
 			{"scene": PHANTOM_SCENE, "position": Vector2(1398, 170)},
+			{"scene": STALKER_SCENE, "position": Vector2(1178, 244)},
 		],
 		"data_cores": [
 			Vector2(620, 420),
@@ -569,12 +572,13 @@ const OPERATIONS := [
 		"timeline_events": [
 			{
 				"time": 14.0,
-				"toast": "Adaptive hunters have a live trace. The sector is rebalancing against you.",
-				"spawn": [
-					{"scene": RUNNER_SCENE, "position": Vector2(1328, 250)},
-					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1828, 152)},
-					{"scene": BASTION_SCENE, "position": Vector2(1228, 250)},
-				],
+			"toast": "Adaptive hunters have a live trace. The sector is rebalancing against you.",
+			"spawn": [
+				{"scene": RUNNER_SCENE, "position": Vector2(1328, 250)},
+				{"scene": SUPPRESSOR_SCENE, "position": Vector2(1828, 152)},
+				{"scene": BASTION_SCENE, "position": Vector2(1228, 250)},
+				{"scene": STALKER_SCENE, "position": Vector2(1460, 164)},
+			],
 			},
 			{
 				"time": 28.0,
@@ -604,7 +608,7 @@ const OPERATIONS := [
 			},
 			{
 				"count": 4,
-				"toast": "Kill-switch instability. Upper and lower lines are both compromised now.",
+				"toast": "Kill-switch instability. Upper and lower lines are both compromised now. The sector is entering an overdrive phase.",
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(980, 338)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2048, 90)},
@@ -626,7 +630,20 @@ const OPERATIONS := [
 		"lane_signals": [
 			"Hybrid route. The sector keeps escalating against greed, not just survival.",
 			"This is the highest replay lane: build choice, score pressure and cashout timing all matter.",
+			"Directive choice should change your route plan, not just buff the same playstyle.",
 		],
+		"phase_setpiece": {
+			"trigger": "core_4",
+			"label": "Overdrive Collapse",
+			"toast": "Overdrive Collapse. The sector is hard-locking your route and forcing a final payout decision.",
+			"pressure_text": "Overdrive Collapse. Upper and lower lanes are both compromised; every second now is visible greed.",
+			"hazard_ids": ["protocol_sector_breach", "protocol_grid_cashout"],
+			"spawn": [
+				{"scene": BASTION_SCENE, "position": Vector2(2142, 90)},
+				{"scene": PHANTOM_SCENE, "position": Vector2(1948, 152)},
+				{"scene": STALKER_SCENE, "position": Vector2(1718, 250)},
+			],
+		},
 		"base_modifiers": {
 			"health_bonus": 0,
 			"speed_multiplier": 1.0,
@@ -700,7 +717,7 @@ const OPERATIONS := [
 			},
 			{
 				"elapsed": 15.0,
-				"toast": "Protocol panic. Every extra second now is greed made visible.",
+				"toast": "Protocol panic. Every extra second now is greed made visible, and the sector is feeding mixed hunters straight into your payout lane.",
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(1216, 248)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1948, 152)},

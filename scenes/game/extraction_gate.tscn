@@ -22,6 +22,11 @@ polygon = PackedVector2Array(-54, -106, 54, -106, 66, 36, -66, 36)
 color = Color(0.368627, 0.952941, 0.968627, 0.16)
 scale = Vector2(1.1, 1)
 
+[node name="SignalRing" type="Polygon2D" parent="."]
+visible = false
+polygon = PackedVector2Array(-74, -112, 74, -112, 88, -92, 88, 42, 74, 58, -74, 58, -88, 42, -88, -92)
+color = Color(1, 0.78, 0.36, 0.18)
+
 [node name="Pillar" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(-24, -78, 24, -78, 24, 30, -24, 30)
 color = Color(0.180392, 0.239216, 0.380392, 0.678431)

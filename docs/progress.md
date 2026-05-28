@@ -1,5 +1,58 @@
 # Progress Log
 
+## 2026-05-28
+
+### 已完成
+
+- 新增第五类精英敌人 `EnemyStalker`，垂直伏击型 archetype：附着平台上方蓄势，预警后坠击，落地产生冲击波区域压迫
+- `EnemyStalker` 包含完整行为状态机：cling → warning → plunge → recovery → reposition 循环
+- 创建 `enemy_stalker.tscn` 场景文件，包含 Body/Mask/Eye/Shadow 视觉节点和 LandingZone 冲击区域
+- 把 `EnemyStalker` 接入三条行动的常驻编组：`Blitz Pursuit`、`Ghost Circuit`、`Overdrive Protocol` 各有一个 Stalker 初始站位
+- 把 `EnemyStalker` 接入三条行动的 timeline_events 增援波次
+- 把 `EnemyStalker` 接入 `Overdrive Protocol` 的 phase_setpiece（Overdrive Collapse）增援
+- 扩展 `GameState` 伤害来源摘要，结果页现在能区分 stalker slam / stalker shockwave
+- 改进 HUD 冲刺冷却条：冲刺就绪时显示亮蓝色，冷却中显示暗蓝色，状态切换更明显
+- 更新 `MAINTENANCE.md`，加入 `EnemyStalker` 到关键边界说明
+- 创建 `hermeswork` 分支并完成 GitHub 提交
+
+### 当前问题
+
+- `EnemyStalker` 目前是程序化几何视觉，还没有专门的 SVG 资产
+- Stalker 的"附着平台"逻辑依赖平台分组（`platform` group），当前平台是动态生成的 StaticBody2D，需要确认是否已加入 `platform` group
+- 受击反馈仍主要是 toast / 抖屏层级，还缺音效
+- 触屏还没做振动反馈、安全区适配和更完整的真机调优
+
+### 下一步建议
+
+- 给 `EnemyStalker` 做原创 SVG 资产，替换程序化几何
+- 给 Stalker 的平台附着逻辑做更精确的平台搜索（当前是简单位置判断）
+- 继续加强打击反馈：hit-stop 增强、受击闪白、音效
+- 做移动端安全区 / 刘海屏适配，并在真机上调按钮区域
+
+## 2026-05-23
+
+### 已完成
+
+- 梳理维护文档和当前工程状态，确认下一轮优先继续围绕路线辨识、反馈密度、移动端体验和导出流推进
+- 给触屏按钮补拖出取消：移动键拖出会释放方向，跳跃 / 攻击 / 冲刺拖出会取消待消费动作，减少移动端误触
+- 让受击提示直接使用已记录的伤害来源摘要，玩家现在能区分 phantom dive、bastion shockwave、suppressor fire、route hazard 等压力来源
+- 确认后续产品方向：以 Android APK 为第一发布目标，同时持续保留 PC / Steam 扩展边界
+- 给 `EnemyPhantom` 补俯冲前指向预警、蓄势环和短残影，让高速突脸从"突然撞上"变成玩家能读到的精英攻击
+- 做了一轮前端观感升级：中枢 / 结果页增加战术终端镀铬边框、进入动效、动态背景脉冲，并把行动卡和 directive 卡改得更像可选战术卡片
+- 给 HUD 增加分数跳动、受击闪脉冲、cashout 呼吸高亮和 toast 弹入反馈，提升局内反馈密度
+
+### 当前问题
+
+- 受击反馈仍主要是 toast / 抖屏层级，还缺更明确的命中特效、音效和受击演出
+- `EnemyPhantom` 仍需要专门预警特效、残影和落点提示
+- 触屏还没做振动反馈、安全区适配和更完整的真机调优
+
+### 下一步建议
+
+- 给 `EnemyPhantom` 补 windup 预警和 dive 残影，让高速突脸更可读
+- 继续加强 hit-stop、受击闪白、音效和 UI 危险反馈
+- 做移动端安全区 / 刘海屏适配，并在真机上调按钮区域
+
 ## 2026-05-15
 
 ### 已完成
@@ -9,8 +62,18 @@
 - 扩展 `GameState` 伤害来源摘要，结果页现在能区分 phantom slash / phantom dive 与 bastion 压迫
 - 更新中枢焦点卡的 elite pressure 摘要，局前可直接看到 bastion / phantom 的路线分布
 - 修正 `EnemyPhantom` 的玩法边界：受击后 dive 冷却、命中后收招、撞墙/落地提前结束 dive、接触推力兜底
-- 顺手统一敌人接触推力兜底与“掉坑离场不计分”规则，避免白送分或 0 水平击退
+- 顺手统一敌人接触推力兜底与"掉坑离场不计分"规则，避免白送分或 0 水平击退
+- 把前端做成可直接看到的战术终端风格壳层，并预留后续更漂亮前端的接管边界
 - 在架构文档里补前端接管约定，明确 `FrontendBridge` 是未来 UI 重做的唯一流程入口
+- 开始做一轮路线逻辑和数值收束：降低 `Ghost Circuit` 的正面精英压迫，让它更像角度阅读 / 清线撤离路线；强化 `Blitz Pursuit` 的"先快清、后贪分"节奏提示
+- 补了一层运行中路线气质提示，让 HUD 能直接告诉玩家这局更偏"快清贪分 / 角度阅读 / directive 适配"哪种决策逻辑
+- 给 `World` 和 `Presentation` 再补一层阶段读板与事件脉冲，让 cashout / overdrive / stealth 曝光这类状态变化更容易被玩家看见
+- 给撤离门补了一层 greed / overdrive 可视化，让 cashout 真正看起来像一个越来越危险的高收益出口，而不是静态终点
+- 给跳板和 HUD 再补一层"高压阶段正在发生"的可见反馈，尽量减少玩家做对了但画面没告诉他的断层感
+- 继续压缩战斗 HUD 的说明堆叠，把路线气质、压力和 cashout 风险更集中地塞进主阶段卡，减少"像后台控制台"那种原型感
+- 给 `Overdrive Protocol` 补了第一个 boss 级 setpiece 原型：`Overdrive Collapse`，尝试把后半段从普通高压刷怪推成真正的第二阶段
+- 给 HUD 补了中心事件横幅原型，准备把 `Overdrive Collapse` 这类阶段事件从"提示文本"推进到真正会压住玩家视线的转阶段信号
+- 给 `Overdrive Collapse` 再补一层空间封锁原型，开始让 setpiece 真正改变玩家后半段走位，而不是只改文本和刷怪压力
 - 重新通过一轮 Godot headless 加载校验
 
 ### 当前问题
@@ -40,18 +103,18 @@
 - 让本局统计区分战斗分、核心分、撤离奖励、可选目标奖励和 cashout 奖励，结果页不再只剩一句总结
 - 给中枢 / 结果壳补扫描线和压暗层，让整体更接近战术终端而不是原型工具页
 - 新增数据驱动 `RouteHazard` 环境机关系统，并接入三条行动的不同激活阶段
-- 让三条行动在“空间风险”层面出现真正差异，不再只靠敌人波次和文案区分
+- 让三条行动在"空间风险"层面出现真正差异，不再只靠敌人波次和文案区分
 - 给三条行动补了更明确的 lane signal、后期阶段事件和 cashout 期间的追杀波次
 - 让中枢和 HUD 直接展示 directive modifier 摘要、cashout 计时和路线打法提示
 - 给玩家攻击补轻量 hit-stop 与动作闪，给敌人与投射物补更强可读性反馈
 - 让场景氛围层根据 cashout 热度提升灯带、雾层和光束强度
 - 把行动指令从开局随机切换成局前明确选择，给每条行动补上真正的 build 决策
 - 给三条行动加入次级目标，并把目标结果接入结算
-- 加入“撤离已解锁但继续留场可叠加 payout”的 cashout 风险收益循环
+- 加入"撤离已解锁但继续留场可叠加 payout"的 cashout 风险收益循环
 - 把中枢升级为更完整的战术甲板，展示行动、directive、次级目标和 cashout 情报
 - 把 HUD 升级为同时展示 directive、次级目标和兑现状态
 - 修正并重新通过一轮 Godot headless 加载校验
-- 把启动流程从“直接进局”重构成“中枢选行动 -> 开始行动 -> 结果页 / 暂停”
+- 把启动流程从"直接进局"重构成"中枢选行动 -> 开始行动 -> 结果页 / 暂停"
 - 新增 `RunCatalog`，把单一固定跑图升级成 3 条行动线路
 - 把三种玩法气质收敛成一套竖切片：
   - `Blitz Pursuit` 偏高速追逃
@@ -68,7 +131,7 @@
 
 ### 当前问题
 
-- 观感已经比原型完整很多，但仍未达到“高端商业成品”的特效密度
+- 观感已经比原型完整很多，但仍未达到"高端商业成品"的特效密度
 - 行动路线虽然已经有多类机关和首个精英封锁敌人，但仍缺少真正的分支地形、更多精英 archetype 和 boss 级记忆点
 - 还没有标题动效、音效、命中停顿、敌人预警特效和设置菜单
 - Android APK 仍需在 Godot 编辑器里补 export preset、SDK、keystore
@@ -90,11 +153,11 @@
 - 更新维护文档和架构说明，明确远程敌人与投射物边界
 - 完成一次新增敌人后的 Godot headless 加载校验
 - 重做 HUD 视觉层级和移动端触屏布局，替换掉默认按钮/裸文本风格
-- 增加城市天际线、雾层、霓虹灯带和基础镜头冲击感，缩小“占位原型”和“正式游戏感”的差距
+- 增加城市天际线、雾层、霓虹灯带和基础镜头冲击感，缩小"占位原型"和"正式游戏感"的差距
 - 新增原创 SVG 角色资产并接入玩家、追击者、压制者场景
-- 新增情报核心、撤离门、连击与评级结算，把玩法从“打几只怪”升级成有明确目的的短局闭环
+- 新增情报核心、撤离门、连击与评级结算，把玩法从"打几只怪"升级成有明确目的的短局闭环
 - 去掉碍眼的中部常驻提示，改成任务卡 + 底部短提示，并加入跳板和核心后增援来提升节奏变化
-- 放宽攻击判定、拉长终点段并补更多核心/平台/敌人，修正“打不到、撤不走、内容太少”的问题
+- 放宽攻击判定、拉长终点段并补更多核心/平台/敌人，修正"打不到、撤不走、内容太少"的问题
 
 ### 当前问题
 
@@ -124,9 +187,16 @@
 
 ### 当前问题
 
-- 只有占位几何和占位视觉
-- 还没有音效、特效、动画状态机
-- Android 导出需要本机补充 SDK/keystore 配置
+- 还有较多占位几何和占位视觉
+- 还没有完整音效、特效、动画状态机
+- Android debug APK 已可导出，后续 release 版仍需要正式签名、图标、真机兼容性测试
+
+## 2026-05-23 APK 竖切片进展
+
+- 已成功导出 `exports/android/NightRunner-debug.apk`，约 27 MB，签名验证通过 v2/v3。
+- Android SDK 使用 `C:/Users/24560/Desktop/study/Englishdemo/.android-sdk`，JDK 使用 `C:/Program Files/Java/jdk-17`。
+- 开启 `rendering/textures/vram_compression/import_etc2_astc=true` 后解决 Godot Android 导出空白 configuration error。
+- 新增 HUD `ROUTE VECTOR` 导航卡，运行中指向最近数据核心，收齐后指向撤离门，提升移动端路线清晰度。
 
 ### 下一步建议
 

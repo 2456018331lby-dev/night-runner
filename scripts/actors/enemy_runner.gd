@@ -2,9 +2,9 @@ extends CharacterBody2D
 
 signal defeated(points: int)
 
-const SPEED := 150.0
+const SPEED := 132.0
 const GRAVITY := 1500.0
-const CONTACT_RANGE := 34.0
+const CONTACT_RANGE := 30.0
 const POINTS_AWARD := 100
 
 @onready var body_visual: Polygon2D = $Body
@@ -38,7 +38,7 @@ func _physics_process(delta: float) -> void:
 	_try_contact_damage()
 	_update_flash(delta)
 	if global_position.y > 920.0:
-		_defeat(false)
+		_defeat(true, true)
 
 
 func receive_hit(force: Vector2) -> void:
@@ -69,10 +69,11 @@ func _update_flash(delta: float) -> void:
 	art_sprite.scale.y = 0.22 * (1.0 + (squash - 1.0) * 0.6)
 
 
-func _defeat(award_points: bool = true) -> void:
+func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
 	if award_points:
-		defeated.emit(POINTS_AWARD)
+		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
+		defeated.emit(pts)
 	queue_free()

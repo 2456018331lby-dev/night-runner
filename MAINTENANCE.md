@@ -17,8 +17,9 @@
 ## 当前工程判断
 
 - 引擎：Godot 4.6
-- 目标：Android 优先，后续扩到 PC / Steam
+- 目标：Android APK 优先，后续扩到 PC / Steam
 - 当前阶段：已升级为有中枢壳层、行动目录和局外进度的竖切片骨架
+- 方向确认：后续所有系统都先保证 APK 可安装、触屏可玩，同时保留桌面输入、存档和平台服务边界，方便以后上架 Steam
 
 ## 这个游戏现在在干嘛
 
@@ -63,6 +64,7 @@
 - `Player` / `EnemyRunner` / `EnemySuppressor`：只做角色行为，不管理全局状态
 - `EnemyBastion`：精英封锁敌人，负责近中距压线与 shockwave 区域压迫
 - `EnemyPhantom`：高速切入型精英，负责贴身追切、俯冲突脸和中近距节奏打断
+- `EnemyStalker`：垂直伏击型精英，负责平台上方蓄势坠击和落地冲击波区域压迫
 - `EnemyBolt`：远程敌人的轻量投射物，不接 UI 和分数
 
 当前有两条已经踩过的手感结论，不要回退：
@@ -94,6 +96,7 @@
 - 新想法：先进 `docs/backlog.md`
 - 改中枢 / 结果 / UI 壳时，优先经 `FrontendBridge`
 - 前端 / UI 层只改 `SessionScreen`、`HUD` 或它们的替身层，不直接改 `World`、角色脚本或存档写入
+- 前端只需要先保证“能看、能接、能替换”，高级美术、动效、品牌化视觉留给后续 AI 迭代
 - 避免把平台判断散写在玩法脚本里
 - 如果删文档，先确认内容已经并入现存入口，避免再长回重复说明
 
@@ -102,6 +105,8 @@
 - GitHub 仓库：[night-runner](https://github.com/2456018331lby-dev/night-runner)
 - 在线版本：[GitHub Pages](https://2456018331lby-dev.github.io/night-runner/)
 - 网页导出入口：[export_web_to_docs.bat](/C:/Users/24560/Desktop/study/gametwo/export_web_to_docs.bat)
+- Android 导出预设：`export_presets.cfg` 中已预留 `Android` preset，目标包路径 `exports/android/NightRunner-debug.apk`
+- 当前环境判断：Godot Android export templates 已存在；Windows 侧 Android SDK / adb / Gradle 仍缺，暂不能在这里直接完整出包
 
 后续如果要更新线上版本：
 

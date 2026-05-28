@@ -20,8 +20,7 @@ func _ready() -> void:
 	session_screen.hub_requested.connect(_on_return_to_hub_requested)
 	FrontendBridge.bootstrap()
 	session_screen.build_hub(FrontendBridge.get_operations(), FrontendBridge.selected_operation_id)
-	if world.has_method("configure_touch_controls"):
-		world.call("configure_touch_controls")
+	_set_run_ui_visible(false)
 
 
 func _input(event: InputEvent) -> void:
@@ -55,6 +54,7 @@ func _on_start_requested(operation_id: String) -> void:
 		world.call("begin", operation)
 	FrontendBridge.notify_run_started()
 	session_screen.hide_for_run()
+	_set_run_ui_visible(true)
 
 
 func _on_retry_requested(operation_id: String) -> void:
@@ -64,12 +64,14 @@ func _on_retry_requested(operation_id: String) -> void:
 func _on_pause_state_changed(paused: bool) -> void:
 	get_tree().paused = paused
 	if paused:
+		_set_run_ui_visible(false)
 		var operation := RunCatalog.get_operation(GameState.current_operation_id)
 		session_screen.build_pause(operation)
 	else:
 		if FrontendBridge.app_phase == FrontendBridge.PHASE_RESULTS:
 			return
 		session_screen.hide_for_run()
+		_set_run_ui_visible(true)
 
 
 func _on_resume_requested() -> void:
@@ -78,6 +80,7 @@ func _on_resume_requested() -> void:
 
 func _on_return_to_hub_requested() -> void:
 	get_tree().paused = false
+	_set_run_ui_visible(false)
 	if world.has_method("reset_world"):
 		world.call("reset_world")
 	session_screen.build_hub(FrontendBridge.get_operations(), FrontendBridge.selected_operation_id)
@@ -85,6 +88,12 @@ func _on_return_to_hub_requested() -> void:
 
 func _on_run_finished(_success: bool) -> void:
 	get_tree().paused = false
+	_set_run_ui_visible(false)
 	FrontendBridge.notify_run_finished()
 	var operation := RunCatalog.get_operation(GameState.current_operation_id)
 	session_screen.build_results(operation)
+
+
+func _set_run_ui_visible(run_visible: bool) -> void:
+	if world.has_method("set_run_ui_visible"):
+		world.call("set_run_ui_visible", run_visible)

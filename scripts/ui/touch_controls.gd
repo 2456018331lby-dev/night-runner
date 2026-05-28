@@ -4,6 +4,7 @@ const PAD_BG := Color(0.04, 0.07, 0.13, 0.72)
 const PAD_BORDER := Color(0.23, 0.75, 1.0, 0.36)
 const LABEL_COLOR := Color(0.95, 0.98, 1.0)
 
+@onready var controls_root: Control = $Controls
 @onready var left_pad: PanelContainer = $Controls/LeftPad
 @onready var action_pad: PanelContainer = $Controls/ActionPad
 @onready var left_button: Button = $Controls/LeftPad/Margin/MoveRow/MoveLeft
@@ -25,11 +26,42 @@ func _ready() -> void:
 
 func configure(visible_on_platform: bool) -> void:
 	visible = visible_on_platform
+	if not visible_on_platform:
+		_release_all_inputs()
+	_apply_mobile_layout()
+
+
+func _apply_mobile_layout() -> void:
+	var safe := PlatformProfile.get_safe_area_margin()
+	var ui_scale := PlatformProfile.get_mobile_ui_scale()
+	controls_root.offset_left = 18.0 + safe.x
+	controls_root.offset_top = 18.0 + safe.y
+	controls_root.offset_right = -18.0 - safe.z
+	controls_root.offset_bottom = -18.0 - safe.w
+	left_pad.scale = Vector2.ONE * ui_scale
+	action_pad.scale = Vector2.ONE * ui_scale
+	left_pad.offset_left = 0.0
+	left_pad.offset_top = -180.0 * ui_scale
+	left_pad.offset_right = 300.0 * ui_scale
+	left_pad.offset_bottom = -6.0
+	action_pad.offset_left = -342.0 * ui_scale
+	action_pad.offset_top = -258.0 * ui_scale
+	action_pad.offset_right = -6.0
+	action_pad.offset_bottom = -6.0
 
 
 func _release_move(expected: float) -> void:
 	if is_equal_approx(InputRouter.move_axis, expected):
 		InputRouter.set_move_axis(0.0)
+
+
+func _release_all_inputs() -> void:
+	InputRouter.set_move_axis(0.0)
+	InputRouter.release_action("jump")
+	InputRouter.release_action("attack")
+	InputRouter.release_action("dash")
+	for button in [left_button, right_button, jump_button, attack_button, dash_button]:
+		_set_button_visual(button, false)
 
 
 func _apply_theme() -> void:
@@ -51,6 +83,10 @@ func _wire_move_button(button: Button, axis: float) -> void:
 		_release_move(axis)
 		_set_button_visual(button, false)
 	)
+	button.mouse_exited.connect(func() -> void:
+		_release_move(axis)
+		_set_button_visual(button, false)
+	)
 
 
 func _wire_action_button(button: Button, action_name: String) -> void:
@@ -59,6 +95,10 @@ func _wire_action_button(button: Button, action_name: String) -> void:
 		_set_button_visual(button, true)
 	)
 	button.button_up.connect(func() -> void:
+		_set_button_visual(button, false)
+	)
+	button.mouse_exited.connect(func() -> void:
+		InputRouter.release_action(action_name)
 		_set_button_visual(button, false)
 	)
 
@@ -83,7 +123,7 @@ func _finalize_button_pivots() -> void:
 
 func _set_button_visual(button: Button, pressed: bool) -> void:
 	button.scale = Vector2.ONE * (0.94 if pressed else 1.0)
-	button.modulate = Color(1.0, 1.0, 1.0, 1.0 if pressed else 0.94)
+	button.modulate = Color(1.0, 0.92, 0.78, 1.0) if pressed else Color(1.0, 1.0, 1.0, 0.94)
 
 
 func _make_panel_style(fill: Color, border: Color, radius: int) -> StyleBoxFlat:

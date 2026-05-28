@@ -10,8 +10,8 @@ const FIRE_RANGE_X := 520.0
 const FIRE_RANGE_Y := 170.0
 const COMFORT_RANGE := 250.0
 const TOO_CLOSE_RANGE := 150.0
-const FIRE_COOLDOWN := 1.35
-const PROJECTILE_SPEED := 420.0
+const FIRE_COOLDOWN := 1.65
+const PROJECTILE_SPEED := 385.0
 const POINTS_AWARD := 150
 
 @export var bolt_scene: PackedScene = preload("res://scenes/actors/enemy_bolt.tscn")
@@ -48,7 +48,7 @@ func _physics_process(delta: float) -> void:
 	_try_fire()
 	_refresh_visuals()
 	if global_position.y > 920.0:
-		_defeat(false)
+		_defeat(true, true)
 
 
 func receive_hit(force: Vector2) -> void:
@@ -145,10 +145,11 @@ func _refresh_visuals() -> void:
 	muzzle.scale = Vector2.ONE * (1.0 + clampf(aim_flash_timer / 0.24, 0.0, 1.0) * 0.16)
 
 
-func _defeat(award_points: bool = true) -> void:
+func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
 	if award_points:
-		defeated.emit(POINTS_AWARD)
+		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
+		defeated.emit(pts)
 	queue_free()

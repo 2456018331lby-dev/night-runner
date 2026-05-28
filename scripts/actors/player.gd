@@ -3,17 +3,17 @@ extends CharacterBody2D
 signal player_hit
 signal player_fell
 
-const SPEED := 320.0
-const JUMP_VELOCITY := -560.0
-const AIR_CONTROL := 0.65
+const SPEED := 340.0
+const JUMP_VELOCITY := -575.0
+const AIR_CONTROL := 0.72
 const GRAVITY := 1500.0
-const DASH_SPEED := 760.0
-const DASH_TIME := 0.18
-const DASH_COOLDOWN := 0.6
-const ATTACK_RANGE_X := 156.0
-const ATTACK_RANGE_Y := 84.0
-const ATTACK_FORCE := 540.0
-const ATTACK_COOLDOWN := 0.18
+const DASH_SPEED := 790.0
+const DASH_TIME := 0.2
+const DASH_COOLDOWN := 0.52
+const ATTACK_RANGE_X := 178.0
+const ATTACK_RANGE_Y := 98.0
+const ATTACK_FORCE := 590.0
+const ATTACK_COOLDOWN := 0.16
 
 @onready var body_visual: Polygon2D = $Body
 @onready var art_sprite: Sprite2D = $Art
@@ -124,11 +124,15 @@ func _try_attack() -> void:
 	for enemy: Node in get_tree().get_nodes_in_group("enemy"):
 		if not enemy.has_method("receive_hit"):
 			continue
-		var delta_pos: Vector2 = enemy.global_position - global_position
+		var enemy_node := enemy as Node2D
+		if enemy_node == null:
+			continue
+		var delta_pos: Vector2 = enemy_node.global_position - global_position
 		var forward_distance := delta_pos.x * facing
 		if forward_distance >= -20.0 and forward_distance <= ATTACK_RANGE_X and absf(delta_pos.y) <= ATTACK_RANGE_Y:
 			var attack_force := ATTACK_FORCE * GameState.get_modifier_value("attack_force_multiplier", 1.0)
 			enemy.receive_hit(Vector2(facing * attack_force, -240.0))
+			_spawn_hit_spark(enemy_node.global_position - Vector2(facing * 18.0, 8.0))
 			hit_any = true
 	action_pop_timer = 0.08
 	strike_flash_timer = 0.12
@@ -202,6 +206,26 @@ func _refresh_visuals() -> void:
 	if camera_shake_timer > 0.0:
 		shake_target = Vector2(randf_range(-camera_shake_strength, camera_shake_strength), randf_range(-camera_shake_strength, camera_shake_strength))
 	camera.offset = camera.offset.lerp(shake_target, 0.32)
+
+
+func _spawn_hit_spark(at_position: Vector2) -> void:
+	var spark := Polygon2D.new()
+	spark.polygon = PackedVector2Array([
+		Vector2(0.0, -8.0),
+		Vector2(38.0 * facing, -2.0),
+		Vector2(0.0, 8.0),
+		Vector2(-10.0 * facing, 0.0),
+	])
+	spark.global_position = at_position
+	spark.color = Color(1.0, 0.86, 0.42, 0.95)
+	spark.z_index = 18
+	get_tree().current_scene.add_child(spark)
+	var tween := spark.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(spark, "scale", Vector2(1.9, 0.45), 0.12).from(Vector2(0.45, 1.0))
+	tween.tween_property(spark, "modulate:a", 0.0, 0.14)
+	tween.set_parallel(false)
+	tween.tween_callback(spark.queue_free)
 
 
 func _trigger_camera_shake(strength: float, duration: float) -> void:

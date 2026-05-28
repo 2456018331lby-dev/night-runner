@@ -7,7 +7,7 @@ signal run_finished(success: bool)
 signal progress_changed
 
 const SAVE_PATH := "user://night_runner_save.json"
-const DEFAULT_COMBO_WINDOW := 4.0
+const DEFAULT_COMBO_WINDOW := 4.8
 const DEFAULT_META_PROGRESS := {
 	"highest_score": 0,
 	"selected_operation_id": "blitz_pursuit",
@@ -61,6 +61,8 @@ var last_damage_source_detail: String = ""
 var live_route_phase: String = "INGRESS"
 var live_route_pressure: String = "Route cold."
 var live_hazard_status: String = "Hazard net dormant."
+var event_banner_text: String = ""
+var event_banner_emphasis: float = 0.0
 
 
 func _ready() -> void:
@@ -70,6 +72,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var should_emit := false
+	if event_banner_emphasis > 0.0:
+		event_banner_emphasis = maxf(0.0, event_banner_emphasis - delta * 0.55)
+		should_emit = true
 	if is_run_active and not is_run_failed:
 		elapsed_time += delta
 		should_emit = true
@@ -120,6 +125,8 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	live_route_phase = "INGRESS"
 	live_route_pressure = "Route cold."
 	live_hazard_status = "Hazard net dormant."
+	event_banner_text = ""
+	event_banner_emphasis = 0.0
 	data_cores_collected = 0
 	data_cores_total = 0
 	extraction_unlocked = false
@@ -145,7 +152,7 @@ func register_enemy_defeat(base_points: int) -> void:
 		combo_count = 1
 	max_combo_reached = maxi(max_combo_reached, combo_count)
 	combo_timer = combo_window
-	var total_points := int(round((base_points + max(0, combo_count - 1) * 50) * float(run_modifiers.get("score_multiplier", 1.0))))
+	var total_points := int(round((base_points + max(0, combo_count - 1) * 40) * float(run_modifiers.get("score_multiplier", 1.0))))
 	score += total_points
 	enemy_score_total += total_points
 	if extraction_bonus_active and extraction_unlocked:
@@ -392,8 +399,8 @@ func get_extraction_bonus_status_text() -> String:
 		return "No extraction bonus active."
 	var live_time := formatted_cashout_time()
 	if pending_extraction_bonus <= 0:
-		return "%s online. Overstay %s for a higher payout." % [get_extraction_bonus_label(), live_time]
-	return "%s +%d banked across %d takedowns // overstay %s" % [get_extraction_bonus_label(), pending_extraction_bonus, extraction_bonus_kills, live_time]
+		return "%s live. Extract now or defeat enemies for bonus." % get_extraction_bonus_label()
+	return "%s +%d banked // %d takedowns" % [get_extraction_bonus_label(), pending_extraction_bonus, extraction_bonus_kills]
 
 
 func get_extraction_bonus_progress_ratio() -> float:
@@ -442,6 +449,32 @@ func get_hazard_status_text() -> String:
 	return live_hazard_status
 
 
+func push_event_banner(text: String, emphasis: float = 1.0) -> void:
+	event_banner_text = text
+	event_banner_emphasis = clampf(emphasis, 0.0, 1.0)
+	state_changed.emit()
+
+
+func get_event_banner_text() -> String:
+	return event_banner_text
+
+
+func get_event_banner_emphasis() -> float:
+	return event_banner_emphasis
+
+
+func get_operation_feel_summary() -> String:
+	match current_operation_id:
+		"blitz_pursuit":
+			return "Fast-clear route. Secure the cores cleanly, then decide whether pursuit pressure is worth cashout greed."
+		"ghost_circuit":
+			return "Angle-reading route. Suppressors and relay hazards matter more than raw speed, and overstay turns stealth into exposure."
+		"overdrive_protocol":
+			return "Adaptive greed route. Directive choice, mixed enemy lanes and score threshold decisions define the run."
+		_:
+			return "Short-run extraction loop."
+
+
 func get_run_metrics() -> Dictionary:
 	return {
 		"combat_score": enemy_score_total,
@@ -454,6 +487,7 @@ func get_run_metrics() -> Dictionary:
 		"max_combo": max_combo_reached,
 		"cashout_kills": extraction_bonus_kills,
 		"elapsed_time": elapsed_time,
+		"operation_feel": get_operation_feel_summary(),
 	}
 
 
@@ -509,6 +543,10 @@ func get_last_damage_source_summary() -> String:
 					return "phantom slash"
 				"phantom_dive":
 					return "phantom dive"
+				"stalker_body":
+					return "stalker slam"
+				"stalker_landing":
+					return "stalker shockwave"
 				_:
 					return "hostile pressure"
 		_:

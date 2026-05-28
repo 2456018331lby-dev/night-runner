@@ -46,8 +46,9 @@ text = "BEST 0000"
 [node name="ComboLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
 text = "COMBO READY"
 
-[node name="CenterColumn" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow"]
-size_flags_horizontal = 0
+[node name="ComboBar" type="ProgressBar" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
+custom_minimum_size = Vector2(0, 8)
+show_percentage = false
 
 [node name="OperationCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
 custom_minimum_size = Vector2(332, 152)
@@ -79,7 +80,7 @@ theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
 [node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin"]
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="HealthRow" type="HBoxContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 theme_override_constants/separation = 10
@@ -98,6 +99,10 @@ custom_minimum_size = Vector2(28, 14)
 
 [node name="Pip3" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow"]
 custom_minimum_size = Vector2(28, 14)
+
+[node name="DashBar" type="ProgressBar" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
+custom_minimum_size = Vector2(0, 6)
+show_percentage = false
 
 [node name="CoreCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox"]
 text = "DATA CORES"
@@ -213,9 +218,11 @@ text = "Objective status"
 
 [node name="CashoutRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
 size_flags_horizontal = 3
+theme_override_constants/separation = 14
 
 [node name="CashoutCard" type="PanelContainer" parent="MarginContainer/RootColumn/CashoutRow"]
 custom_minimum_size = Vector2(500, 76)
+size_flags_horizontal = 3
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/CashoutRow/CashoutCard"]
 theme_override_constants/margin_left = 16
@@ -232,6 +239,40 @@ text = "CASHOUT WINDOW"
 [node name="CashoutStatus" type="Label" parent="MarginContainer/RootColumn/CashoutRow/CashoutCard/Margin/VBox"]
 autowrap_mode = 3
 text = "Cashout status"
+
+[node name="NavCard" type="PanelContainer" parent="MarginContainer/RootColumn/CashoutRow"]
+custom_minimum_size = Vector2(330, 76)
+size_flags_horizontal = 3
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/CashoutRow/NavCard"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/CashoutRow/NavCard/Margin"]
+theme_override_constants/separation = 4
+
+[node name="NavTitle" type="Label" parent="MarginContainer/RootColumn/CashoutRow/NavCard/Margin/VBox"]
+text = "ROUTE VECTOR"
+
+[node name="NavStatus" type="Label" parent="MarginContainer/RootColumn/CashoutRow/NavCard/Margin/VBox"]
+autowrap_mode = 3
+text = "Tracking next objective."
+
+[node name="EventBanner" type="PanelContainer" parent="MarginContainer/RootColumn"]
+visible = false
+custom_minimum_size = Vector2(0, 58)
+
+[node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/EventBanner"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 10
+
+[node name="EventLabel" type="Label" parent="MarginContainer/RootColumn/EventBanner/Margin"]
+horizontal_alignment = 1
+text = "OVERDRIVE COLLAPSE"
 
 [node name="ToastAnchor" type="Control" parent="."]
 layout_mode = 3

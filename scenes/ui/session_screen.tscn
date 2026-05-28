@@ -10,232 +10,130 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="AmbientA" type="ColorRect" parent="Backdrop"]
-anchors_preset = 0
-offset_left = -120.0
-offset_top = -120.0
-offset_right = 760.0
-offset_bottom = 440.0
-rotation = 0.18
-
-[node name="AmbientB" type="ColorRect" parent="Backdrop"]
-anchors_preset = 0
-offset_left = 740.0
-offset_top = 250.0
-offset_right = 1560.0
-offset_bottom = 950.0
-rotation = -0.26
-
-[node name="Grain" type="ColorRect" parent="Backdrop"]
+[node name="Content" type="MarginContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 20
 
-[node name="Scanlines" type="ColorRect" parent="Backdrop"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="Vignette" type="ColorRect" parent="Backdrop"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="Margin" type="MarginContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 34.0
-offset_top = 26.0
-offset_right = -34.0
-offset_bottom = -26.0
-
-[node name="Layout" type="VBoxContainer" parent="Margin"]
+[node name="Root" type="VBoxContainer" parent="Content"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/separation = 16
 
-[node name="Frame" type="PanelContainer" parent="Margin/Layout"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
+[node name="Header" type="PanelContainer" parent="Content/Root"]
+custom_minimum_size = Vector2(0, 72)
 
-[node name="Margin" type="MarginContainer" parent="Margin/Layout/Frame"]
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="Column" type="VBoxContainer" parent="Margin/Layout/Frame/Margin"]
-theme_override_constants/separation = 20
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="HeaderRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column"]
+[node name="HeaderRow" type="HBoxContainer" parent="Content/Root/Header"]
 theme_override_constants/separation = 18
 
-[node name="HeaderBox" type="PanelContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow"]
+[node name="TitleSection" type="VBoxContainer" parent="Content/Root/Header/HeaderRow"]
 size_flags_horizontal = 3
+theme_override_constants/separation = 4
 
-[node name="HeaderMargin" type="MarginContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox"]
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 18
-
-[node name="TitleFlow" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin"]
-theme_override_constants/separation = 6
-
-[node name="Title" type="Label" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin/TitleFlow"]
+[node name="Title" type="Label" parent="Content/Root/Header/HeaderRow/TitleSection"]
 text = "NIGHT RUNNER"
 
-[node name="Subtitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin/TitleFlow"]
-text = "Neon operation archive"
+[node name="Subtitle" type="Label" parent="Content/Root/Header/HeaderRow/TitleSection"]
+text = "Operations"
 
-[node name="StatusBox" type="PanelContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow"]
-custom_minimum_size = Vector2(250, 0)
+[node name="StatusBadge" type="PanelContainer" parent="Content/Root/Header/HeaderRow"]
+custom_minimum_size = Vector2(160, 0)
 
-[node name="StatusMargin" type="MarginContainer" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/StatusBox"]
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 18
-
-[node name="Status" type="Label" parent="Margin/Layout/Frame/Margin/Column/HeaderRow/StatusBox/StatusMargin"]
-text = "OPERATIONS"
+[node name="Status" type="Label" parent="Content/Root/Header/HeaderRow/StatusBadge"]
+text = "HUB"
 horizontal_alignment = 2
 
-[node name="BodyRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column"]
+[node name="Body" type="HBoxContainer" parent="Content/Root"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 18
+theme_override_constants/separation = 16
 
-[node name="Deck" type="PanelContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow"]
-custom_minimum_size = Vector2(338, 0)
+[node name="LeftPanel" type="PanelContainer" parent="Content/Root/Body"]
+custom_minimum_size = Vector2(300, 0)
 
-[node name="DeckMargin" type="MarginContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck"]
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 18
-
-[node name="DeckColumn" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin"]
+[node name="LeftCol" type="VBoxContainer" parent="Content/Root/Body/LeftPanel"]
 theme_override_constants/separation = 10
-size_flags_vertical = 3
 
-[node name="DeckTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn"]
-text = "AVAILABLE RUNS"
+[node name="SectionTitle" type="Label" parent="Content/Root/Body/LeftPanel/LeftCol"]
+text = "ROUTES"
 
-[node name="DeckSubtitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn"]
-autowrap_mode = 3
-text = "Operations appear here."
-
-[node name="DeckScroll" type="ScrollContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn"]
+[node name="RouteScroll" type="ScrollContainer" parent="Content/Root/Body/LeftPanel/LeftCol"]
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="DeckFlow" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn/DeckScroll"]
+[node name="RouteList" type="VBoxContainer" parent="Content/Root/Body/LeftPanel/LeftCol/RouteScroll"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
-[node name="FocusPanel" type="PanelContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="FocusMargin" type="MarginContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel"]
-theme_override_constants/margin_left = 22
-theme_override_constants/margin_top = 22
-theme_override_constants/margin_right = 22
-theme_override_constants/margin_bottom = 22
-
-[node name="FocusColumn" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin"]
-theme_override_constants/separation = 12
+[node name="RightPanel" type="PanelContainer" parent="Content/Root/Body"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Mode" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+[node name="RightCol" type="VBoxContainer" parent="Content/Root/Body/RightPanel"]
+theme_override_constants/separation = 12
+
+[node name="InfoColumn" type="VBoxContainer" parent="Content/Root/Body/RightPanel/RightCol"]
+theme_override_constants/separation = 8
+size_flags_vertical = 3
+
+[node name="Mode" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
 text = "MODE"
 
-[node name="Title" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-text = "Select an operation"
+[node name="RouteTitle" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
+text = "Select a route"
 
-[node name="Summary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+[node name="Summary" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
 autowrap_mode = 3
 text = "Summary"
 
-[node name="Brief" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+[node name="Brief" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
 autowrap_mode = 3
 text = "Brief"
 
-[node name="Intel" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+[node name="Intel" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
 autowrap_mode = 3
 text = "Intel"
 
-[node name="MissionTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-text = "MISSION OBJECTIVE"
-
-[node name="MissionSummary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-autowrap_mode = 3
-text = "Objective details"
-
-[node name="BonusTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-text = "CASHOUT WINDOW"
-
-[node name="BonusSummary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-autowrap_mode = 3
-text = "Cashout details"
-
-[node name="RecordsTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-text = "FIELD RECORDS"
-
-[node name="RecordGrid" type="GridContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+[node name="RecordGrid" type="GridContainer" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
 columns = 2
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 8
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 6
 
-[node name="DirectiveTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-text = "DIRECTIVE DRAW"
+[node name="DirectiveName" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
+text = "Directive"
 
-[node name="DirectiveName" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-text = "Adaptive directives appear here."
-
-[node name="DirectiveSummary" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
+[node name="DirectiveSummary" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
 autowrap_mode = 3
 text = "Directive summary"
 
-[node name="DirectiveDeckTitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-text = "TACTICAL LOADOUT"
-
-[node name="DirectiveDeckSubtitle" type="Label" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-autowrap_mode = 3
-text = "Directive cards appear here."
-
-[node name="DirectiveScroll" type="ScrollContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn"]
-custom_minimum_size = Vector2(0, 208)
+[node name="DirectiveScroll" type="ScrollContainer" parent="Content/Root/Body/RightPanel/RightCol"]
+custom_minimum_size = Vector2(0, 160)
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="DirectiveFlow" type="VBoxContainer" parent="Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/DirectiveScroll"]
+[node name="DirectiveList" type="VBoxContainer" parent="Content/Root/Body/RightPanel/RightCol/DirectiveScroll"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="FooterRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column"]
-theme_override_constants/separation = 18
+[node name="Footer" type="HBoxContainer" parent="Content/Root"]
+theme_override_constants/separation = 16
 
-[node name="FooterHint" type="Label" parent="Margin/Layout/Frame/Margin/Column/FooterRow"]
+[node name="Hint" type="Label" parent="Content/Root/Footer"]
 size_flags_horizontal = 3
 autowrap_mode = 3
-text = "Hint"
+text = "Select a route and directive, then launch."
 
-[node name="ActionRow" type="HBoxContainer" parent="Margin/Layout/Frame/Margin/Column/FooterRow"]
+[node name="ActionRow" type="HBoxContainer" parent="Content/Root/Footer"]
 theme_override_constants/separation = 12
 
-[node name="Primary" type="Button" parent="Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow"]
-custom_minimum_size = Vector2(188, 52)
-text = "PRIMARY"
+[node name="Primary" type="Button" parent="Content/Root/Footer/ActionRow"]
+custom_minimum_size = Vector2(180, 50)
+text = "LAUNCH"
 
-[node name="Secondary" type="Button" parent="Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow"]
-custom_minimum_size = Vector2(166, 52)
-text = "SECONDARY"
-
-[node name="Tertiary" type="Button" parent="Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow"]
-custom_minimum_size = Vector2(132, 52)
-text = "TERTIARY"
+[node name="Secondary" type="Button" parent="Content/Root/Footer/ActionRow"]
+custom_minimum_size = Vector2(150, 50)
+text = "HUB"

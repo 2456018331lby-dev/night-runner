@@ -25,6 +25,10 @@
 - 近战追击者与远程压制者两类敌人
 - 五枚情报核心、撤离门和短局胜利条件
 - `Blitz Pursuit` / `Ghost Circuit` / `Overdrive Protocol` 三条行动线路
+- 三条行动现在各自强调不同闭环：
+  - `Blitz Pursuit`：快清 + cashout 贪分
+  - `Ghost Circuit`：角度阅读 + 干净撤离
+  - `Overdrive Protocol`：directive 适配 + 高分阈值决策
 - 局前 directive 选择、局外成绩记录和解锁进度
 - 次级目标、连击加分、结算评级和撤离后 cashout 风险收益选择
 - 原创 SVG 角色立绘与霓虹场景氛围层

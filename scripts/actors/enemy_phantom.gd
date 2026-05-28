@@ -9,8 +9,12 @@ const DIVE_RANGE_X := 420.0
 const DIVE_RANGE_Y := 210.0
 const DIVE_SPEED_X := 460.0
 const DIVE_SPEED_Y := -250.0
-const DIVE_COOLDOWN := 1.95
-const DIVE_RECOVERY_TIME := 0.18
+const DIVE_COOLDOWN := 2.25
+const DIVE_RECOVERY_TIME := 0.22
+const WINDUP_TIME := 0.42
+const DIVE_TIME := 0.34
+const AFTERIMAGE_INTERVAL := 0.055
+const AFTERIMAGE_LIFETIME := 0.24
 const POINTS_AWARD := 220
 
 @onready var rig: Node2D = $Rig
@@ -18,6 +22,8 @@ const POINTS_AWARD := 220
 @onready var blade_visual: Polygon2D = $Rig/Blade
 @onready var eye_visual: Polygon2D = $Rig/Eye
 @onready var trail: Polygon2D = $Rig/Trail
+@onready var warning_line: Line2D = Line2D.new()
+@onready var warning_ring: Polygon2D = Polygon2D.new()
 
 var player: Node2D
 var knocked_velocity: Vector2 = Vector2.ZERO
@@ -28,10 +34,36 @@ var windup_timer: float = 0.0
 var dive_timer: float = 0.0
 var facing: float = -1.0
 var stride_phase: float = randf() * TAU
+var afterimage_timer: float = 0.0
+var afterimages: Array[Polygon2D] = []
 
 
 func _ready() -> void:
 	add_to_group("enemy")
+	_setup_warning_visuals()
+
+
+func _setup_warning_visuals() -> void:
+	warning_line.width = 4.0
+	warning_line.default_color = Color(0.82, 1.0, 0.92, 1.0)
+	warning_line.points = PackedVector2Array([Vector2.ZERO, Vector2(DIVE_RANGE_X * 0.78, 0.0)])
+	warning_line.z_index = -1
+	warning_line.visible = false
+	add_child(warning_line)
+	warning_ring.polygon = PackedVector2Array([
+		Vector2(0, -32),
+		Vector2(24, -18),
+		Vector2(32, 0),
+		Vector2(24, 18),
+		Vector2(0, 32),
+		Vector2(-24, 18),
+		Vector2(-32, 0),
+		Vector2(-24, -18),
+	])
+	warning_ring.color = Color(0.5, 1.0, 0.94, 1.0)
+	warning_ring.z_index = -2
+	warning_ring.visible = false
+	add_child(warning_ring)
 
 
 func _physics_process(delta: float) -> void:
@@ -44,9 +76,10 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_try_contact_damage()
 	_try_begin_dive()
+	_update_afterimages(delta)
 	_refresh_visuals()
 	if global_position.y > 920.0:
-		_defeat(false)
+		_defeat(true, true)
 
 
 func receive_hit(force: Vector2) -> void:
@@ -112,11 +145,11 @@ func _try_begin_dive() -> void:
 	if absf(delta_pos.x) > DIVE_RANGE_X or absf(delta_pos.y) > DIVE_RANGE_Y:
 		return
 	facing = signf(delta_pos.x) if absf(delta_pos.x) > 1.0 else facing
-	windup_timer = 0.32
+	windup_timer = WINDUP_TIME
 
 
 func _launch_dive() -> void:
-	dive_timer = 0.34
+	dive_timer = DIVE_TIME
 	dive_cooldown_timer = DIVE_COOLDOWN
 	velocity.x = facing * DIVE_SPEED_X
 	velocity.y = DIVE_SPEED_Y
@@ -135,11 +168,47 @@ func _try_contact_damage() -> void:
 			dive_timer = minf(dive_timer, DIVE_RECOVERY_TIME)
 
 
+func _update_afterimages(delta: float) -> void:
+	for index in range(afterimages.size() - 1, -1, -1):
+		var image := afterimages[index]
+		if not is_instance_valid(image):
+			afterimages.remove_at(index)
+			continue
+		var next_life := float(image.get_meta("life", AFTERIMAGE_LIFETIME)) - delta
+		if next_life <= 0.0:
+			image.queue_free()
+			afterimages.remove_at(index)
+			continue
+		image.set_meta("life", next_life)
+		image.modulate.a = clampf(next_life / AFTERIMAGE_LIFETIME, 0.0, 1.0) * 0.28
+	if dive_timer <= 0.0:
+		afterimage_timer = 0.0
+		return
+	afterimage_timer -= delta
+	if afterimage_timer <= 0.0:
+		afterimage_timer = AFTERIMAGE_INTERVAL
+		_spawn_afterimage()
+
+
+func _spawn_afterimage() -> void:
+	var image := Polygon2D.new()
+	image.polygon = body_visual.polygon
+	image.global_position = global_position
+	image.global_rotation = rig.global_rotation
+	image.global_scale = rig.global_scale
+	image.color = Color(0.5, 1.0, 0.94, 1.0)
+	image.modulate.a = 0.28
+	image.z_index = -3
+	image.set_meta("life", AFTERIMAGE_LIFETIME)
+	get_parent().add_child(image)
+	afterimages.append(image)
+
+
 func _refresh_visuals() -> void:
 	if facing != 0.0:
 		rig.scale.x = facing
-	var windup_mix := clampf(1.0 - windup_timer / 0.32, 0.0, 1.0) if windup_timer > 0.0 else 0.0
-	var dive_mix := clampf(dive_timer / 0.34, 0.0, 1.0)
+	var windup_mix := clampf(1.0 - windup_timer / WINDUP_TIME, 0.0, 1.0) if windup_timer > 0.0 else 0.0
+	var dive_mix := clampf(dive_timer / DIVE_TIME, 0.0, 1.0)
 	var stride := 1.0 + sin(stride_phase) * 0.05 if absf(velocity.x) > 8.0 and is_on_floor() else 1.0
 	if hit_flash_timer > 0.0:
 		body_visual.color = Color(0.96, 1.0, 1.0)
@@ -161,12 +230,23 @@ func _refresh_visuals() -> void:
 	blade_visual.rotation = -0.06 - windup_mix * 0.16 - dive_mix * 0.22
 	trail.scale.x = 1.0 + dive_mix * 1.4 + windup_mix * 0.4
 	trail.modulate.a = 0.08 + windup_mix * 0.14 + dive_mix * 0.3
+	warning_line.visible = windup_timer > 0.0 or dive_timer > 0.0
+	warning_ring.visible = windup_timer > 0.0
+	warning_line.scale.x = facing if facing != 0.0 else 1.0
+	warning_line.modulate.a = windup_mix * 0.72 + dive_mix * 0.26
+	warning_ring.modulate.a = windup_mix * 0.3
+	warning_ring.scale = Vector2.ONE * (0.75 + windup_mix * 0.55)
 
 
-func _defeat(award_points: bool = true) -> void:
+func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
+	for image in afterimages:
+		if is_instance_valid(image):
+			image.queue_free()
+	afterimages.clear()
 	if award_points:
-		defeated.emit(POINTS_AWARD)
+		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
+		defeated.emit(pts)
 	queue_free()

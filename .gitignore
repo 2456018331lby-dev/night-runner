@@ -5,4 +5,4 @@ exports/
 *.translation
 android/build/
 android/.gradle/
-
+nul

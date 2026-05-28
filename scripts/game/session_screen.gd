@@ -6,12 +6,11 @@ signal retry_requested
 signal resume_requested
 signal hub_requested
 
-const FONT_DISPLAY_SIZE := 34
-const FONT_TITLE_SIZE := 22
-const FONT_BODY_SIZE := 15
-const FONT_CAPTION_SIZE := 12
+const FONT_DISPLAY_SIZE := 36
+const FONT_TITLE_SIZE := 20
+const FONT_BODY_SIZE := 14
+const FONT_CAPTION_SIZE := 11
 const PANEL_BG := Color("09121f")
-const PANEL_BG_SOFT := Color(0.05, 0.09, 0.16, 0.76)
 const PANEL_LINE := Color("4fdcff")
 const PANEL_ACCENT := Color("ff7b43")
 const TEXT_PRIMARY := Color("f7fbff")
@@ -19,47 +18,31 @@ const TEXT_MUTED := Color("9bb0c9")
 const TEXT_GOLD := Color("ffd37c")
 const TEXT_ALERT := Color("ff9289")
 const TEXT_SUCCESS := Color("98ffd2")
-const TEXT_SOFT := Color("dce7f5")
 const TEXT_TEAL := Color("77ffe4")
 
 @onready var backdrop: ColorRect = $Backdrop
-@onready var ambient_a: ColorRect = $Backdrop/AmbientA
-@onready var ambient_b: ColorRect = $Backdrop/AmbientB
-@onready var grain: ColorRect = $Backdrop/Grain
-@onready var scanlines: ColorRect = $Backdrop/Scanlines
-@onready var vignette: ColorRect = $Backdrop/Vignette
-@onready var frame: PanelContainer = $Margin/Layout/Frame
-@onready var title_label: Label = $Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin/TitleFlow/Title
-@onready var subtitle_label: Label = $Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox/HeaderMargin/TitleFlow/Subtitle
-@onready var status_label: Label = $Margin/Layout/Frame/Margin/Column/HeaderRow/StatusBox/StatusMargin/Status
-@onready var deck_title: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn/DeckTitle
-@onready var deck_subtitle: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn/DeckSubtitle
-@onready var deck_flow: VBoxContainer = $Margin/Layout/Frame/Margin/Column/BodyRow/Deck/DeckMargin/DeckColumn/DeckScroll/DeckFlow
-@onready var focus_mode: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/Mode
-@onready var focus_title: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/Title
-@onready var focus_summary: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/Summary
-@onready var focus_brief: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/Brief
-@onready var focus_intel: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/Intel
-@onready var mission_title: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/MissionTitle
-@onready var mission_summary: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/MissionSummary
-@onready var bonus_title: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/BonusTitle
-@onready var bonus_summary: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/BonusSummary
-@onready var record_title: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/RecordsTitle
-@onready var record_grid: GridContainer = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/RecordGrid
-@onready var directive_title: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/DirectiveTitle
-@onready var directive_name: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/DirectiveName
-@onready var directive_summary: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/DirectiveSummary
-@onready var directive_deck_title: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/DirectiveDeckTitle
-@onready var directive_deck_subtitle: Label = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/DirectiveDeckSubtitle
-@onready var directive_flow: VBoxContainer = $Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel/FocusMargin/FocusColumn/DirectiveScroll/DirectiveFlow
-@onready var footer_hint: Label = $Margin/Layout/Frame/Margin/Column/FooterRow/FooterHint
-@onready var primary_button: Button = $Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow/Primary
-@onready var secondary_button: Button = $Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow/Secondary
-@onready var tertiary_button: Button = $Margin/Layout/Frame/Margin/Column/FooterRow/ActionRow/Tertiary
+@onready var title_label: Label = $Content/Root/Header/HeaderRow/TitleSection/Title
+@onready var subtitle_label: Label = $Content/Root/Header/HeaderRow/TitleSection/Subtitle
+@onready var status_label: Label = $Content/Root/Header/HeaderRow/StatusBadge/Status
+@onready var route_list: VBoxContainer = $Content/Root/Body/LeftPanel/LeftCol/RouteScroll/RouteList
+@onready var route_title: Label = $Content/Root/Body/LeftPanel/LeftCol/SectionTitle
+@onready var focus_mode: Label = $Content/Root/Body/RightPanel/RightCol/InfoColumn/Mode
+@onready var focus_title: Label = $Content/Root/Body/RightPanel/RightCol/InfoColumn/RouteTitle
+@onready var focus_summary: Label = $Content/Root/Body/RightPanel/RightCol/InfoColumn/Summary
+@onready var focus_brief: Label = $Content/Root/Body/RightPanel/RightCol/InfoColumn/Brief
+@onready var focus_intel: Label = $Content/Root/Body/RightPanel/RightCol/InfoColumn/Intel
+@onready var record_grid: GridContainer = $Content/Root/Body/RightPanel/RightCol/InfoColumn/RecordGrid
+@onready var directive_name: Label = $Content/Root/Body/RightPanel/RightCol/InfoColumn/DirectiveName
+@onready var directive_summary: Label = $Content/Root/Body/RightPanel/RightCol/InfoColumn/DirectiveSummary
+@onready var directive_list: VBoxContainer = $Content/Root/Body/RightPanel/RightCol/DirectiveScroll/DirectiveList
+@onready var footer_hint: Label = $Content/Root/Footer/Hint
+@onready var primary_button: Button = $Content/Root/Footer/ActionRow/Primary
+@onready var secondary_button: Button = $Content/Root/Footer/ActionRow/Secondary
 
 var current_phase: String = FrontendBridge.PHASE_HUB
 var operation_buttons: Dictionary = {}
 var directive_buttons: Dictionary = {}
+var ambient_pulse: float = 0.0
 
 
 func _ready() -> void:
@@ -68,48 +51,43 @@ func _ready() -> void:
 	visible = true
 
 
+func _process(delta: float) -> void:
+	ambient_pulse += delta
+	backdrop.material = null
+
+
 func build_hub(operations: Array[Dictionary], selected_id: String) -> void:
 	current_phase = FrontendBridge.PHASE_HUB
 	show()
-	_clear_operation_buttons()
+	_clear_route_list()
 	title_label.text = "NIGHT RUNNER"
-	subtitle_label.text = "Neon break-in operations // urban assault archive"
-	status_label.text = "OPERATIONS DECK"
-	deck_title.text = "AVAILABLE RUNS"
-	deck_subtitle.text = "Three combat fantasies in one career ladder: chase, infiltration and adaptive overdrive."
-	footer_hint.text = "Select an operation. The system remembers best score, rank, survival rate and chosen directive."
-	primary_button.text = "LAUNCH OPERATION"
-	secondary_button.text = "VIEW RESULTS"
-	tertiary_button.text = "PAUSE LOCKED"
+	subtitle_label.text = "STEAL THE CORES · SURVIVE THE CASHOUT"
+	status_label.text = "HUB"
+	route_title.text = "SELECT ROUTE"
+	footer_hint.text = "Pick a route, then launch."
+	primary_button.text = "LAUNCH"
+	secondary_button.text = ""
 	secondary_button.visible = false
-	tertiary_button.visible = false
 	primary_button.disabled = selected_id.is_empty() or not GameState.is_operation_unlocked(selected_id)
 	for operation in operations:
-		_add_operation_button(operation, selected_id)
+		_add_route_button(operation, selected_id)
 	_refresh_focus(FrontendBridge.get_operation(selected_id))
 
 
 func build_results(operation: Dictionary) -> void:
 	current_phase = FrontendBridge.PHASE_RESULTS
 	show()
-	title_label.text = "RUN DEBRIEF"
-	subtitle_label.text = "Asset recovery status, performance grade and escalation context."
-	status_label.text = "RESULTS // %s" % ("SUCCESS" if GameState.run_success else "FAILED")
-	deck_title.text = "CAREER STATS"
-	deck_subtitle.text = "Best score %04d // success rate %s // career runs %d" % [
-		int(GameState.meta_progress.get("highest_score", 0)),
-		GameState.formatted_success_rate(),
-		int(GameState.meta_progress.get("career_runs", 0)),
-	]
+	_clear_route_list()
+	title_label.text = "RUN COMPLETE" if GameState.run_success else "RUN FAILED"
+	subtitle_label.text = "Rank %s · %04d" % [GameState.final_rank, GameState.score]
+	status_label.text = "RESULTS"
+	route_title.text = "CAREER"
 	footer_hint.text = GameState.result_summary
-	primary_button.text = "RUN IT AGAIN"
-	secondary_button.text = "RETURN TO HUB"
-	tertiary_button.text = "LOCK DEBRIEF"
-	primary_button.disabled = false
+	primary_button.text = "RETRY"
+	secondary_button.text = "HUB"
 	secondary_button.visible = true
 	secondary_button.disabled = false
-	tertiary_button.visible = false
-	_clear_operation_buttons()
+	primary_button.disabled = false
 	_add_debrief_metrics(operation)
 	_refresh_focus(operation)
 
@@ -117,25 +95,17 @@ func build_results(operation: Dictionary) -> void:
 func build_pause(operation: Dictionary) -> void:
 	current_phase = FrontendBridge.PHASE_PAUSE
 	show()
-	title_label.text = "TACTICAL HOLD"
-	subtitle_label.text = "Run frozen. Re-center, review the route and push back into the sector."
-	status_label.text = "PAUSED"
-	deck_title.text = "LIVE TELEMETRY"
-	deck_subtitle.text = "Score %04d // cores %d/%d // health %d" % [
-		GameState.score,
-		GameState.data_cores_collected,
-		GameState.data_cores_total,
-		GameState.health,
-	]
-	footer_hint.text = "Resume to continue the run, or break contact and return to the hub."
-	primary_button.text = "RESUME RUN"
-	secondary_button.text = "RETURN TO HUB"
-	tertiary_button.text = "HOLD"
-	primary_button.disabled = false
+	_clear_route_list()
+	title_label.text = "PAUSED"
+	subtitle_label.text = "Score %04d · Cores %d/%d · HP %d" % [GameState.score, GameState.data_cores_collected, GameState.data_cores_total, GameState.health]
+	status_label.text = "HOLD"
+	route_title.text = "LIVE DATA"
+	footer_hint.text = "Resume to continue, or return to hub."
+	primary_button.text = "RESUME"
+	secondary_button.text = "HUB"
 	secondary_button.visible = true
 	secondary_button.disabled = false
-	tertiary_button.visible = false
-	_clear_operation_buttons()
+	primary_button.disabled = false
 	_add_pause_metrics()
 	_refresh_focus(operation)
 
@@ -144,253 +114,187 @@ func hide_for_run() -> void:
 	hide()
 
 
+func _clear_route_list() -> void:
+	operation_buttons.clear()
+	for child in route_list.get_children():
+		child.queue_free()
+
+
+func _clear_directive_list() -> void:
+	directive_buttons.clear()
+	for child in directive_list.get_children():
+		child.queue_free()
+
+
 func _refresh_focus(operation: Dictionary) -> void:
 	var selected := operation if not operation.is_empty() else FrontendBridge.get_selected_operation()
 	var operation_id := String(selected.get("id", ""))
 	var record := GameState.get_operation_record(operation_id)
-	focus_mode.text = String(selected.get("mode_label", "UNSPECIFIED ROUTE"))
-	focus_title.text = String(selected.get("title", "No Operation Selected"))
-	focus_summary.text = String(selected.get("summary", "Select an operation to inspect its risk profile."))
+	focus_mode.text = String(selected.get("mode_label", ""))
+	focus_title.text = String(selected.get("title", "Select a route"))
+	focus_summary.text = String(selected.get("summary", ""))
 	focus_brief.text = String(selected.get("brief", ""))
 	focus_intel.text = String(selected.get("intel", ""))
 	var lane_signals: Array = selected.get("lane_signals", [])
 	if not lane_signals.is_empty():
-		focus_intel.text += "\n" + " // ".join(lane_signals)
-	mission_title.text = "MISSION OBJECTIVE"
-	var secondary_name := String(selected.get("secondary_objective", {}).get("name", "No optional objective"))
-	var secondary_description := String(selected.get("secondary_objective", {}).get("description", ""))
-	mission_summary.text = "%s\nOptional target: %s" % [
-		String(selected.get("objective_intro", "No mission briefing available.")),
-		"%s // %s" % [secondary_name, secondary_description] if not secondary_description.is_empty() else secondary_name,
-	]
-	bonus_title.text = "CASHOUT WINDOW"
-	var extraction_bonus := Dictionary(selected.get("extraction_bonus", {}))
-	if extraction_bonus.is_empty():
-		bonus_summary.text = "No overstay bonus configured for this route."
-	else:
-		bonus_summary.text = "%s starts once extraction unlocks. First takedown pays +%d, then scales by +%d each kill if you stay in the sector." % [
-			String(extraction_bonus.get("label", "Cashout Bonus")),
-			int(extraction_bonus.get("base_bounty", 0)),
-			int(extraction_bonus.get("step_bounty", 0)),
-		]
-		bonus_summary.text += "\nThis lane also has %d live cashout escalation beat(s)." % int(Array(selected.get("cashout_events", [])).size())
-	var bastion_count := _count_scene_mentions(selected, "EnemyBastion")
-	var phantom_count := _count_scene_mentions(selected, "EnemyPhantom")
-	if bastion_count > 0 or phantom_count > 0:
-		bonus_summary.text += "\nElite pressure:"
-		if bastion_count > 0:
-			bonus_summary.text += " bastion x%d" % bastion_count
-		if phantom_count > 0:
-			bonus_summary.text += " // phantom x%d" % phantom_count
-	record_title.text = "FIELD RECORDS"
-	_populate_record_grid(record)
-	if current_phase == FrontendBridge.PHASE_HUB:
-		var selected_directive := FrontendBridge.get_selected_directive(operation_id)
-		directive_title.text = "SELECTED DIRECTIVE"
-		directive_name.text = String(selected_directive.get("name", "Base Protocol"))
-		directive_summary.text = String(selected_directive.get("summary", "No adaptive directive active."))
-		var modifier_summary := GameState.describe_modifier_block(Dictionary(selected_directive.get("modifiers", {})))
-		if not modifier_summary.is_empty():
-			directive_summary.text += "\n" + modifier_summary
-		directive_deck_title.text = "TACTICAL LOADOUT"
-		directive_deck_subtitle.text = "Choose the run modifier before launch. This stays modular so the front-end can be replaced later without touching gameplay."
-		_populate_directive_deck(selected)
-	else:
-		directive_title.text = "ACTIVE DIRECTIVE"
-		directive_name.text = GameState.get_current_directive_name()
-		directive_summary.text = GameState.get_current_directive_summary()
-		directive_deck_title.text = "TACTICAL NOTES"
-		directive_deck_subtitle.text = "Directive selection is locked mid-run."
-		_clear_directive_buttons()
-		if current_phase == FrontendBridge.PHASE_RESULTS:
-			_add_directive_note(GameState.get_run_verdict_text(), TEXT_TEAL)
-			for line in GameState.get_run_score_breakdown_lines():
-				_add_directive_note(line, TEXT_PRIMARY)
-			_add_directive_note(GameState.secondary_objective_summary if not GameState.secondary_objective_summary.is_empty() else "No optional objective resolved.", TEXT_GOLD)
-			_add_directive_note(GameState.get_extraction_bonus_status_text(), TEXT_MUTED)
-		elif current_phase == FrontendBridge.PHASE_PAUSE:
-			_add_directive_note("Optional objective: %s" % GameState.get_secondary_objective_status_text(), TEXT_PRIMARY)
-			_add_directive_note(GameState.get_extraction_bonus_status_text(), TEXT_MUTED)
-	_update_focus_palette(selected)
-
-
-func _populate_record_grid(record: Dictionary) -> void:
+		focus_intel.text += "\n" + " · ".join(lane_signals)
 	for child in record_grid.get_children():
 		child.queue_free()
 	_add_stat_pair("Best Score", "%04d" % int(record.get("best_score", 0)))
 	_add_stat_pair("Best Rank", String(record.get("best_rank", "--")))
 	_add_stat_pair("Runs", str(int(record.get("runs", 0))))
-	_add_stat_pair("Successes", str(int(record.get("successes", 0))))
-	var runs: int = maxi(1, int(record.get("runs", 0)))
-	var successes := int(record.get("successes", 0))
-	_add_stat_pair("Win Rate", "%d%%" % int(round(float(successes) / float(runs) * 100.0)) if int(record.get("runs", 0)) > 0 else "--")
-	var best_time := float(record.get("best_time", 0.0))
-	_add_stat_pair("Best Time", "--" if best_time <= 0.0 else _format_time(best_time))
-	_add_stat_pair("Last Directive", String(record.get("last_directive_name", "None")))
+	_add_stat_pair("Win Rate", "%d%%" % int(round(float(record.get("successes", 0)) / maxi(1, int(record.get("runs", 0))) * 100.0)) if int(record.get("runs", 0)) > 0 else "--")
+	if current_phase == FrontendBridge.PHASE_HUB:
+		var selected_directive := FrontendBridge.get_selected_directive(operation_id)
+		directive_name.text = String(selected_directive.get("name", "Base Protocol"))
+		directive_summary.text = String(selected_directive.get("summary", ""))
+		var modifier_summary := GameState.describe_modifier_block(Dictionary(selected_directive.get("modifiers", {})))
+		if not modifier_summary.is_empty():
+			directive_summary.text += "\n" + modifier_summary
+		_populate_directive_list(selected)
+	else:
+		directive_name.text = GameState.get_current_directive_name()
+		directive_summary.text = GameState.get_current_directive_summary()
+		_clear_directive_list()
+		if current_phase == FrontendBridge.PHASE_RESULTS:
+			_add_directive_note(GameState.get_run_verdict_text(), TEXT_TEAL)
+			for line in GameState.get_run_score_breakdown_lines():
+				_add_directive_note(line, TEXT_PRIMARY)
+		elif current_phase == FrontendBridge.PHASE_PAUSE:
+			_add_directive_note("Optional: %s" % GameState.get_secondary_objective_status_text(), TEXT_PRIMARY)
+	_update_palette(selected)
 
 
-func _add_operation_button(operation: Dictionary, selected_id: String) -> void:
-	var button := Button.new()
-	button.toggle_mode = true
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.text = "%s\n%s" % [String(operation.get("title", "")), String(operation.get("subtitle", ""))]
-	button.custom_minimum_size = Vector2(0, 86)
-	button.focus_mode = Control.FOCUS_NONE
-	var operation_id := String(operation.get("id", ""))
-	var unlocked := GameState.is_operation_unlocked(operation_id)
-	button.disabled = not unlocked
-	button.button_pressed = operation_id == selected_id
-	button.pressed.connect(func() -> void:
-		_select_button(operation_id)
-	)
-	button.mouse_entered.connect(func() -> void:
-		_refresh_focus(operation)
-	)
-	var styles := _make_button_styles(operation, button.button_pressed)
-	button.add_theme_stylebox_override("normal", styles["normal"])
-	button.add_theme_stylebox_override("hover", styles["hover"])
-	button.add_theme_stylebox_override("pressed", styles["pressed"])
-	button.add_theme_stylebox_override("disabled", styles["disabled"])
-	button.add_theme_color_override("font_color", TEXT_PRIMARY)
-	button.add_theme_color_override("font_disabled_color", TEXT_MUTED)
-	button.add_theme_font_size_override("font_size", 16)
-	deck_flow.add_child(button)
-	operation_buttons[operation_id] = button
-
-
-func _populate_directive_deck(operation: Dictionary) -> void:
-	_clear_directive_buttons()
+func _populate_directive_list(operation: Dictionary) -> void:
+	_clear_directive_list()
 	var operation_id := String(operation.get("id", ""))
 	var selected_directive := FrontendBridge.get_selected_directive(operation_id)
 	for directive in operation.get("directive_pool", []):
 		_add_directive_button(operation, directive, String(directive.get("id", "")) == String(selected_directive.get("id", "")))
 
 
+func _add_route_button(operation: Dictionary, selected_id: String) -> void:
+	var btn := Button.new()
+	var operation_id := String(operation.get("id", ""))
+	var unlocked := GameState.is_operation_unlocked(operation_id)
+	btn.text = "%s  %s" % [("READY" if unlocked else "LOCKED"), String(operation.get("title", ""))]
+	btn.custom_minimum_size = Vector2(0, 64)
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.disabled = not unlocked
+	btn.button_pressed = operation_id == selected_id
+	btn.pressed.connect(func(): _select_route(operation_id))
+	var fill := Color(0.04, 0.08, 0.14, 0.9) if btn.button_pressed else Color(0.03, 0.06, 0.11, 0.7)
+	var line: Color = (Color("4fdcff") if btn.button_pressed else Color(0.2, 0.5, 0.7, 0.3))
+	btn.add_theme_stylebox_override("normal", _make_style(fill, line, 8, 2 if btn.button_pressed else 1))
+	btn.add_theme_stylebox_override("hover", _make_style(fill.lightened(0.06), line.lightened(0.1), 8, 2))
+	btn.add_theme_stylebox_override("pressed", _make_style(fill.darkened(0.08), line, 8, 2))
+	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
+	btn.add_theme_color_override("font_disabled_color", TEXT_MUTED)
+	btn.add_theme_font_size_override("font_size", 16)
+	route_list.add_child(btn)
+	operation_buttons[operation_id] = btn
+
+
 func _add_directive_button(operation: Dictionary, directive: Dictionary, selected: bool) -> void:
-	var button := Button.new()
-	button.toggle_mode = true
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var btn := Button.new()
 	var modifier_summary := GameState.describe_modifier_block(Dictionary(directive.get("modifiers", {})))
-	button.text = "%s\n%s\n%s" % [String(directive.get("name", "")), String(directive.get("summary", "")), modifier_summary]
-	button.custom_minimum_size = Vector2(0, 104)
-	button.button_pressed = selected
-	button.focus_mode = Control.FOCUS_NONE
+	btn.text = "%s  %s" % [("ACTIVE" if selected else "OPTION"), String(directive.get("name", ""))]
+	if not PlatformProfile.is_mobile:
+		btn.text += "\n%s" % String(directive.get("summary", ""))
+	btn.text += "\n%s" % modifier_summary
+	btn.custom_minimum_size = Vector2(0, 72)
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.button_pressed = selected
 	var operation_id := String(operation.get("id", ""))
 	var directive_id := String(directive.get("id", ""))
-	button.pressed.connect(func() -> void:
-		_select_directive_button(operation_id, directive_id)
-	)
-	var styles := _make_directive_button_styles(operation, directive, selected)
-	button.add_theme_stylebox_override("normal", styles["normal"])
-	button.add_theme_stylebox_override("hover", styles["hover"])
-	button.add_theme_stylebox_override("pressed", styles["pressed"])
-	button.add_theme_stylebox_override("disabled", styles["disabled"])
-	button.add_theme_color_override("font_color", TEXT_PRIMARY)
-	button.add_theme_color_override("font_disabled_color", TEXT_MUTED)
-	button.add_theme_font_size_override("font_size", 15)
-	directive_flow.add_child(button)
-	directive_buttons[directive_id] = button
+	btn.pressed.connect(func(): _select_directive(operation_id, directive_id))
+	var fill := Color(0.05, 0.06, 0.13, 0.9) if selected else Color(0.04, 0.06, 0.11, 0.7)
+	var line: Color = (PANEL_ACCENT if selected else Color(0.3, 0.45, 0.6, 0.3))
+	btn.add_theme_stylebox_override("normal", _make_style(fill, line, 8, 2 if selected else 1))
+	btn.add_theme_stylebox_override("hover", _make_style(fill.lightened(0.06), line.lightened(0.1), 8, 2))
+	btn.add_theme_stylebox_override("pressed", _make_style(fill.darkened(0.08), line, 8, 2))
+	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
+	btn.add_theme_color_override("font_disabled_color", TEXT_MUTED)
+	btn.add_theme_font_size_override("font_size", 14)
+	directive_list.add_child(btn)
+	directive_buttons[directive_id] = btn
 
 
-func _select_directive_button(operation_id: String, directive_id: String) -> void:
-	FrontendBridge.select_directive(operation_id, directive_id)
-	var operation: Dictionary = FrontendBridge.get_operation(operation_id)
-	for key in directive_buttons.keys():
-		var button: Button = directive_buttons[key]
-		var selected: bool = String(key) == directive_id
-		button.button_pressed = selected
-		var directive := _get_directive_from_operation(operation, String(key))
-		var styles := _make_directive_button_styles(operation, directive, selected)
-		button.add_theme_stylebox_override("normal", styles["normal"])
-		button.add_theme_stylebox_override("hover", styles["hover"])
-		button.add_theme_stylebox_override("pressed", styles["pressed"])
-	var selected_directive := FrontendBridge.get_selected_directive(operation_id)
-	directive_name.text = String(selected_directive.get("name", "Base Protocol"))
-	directive_summary.text = String(selected_directive.get("summary", "No adaptive directive active.")) + "\n" + GameState.describe_modifier_block(Dictionary(selected_directive.get("modifiers", {})))
-
-
-func _get_directive_from_operation(operation: Dictionary, directive_id: String) -> Dictionary:
-	for directive in operation.get("directive_pool", []):
-		if String(directive.get("id", "")) == directive_id:
-			return directive
-	return {}
-
-
-func _select_button(operation_id: String) -> void:
+func _select_route(operation_id: String) -> void:
 	FrontendBridge.select_operation(operation_id)
 	for key in operation_buttons.keys():
-		var button: Button = operation_buttons[key]
-		button.button_pressed = key == operation_id
-		var operation := FrontendBridge.get_operation(String(key))
-		var styles := _make_button_styles(operation, button.button_pressed)
-		button.add_theme_stylebox_override("normal", styles["normal"])
-		button.add_theme_stylebox_override("hover", styles["hover"])
-		button.add_theme_stylebox_override("pressed", styles["pressed"])
+		var btn: Button = operation_buttons[key]
+		btn.button_pressed = key == operation_id
 	primary_button.disabled = not GameState.is_operation_unlocked(operation_id)
 	_refresh_focus(FrontendBridge.get_operation(operation_id))
 	operation_chosen.emit(operation_id)
 
 
+func _select_directive(operation_id: String, directive_id: String) -> void:
+	FrontendBridge.select_directive(operation_id, directive_id)
+	var operation := FrontendBridge.get_operation(operation_id)
+	for key in directive_buttons.keys():
+		var btn: Button = directive_buttons[key]
+		var sel := String(key) == directive_id
+		btn.button_pressed = sel
+	directive_name.text = String(FrontendBridge.get_selected_directive(operation_id).get("name", ""))
+	directive_summary.text = String(FrontendBridge.get_selected_directive(operation_id).get("summary", ""))
+
+
 func _add_debrief_metrics(operation: Dictionary) -> void:
-	_clear_operation_buttons()
 	var record := GameState.get_operation_record(String(operation.get("id", "")))
 	var metrics := GameState.get_run_metrics()
-	_add_panel_note("Rank %s // Score %04d" % [GameState.final_rank, GameState.score], TEXT_GOLD)
-	_add_panel_note("Operation best %04d // Career best %04d" % [int(record.get("best_score", 0)), int(GameState.meta_progress.get("highest_score", 0))], TEXT_MUTED)
-	_add_panel_note("Directive %s" % (GameState.get_current_directive_name() if not GameState.get_current_directive_name().is_empty() else "None"), TEXT_PRIMARY)
-	_add_panel_note("Combat +%d // Core haul +%d" % [int(metrics.get("combat_score", 0)), int(metrics.get("core_score", 0))], TEXT_TEAL)
-	_add_panel_note("Exit +%d // Optional +%d // Cashout +%d" % [
-		int(metrics.get("exit_bonus", 0)),
-		int(metrics.get("objective_bonus", 0)),
-		int(metrics.get("cashout_bonus", 0)),
-	], TEXT_SOFT)
-	_add_panel_note("Hits %d // Hazard hits %d // Max combo x%d" % [
-		int(metrics.get("hits_taken", 0)),
-		int(metrics.get("hazard_hits", 0)),
-		int(metrics.get("max_combo", 0)),
-	], TEXT_MUTED)
-	_add_panel_note("Cashout kills %d // Verdict %s" % [
-		int(metrics.get("cashout_kills", 0)),
-		"Clean" if int(metrics.get("hazard_hits", 0)) <= 0 and int(metrics.get("hits_taken", 0)) <= 1 else "Contested",
-	], TEXT_SUCCESS if GameState.run_success else TEXT_ALERT)
+	_add_route_note("Rank %s · %04d" % [GameState.final_rank, GameState.score], TEXT_GOLD)
+	_add_route_note("Career best %04d" % int(GameState.meta_progress.get("highest_score", 0)), TEXT_MUTED)
+	_add_route_note("Combat +%d · Cores +%d" % [int(metrics.get("combat_score", 0)), int(metrics.get("core_score", 0))], TEXT_TEAL)
+	_add_route_note("Exit +%d · Cashout +%d" % [int(metrics.get("exit_bonus", 0)), int(metrics.get("cashout_bonus", 0))], TEXT_PRIMARY)
 
 
 func _add_pause_metrics() -> void:
-	_clear_operation_buttons()
-	_add_panel_note("Elapsed %s" % GameState.formatted_time(), TEXT_PRIMARY)
-	_add_panel_note("Combo %d // Health %d" % [GameState.combo_count, GameState.health], TEXT_MUTED)
-	_add_panel_note("Cashout %s" % GameState.get_extraction_bonus_status_text(), TEXT_SOFT)
-	_add_panel_note("Objective remains active. No score is lost while paused.", TEXT_MUTED)
+	_add_route_note("Time %s" % GameState.formatted_time(), TEXT_PRIMARY)
+	_add_route_note("Combo %d · HP %d" % [GameState.combo_count, GameState.health], TEXT_MUTED)
 
 
-func _add_panel_note(text: String, color: Color) -> void:
+func _add_route_note(text: String, color: Color) -> void:
 	var label := Label.new()
 	label.text = text
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", color)
-	deck_flow.add_child(label)
-
-
-func _clear_operation_buttons() -> void:
-	operation_buttons.clear()
-	for child in deck_flow.get_children():
-		child.queue_free()
-
-
-func _clear_directive_buttons() -> void:
-	directive_buttons.clear()
-	for child in directive_flow.get_children():
-		child.queue_free()
+	route_list.add_child(label)
 
 
 func _add_directive_note(text: String, color: Color) -> void:
 	var label := Label.new()
 	label.text = text
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", color)
-	directive_flow.add_child(label)
+	directive_list.add_child(label)
+
+
+func _add_stat_pair(caption: String, value: String) -> void:
+	var l1 := Label.new()
+	l1.text = caption
+	l1.add_theme_font_size_override("font_size", 11)
+	l1.add_theme_color_override("font_color", TEXT_MUTED)
+	record_grid.add_child(l1)
+	var l2 := Label.new()
+	l2.text = value
+	l2.add_theme_font_size_override("font_size", 14)
+	l2.add_theme_color_override("font_color", TEXT_PRIMARY)
+	record_grid.add_child(l2)
+
+
+func _update_palette(operation: Dictionary) -> void:
+	var theme: Dictionary = operation.get("theme", {})
+	if theme.is_empty():
+		return
+	var primary: Color = theme.get("primary", PANEL_LINE)
+	var secondary: Color = theme.get("secondary", PANEL_ACCENT)
+	status_label.add_theme_color_override("font_color", secondary)
+	focus_mode.add_theme_color_override("font_color", secondary)
+	title_label.add_theme_color_override("font_color", primary.lightened(0.2))
 
 
 func _wire_actions() -> void:
@@ -409,174 +313,72 @@ func _wire_actions() -> void:
 
 
 func _apply_theme() -> void:
-	backdrop.color = Color(0.02, 0.03, 0.06, 0.94)
-	ambient_a.color = Color(0.15, 0.5, 0.78, 0.16)
-	ambient_b.color = Color(0.78, 0.39, 0.2, 0.14)
-	grain.color = Color(1.0, 1.0, 1.0, 0.02)
-	scanlines.color = Color(0.68, 0.86, 1.0, 0.035)
-	vignette.color = Color(0.0, 0.0, 0.0, 0.34)
-	frame.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_LINE, 30, 2, 24))
-	_style_panel($Margin/Layout/Frame/Margin/Column/HeaderRow/HeaderBox, PANEL_BG_SOFT, PANEL_LINE)
-	_style_panel($Margin/Layout/Frame/Margin/Column/HeaderRow/StatusBox, PANEL_BG_SOFT, PANEL_ACCENT)
-	_style_panel($Margin/Layout/Frame/Margin/Column/BodyRow/Deck, PANEL_BG_SOFT, PANEL_LINE)
-	_style_panel($Margin/Layout/Frame/Margin/Column/BodyRow/FocusPanel, PANEL_BG_SOFT, PANEL_ACCENT)
-	title_label.add_theme_font_size_override("font_size", FONT_DISPLAY_SIZE)
+	var ms := PlatformProfile.get_mobile_ui_scale()
+	backdrop.color = Color(0.015, 0.025, 0.06, 1.0)
+	$Content.add_theme_constant_override("margin_left", int(20 * ms))
+	$Content.add_theme_constant_override("margin_top", int(16 * ms))
+	$Content.add_theme_constant_override("margin_right", int(20 * ms))
+	$Content.add_theme_constant_override("margin_bottom", int(16 * ms))
+	$Content/Root/Header.add_theme_stylebox_override("panel", _make_style(Color("09121f"), PANEL_LINE, 12, 2, 18))
+	_style_sub_panel($Content/Root/Body/LeftPanel, Color("0a1628"), PANEL_LINE)
+	_style_sub_panel($Content/Root/Body/RightPanel, Color("0a1628"), PANEL_ACCENT)
+	$Content/Root/Header/HeaderRow/StatusBadge.add_theme_stylebox_override("panel", _make_style(Color("0d1a2c"), PANEL_ACCENT, 8, 1, 8))
+	title_label.add_theme_font_size_override("font_size", int(FONT_DISPLAY_SIZE * ms))
 	title_label.add_theme_color_override("font_color", TEXT_PRIMARY)
-	subtitle_label.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
+	subtitle_label.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	subtitle_label.add_theme_color_override("font_color", TEXT_MUTED)
-	status_label.add_theme_font_size_override("font_size", FONT_TITLE_SIZE)
+	status_label.add_theme_font_size_override("font_size", int(FONT_TITLE_SIZE * ms))
 	status_label.add_theme_color_override("font_color", TEXT_GOLD)
-	deck_title.add_theme_font_size_override("font_size", FONT_TITLE_SIZE)
-	deck_title.add_theme_color_override("font_color", TEXT_PRIMARY)
-	deck_subtitle.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
-	deck_subtitle.add_theme_color_override("font_color", TEXT_MUTED)
-	focus_mode.add_theme_font_size_override("font_size", FONT_CAPTION_SIZE)
+	route_title.add_theme_font_size_override("font_size", int(FONT_TITLE_SIZE * ms))
+	route_title.add_theme_color_override("font_color", TEXT_PRIMARY)
+	focus_mode.add_theme_font_size_override("font_size", int(FONT_CAPTION_SIZE * ms))
 	focus_mode.add_theme_color_override("font_color", TEXT_GOLD)
-	focus_title.add_theme_font_size_override("font_size", 28)
+	focus_title.add_theme_font_size_override("font_size", int(26 * ms))
 	focus_title.add_theme_color_override("font_color", TEXT_PRIMARY)
-	focus_summary.add_theme_font_size_override("font_size", 16)
+	focus_summary.add_theme_font_size_override("font_size", int(15 * ms))
 	focus_summary.add_theme_color_override("font_color", TEXT_PRIMARY)
-	focus_brief.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
+	focus_brief.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	focus_brief.add_theme_color_override("font_color", TEXT_MUTED)
-	focus_intel.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
+	focus_intel.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	focus_intel.add_theme_color_override("font_color", TEXT_SUCCESS)
-	record_title.add_theme_font_size_override("font_size", FONT_CAPTION_SIZE)
-	record_title.add_theme_color_override("font_color", TEXT_GOLD)
-	mission_title.add_theme_font_size_override("font_size", FONT_CAPTION_SIZE)
-	mission_title.add_theme_color_override("font_color", TEXT_GOLD)
-	mission_summary.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
-	mission_summary.add_theme_color_override("font_color", TEXT_PRIMARY)
-	bonus_title.add_theme_font_size_override("font_size", FONT_CAPTION_SIZE)
-	bonus_title.add_theme_color_override("font_color", TEXT_GOLD)
-	bonus_summary.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
-	bonus_summary.add_theme_color_override("font_color", TEXT_MUTED)
-	directive_title.add_theme_font_size_override("font_size", FONT_CAPTION_SIZE)
-	directive_title.add_theme_color_override("font_color", TEXT_GOLD)
-	directive_name.add_theme_font_size_override("font_size", 18)
+	directive_name.add_theme_font_size_override("font_size", int(17 * ms))
 	directive_name.add_theme_color_override("font_color", TEXT_PRIMARY)
-	directive_summary.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
+	directive_summary.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	directive_summary.add_theme_color_override("font_color", TEXT_MUTED)
-	directive_deck_title.add_theme_font_size_override("font_size", FONT_CAPTION_SIZE)
-	directive_deck_title.add_theme_color_override("font_color", TEXT_GOLD)
-	directive_deck_subtitle.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
-	directive_deck_subtitle.add_theme_color_override("font_color", TEXT_MUTED)
-	footer_hint.add_theme_font_size_override("font_size", FONT_BODY_SIZE)
+	footer_hint.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	footer_hint.add_theme_color_override("font_color", TEXT_MUTED)
-	_style_action_button(primary_button, Color("173554"), Color("4fdcff"), TEXT_PRIMARY)
-	_style_action_button(secondary_button, Color("2b2238"), Color("ff7b43"), TEXT_PRIMARY)
-	_style_action_button(tertiary_button, Color("111924"), Color("2a3b53"), TEXT_MUTED)
+	_style_button(primary_button, Color("173554"), Color("4fdcff"), TEXT_PRIMARY)
+	_style_button(secondary_button, Color("2b2238"), Color("ff7b43"), TEXT_PRIMARY)
 
 
-func _style_panel(panel: PanelContainer, fill: Color, border: Color) -> void:
-	panel.add_theme_stylebox_override("panel", _make_panel_style(fill, border, 22, 1, 18))
+func _style_sub_panel(panel: PanelContainer, fill: Color, border: Color) -> void:
+	panel.add_theme_stylebox_override("panel", _make_style(fill, border, 10, 1, 14))
 
 
-func _style_action_button(button: Button, fill: Color, border: Color, text_color: Color) -> void:
-	button.focus_mode = Control.FOCUS_NONE
-	button.add_theme_stylebox_override("normal", _make_panel_style(fill, border, 18, 2, 14))
-	button.add_theme_stylebox_override("hover", _make_panel_style(fill.lightened(0.08), border.lightened(0.08), 18, 2, 16))
-	button.add_theme_stylebox_override("pressed", _make_panel_style(fill.darkened(0.12), border, 18, 2, 10))
-	button.add_theme_stylebox_override("disabled", _make_panel_style(fill.darkened(0.2), border.darkened(0.4), 18, 2, 8))
-	button.add_theme_font_size_override("font_size", 15)
-	button.add_theme_color_override("font_color", text_color)
-	button.add_theme_color_override("font_disabled_color", TEXT_MUTED)
+func _style_button(btn: Button, fill: Color, border: Color, tc: Color) -> void:
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.add_theme_stylebox_override("normal", _make_style(fill, border, 14, 2, 12))
+	btn.add_theme_stylebox_override("hover", _make_style(fill.lightened(0.08), border.lightened(0.08), 14, 2, 14))
+	btn.add_theme_stylebox_override("pressed", _make_style(fill.darkened(0.12), border, 14, 2, 8))
+	btn.add_theme_stylebox_override("disabled", _make_style(fill.darkened(0.2), border.darkened(0.4), 14, 2, 6))
+	btn.add_theme_font_size_override("font_size", int(15 * PlatformProfile.get_mobile_ui_scale()))
+	btn.add_theme_color_override("font_color", tc)
+	btn.add_theme_color_override("font_disabled_color", TEXT_MUTED)
 
 
-func _make_button_styles(operation: Dictionary, selected: bool) -> Dictionary:
-	var theme: Dictionary = operation.get("theme", {})
-	var primary: Color = theme.get("primary", PANEL_LINE)
-	var secondary: Color = theme.get("secondary", PANEL_ACCENT)
-	var fill := Color(0.05, 0.09, 0.15, 0.88)
-	var line := primary if selected else Color(primary.r, primary.g, primary.b, 0.36)
-	return {
-		"normal": _make_panel_style(fill, line, 18, 2 if selected else 1, 14),
-		"hover": _make_panel_style(fill.lightened(0.05), primary, 18, 2, 16),
-		"pressed": _make_panel_style(fill.darkened(0.12), secondary, 18, 2, 10),
-		"disabled": _make_panel_style(fill.darkened(0.15), Color(0.22, 0.28, 0.36, 0.5), 18, 1, 8),
-	}
-
-
-func _make_directive_button_styles(operation: Dictionary, directive: Dictionary, selected: bool) -> Dictionary:
-	var theme: Dictionary = operation.get("theme", {})
-	var primary: Color = theme.get("primary", PANEL_LINE)
-	var secondary: Color = theme.get("secondary", PANEL_ACCENT)
-	var fill := Color(0.04, 0.07, 0.14, 0.92)
-	var outline := secondary if selected else Color(primary.r, primary.g, primary.b, 0.28)
-	var emphasis := String(directive.get("id", "")) == String(FrontendBridge.get_selected_directive(String(operation.get("id", ""))).get("id", ""))
-	var hover_fill := fill.lightened(0.05 if emphasis else 0.03)
-	return {
-		"normal": _make_panel_style(fill, outline, 16, 2 if selected else 1, 10),
-		"hover": _make_panel_style(hover_fill, primary.lightened(0.1), 16, 2, 12),
-		"pressed": _make_panel_style(fill.darkened(0.08), secondary, 16, 2, 6),
-		"disabled": _make_panel_style(fill.darkened(0.16), Color(0.2, 0.26, 0.34, 0.6), 16, 1, 4),
-	}
-
-
-func _add_stat_pair(caption: String, value: String) -> void:
-	var label_caption := Label.new()
-	label_caption.text = caption
-	label_caption.add_theme_font_size_override("font_size", FONT_CAPTION_SIZE)
-	label_caption.add_theme_color_override("font_color", TEXT_MUTED)
-	record_grid.add_child(label_caption)
-	var label_value := Label.new()
-	label_value.text = value
-	label_value.add_theme_font_size_override("font_size", 15)
-	label_value.add_theme_color_override("font_color", TEXT_PRIMARY)
-	record_grid.add_child(label_value)
-
-
-func _update_focus_palette(operation: Dictionary) -> void:
-	var theme: Dictionary = operation.get("theme", {})
-	var primary: Color = theme.get("primary", PANEL_LINE)
-	var secondary: Color = theme.get("secondary", PANEL_ACCENT)
-	status_label.add_theme_color_override("font_color", secondary)
-	focus_mode.add_theme_color_override("font_color", secondary)
-	title_label.add_theme_color_override("font_color", primary.lightened(0.2))
-	ambient_a.color = Color(primary.r, primary.g, primary.b, 0.14)
-	ambient_b.color = Color(secondary.r, secondary.g, secondary.b, 0.12)
-	scanlines.color = Color(primary.r, primary.g, primary.b, 0.04)
-
-
-func _make_panel_style(fill: Color, border: Color, radius: int, border_width: int, shadow_size: int) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.border_width_left = border_width
-	style.border_width_top = border_width
-	style.border_width_right = border_width
-	style.border_width_bottom = border_width
-	style.corner_radius_top_left = radius
-	style.corner_radius_top_right = radius
-	style.corner_radius_bottom_left = radius
-	style.corner_radius_bottom_right = radius
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.42)
-	style.shadow_size = shadow_size
-	style.shadow_offset = Vector2(0, 10)
-	return style
-
-
-func _format_time(time_value: float) -> String:
-	var total_seconds := int(time_value)
-	var minutes := total_seconds / 60
-	var seconds := total_seconds % 60
-	return "%02d:%02d" % [minutes, seconds]
-
-
-func _count_scene_mentions(operation: Dictionary, scene_name: String) -> int:
-	var total := 0
-	for bucket_name in ["encounters", "completion_spawns"]:
-		for setup in operation.get(bucket_name, []):
-			if _scene_matches_name(setup.get("scene"), scene_name):
-				total += 1
-	for event_name in ["timeline_events", "core_events", "cashout_events"]:
-		for event in operation.get(event_name, []):
-			for setup in event.get("spawn", []):
-				if _scene_matches_name(setup.get("scene"), scene_name):
-					total += 1
-	return total
-
-
-func _scene_matches_name(scene: PackedScene, scene_name: String) -> bool:
-	if scene == null:
-		return false
-	return scene.resource_path.get_file().get_basename().capitalize().replace("_", "") == scene_name
+func _make_style(fill: Color, border: Color, radius: int, bw: int = 2, ss: int = 10) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = fill
+	s.border_color = border
+	s.border_width_left = bw
+	s.border_width_top = bw
+	s.border_width_right = bw
+	s.border_width_bottom = bw
+	s.corner_radius_top_left = radius
+	s.corner_radius_top_right = radius
+	s.corner_radius_bottom_left = radius
+	s.corner_radius_bottom_right = radius
+	s.shadow_color = Color(0.0, 0.0, 0.0, 0.38)
+	s.shadow_size = ss
+	s.shadow_offset = Vector2(0, 8)
+	return s

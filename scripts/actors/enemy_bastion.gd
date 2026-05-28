@@ -7,8 +7,8 @@ const GRAVITY := 1500.0
 const CONTACT_RANGE := 38.0
 const PRESSURE_RANGE_X := 380.0
 const PRESSURE_RANGE_Y := 180.0
-const SHOCK_COOLDOWN := 2.1
-const SHOCK_WINDUP := 0.58
+const SHOCK_COOLDOWN := 2.55
+const SHOCK_WINDUP := 0.68
 const POINTS_AWARD := 260
 
 @onready var rig: Node2D = $Rig
@@ -50,7 +50,7 @@ func _physics_process(delta: float) -> void:
 	_try_begin_shockwave()
 	_refresh_visuals()
 	if global_position.y > 920.0:
-		_defeat(false)
+		_defeat(true, true)
 
 
 func receive_hit(force: Vector2) -> void:
@@ -180,10 +180,11 @@ func _on_pulse_zone_body_entered(body: Node) -> void:
 		body.take_contact_hit(facing, "enemy", "bastion_shockwave")
 
 
-func _defeat(award_points: bool = true) -> void:
+func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
 	if award_points:
-		defeated.emit(POINTS_AWARD)
+		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
+		defeated.emit(pts)
 	queue_free()
