@@ -14,6 +14,7 @@ const ATTACK_RANGE_X := 178.0
 const ATTACK_RANGE_Y := 98.0
 const ATTACK_FORCE := 590.0
 const ATTACK_COOLDOWN := 0.16
+const DAMAGE_AFTERIMAGE_LIFETIME := 0.24
 
 @onready var body_visual: Polygon2D = $Body
 @onready var art_sprite: Sprite2D = $Art
@@ -34,6 +35,9 @@ var strike_flash_timer: float = 0.0
 var trail_phase: float = 0.0
 var dash_afterimages: Array[Polygon2D] = []
 var dash_afterimage_timer: float = 0.0
+var damage_flash_timer: float = 0.0
+var damage_flash_duration: float = 0.0
+var damage_afterimages: Array[Sprite2D] = []
 var was_on_floor: bool = true
 var landing_dust_timer: float = 0.0
 var speed_line_timer: float = 0.0
@@ -79,12 +83,15 @@ func _update_timers(delta: float) -> void:
 		boost_flash_timer -= delta
 	if strike_flash_timer > 0.0:
 		strike_flash_timer -= delta
+	if damage_flash_timer > 0.0:
+		damage_flash_timer -= delta
 	if landing_dust_timer > 0.0:
 		landing_dust_timer -= delta
 	if speed_line_timer > 0.0:
 		speed_line_timer -= delta
 	trail_phase += delta * 7.0
 	_update_dash_afterimages(delta)
+	_update_damage_afterimages(delta)
 	_detect_landing()
 	_maybe_spawn_speed_lines(delta)
 
@@ -182,10 +189,19 @@ func take_contact_hit(push_direction: float, source_kind: String = "enemy", sour
 	if invulnerable_timer > 0.0 or GameState.is_run_failed:
 		return
 	GameState.register_damage_source(source_kind, source_detail)
+	var heavy_hit := _is_heavy_damage_source(source_kind, source_detail)
+	var hit_direction := push_direction
+	if hit_direction == 0.0:
+		hit_direction = -facing if facing != 0.0 else 1.0
 	invulnerable_timer = 0.65
-	velocity = Vector2(push_direction * 260.0, -220.0)
-	action_pop_timer = 0.16
-	_trigger_camera_shake(8.0, 0.18)
+	velocity = Vector2(hit_direction * (340.0 if heavy_hit else 260.0), -270.0 if heavy_hit else -220.0)
+	action_pop_timer = 0.24 if heavy_hit else 0.16
+	damage_flash_duration = 0.34 if heavy_hit else 0.24
+	damage_flash_timer = damage_flash_duration
+	hit_stop_timer = maxf(hit_stop_timer, 0.085 if heavy_hit else 0.055)
+	_trigger_camera_shake(12.0 if heavy_hit else 8.0, 0.24 if heavy_hit else 0.18)
+	_spawn_damage_afterimage(hit_direction, heavy_hit)
+	_spawn_damage_burst(hit_direction, heavy_hit)
 	player_hit.emit()
 	AudioEngine.play_damage()
 
@@ -199,7 +215,11 @@ func apply_launch_boost(boost_velocity: Vector2) -> void:
 
 
 func _refresh_visuals() -> void:
-	if invulnerable_timer > 0.0:
+	var damage_mix := clampf(damage_flash_timer / maxf(0.01, damage_flash_duration), 0.0, 1.0)
+	var damage_strobe := 0.5 + absf(sin(trail_phase * 5.4)) * 0.5
+	if damage_flash_timer > 0.0:
+		body_visual.color = Color(1.0, 0.95 - damage_mix * 0.18, 0.78 - damage_mix * 0.28)
+	elif invulnerable_timer > 0.0:
 		body_visual.color = Color(1.0, 0.85, 0.42)
 	elif strike_flash_timer > 0.0:
 		body_visual.color = Color(1.0, 0.62, 0.48)
@@ -210,7 +230,9 @@ func _refresh_visuals() -> void:
 	var impact_strength := clampf(action_pop_timer * 8.0, 0.0, 1.0)
 	var locomotion_bob := 0.03 * sin(trail_phase) if is_on_floor() and absf(velocity.x) > 120.0 else 0.0
 	body_visual.scale = Vector2(facing * (1.0 + impact_strength * 0.14), 1.0 - impact_strength * 0.08 + locomotion_bob)
-	if invulnerable_timer > 0.0:
+	if damage_flash_timer > 0.0:
+		art_sprite.modulate = Color(1.0, 1.0 - damage_mix * 0.16, 0.84 - damage_mix * 0.16, 1.0).lerp(Color(1.0, 1.0, 1.0, 1.0), damage_strobe * 0.45)
+	elif invulnerable_timer > 0.0:
 		art_sprite.modulate = Color(1.0, 0.9, 0.72)
 	elif strike_flash_timer > 0.0:
 		art_sprite.modulate = Color(1.0, 0.86, 0.78)
@@ -270,6 +292,12 @@ func _trigger_camera_shake(strength: float, duration: float) -> void:
 	camera_shake_timer = duration
 
 
+func _is_heavy_damage_source(source_kind: String, source_detail: String) -> bool:
+	if source_kind == "hazard":
+		return true
+	return source_detail in ["stalker_landing", "bastion_shockwave", "phantom_dive"]
+
+
 func _update_dash_afterimages(delta: float) -> void:
 	for index in range(dash_afterimages.size() - 1, -1, -1):
 		var image := dash_afterimages[index]
@@ -302,6 +330,79 @@ func _spawn_dash_afterimage() -> void:
 	image.set_meta("life", 0.22)
 	get_tree().current_scene.add_child(image)
 	dash_afterimages.append(image)
+
+
+func _update_damage_afterimages(delta: float) -> void:
+	for index in range(damage_afterimages.size() - 1, -1, -1):
+		var image := damage_afterimages[index]
+		if not is_instance_valid(image):
+			damage_afterimages.remove_at(index)
+			continue
+		var life := float(image.get_meta("life", DAMAGE_AFTERIMAGE_LIFETIME)) - delta
+		if life <= 0.0:
+			image.queue_free()
+			damage_afterimages.remove_at(index)
+			continue
+		image.set_meta("life", life)
+		image.modulate.a = clampf(life / DAMAGE_AFTERIMAGE_LIFETIME, 0.0, 1.0) * 0.34
+
+
+func _spawn_damage_afterimage(push_direction: float, heavy_hit: bool) -> void:
+	var image := Sprite2D.new()
+	image.texture = art_sprite.texture
+	image.global_position = art_sprite.global_position - Vector2(push_direction * (20.0 if heavy_hit else 12.0), 0.0)
+	image.global_rotation = art_sprite.global_rotation
+	image.global_scale = art_sprite.global_scale * (1.08 if heavy_hit else 1.0)
+	image.modulate = Color(1.0, 0.38 if heavy_hit else 0.55, 0.32 if heavy_hit else 0.46, 0.34)
+	image.z_index = art_sprite.z_index - 1
+	image.set_meta("life", DAMAGE_AFTERIMAGE_LIFETIME)
+	get_tree().current_scene.add_child(image)
+	damage_afterimages.append(image)
+
+
+func _spawn_damage_burst(push_direction: float, heavy_hit: bool) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var shard_count := 8 if heavy_hit else 5
+	var spread := 78.0 if heavy_hit else 48.0
+	for index in shard_count:
+		var shard := Polygon2D.new()
+		shard.polygon = PackedVector2Array([
+			Vector2(0.0, -3.5),
+			Vector2(18.0, 0.0),
+			Vector2(0.0, 3.5),
+		])
+		var angle := lerpf(-0.92, 0.92, float(index) / maxf(1.0, float(shard_count - 1)))
+		var direction := Vector2(push_direction, 0.0).rotated(angle)
+		shard.global_position = global_position + Vector2(-push_direction * 10.0, -10.0)
+		shard.rotation = direction.angle()
+		shard.color = Color(1.0, 0.34 if heavy_hit else 0.58, 0.24 if heavy_hit else 0.42, 0.86)
+		shard.z_index = 24
+		scene.add_child(shard)
+		var tween := shard.create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(shard, "global_position", shard.global_position + direction * spread, 0.16 if heavy_hit else 0.12)
+		tween.tween_property(shard, "modulate:a", 0.0, 0.18)
+		tween.tween_property(shard, "scale", Vector2.ONE * 0.32, 0.18)
+		tween.set_parallel(false)
+		tween.tween_callback(shard.queue_free)
+	var ring := Polygon2D.new()
+	ring.polygon = PackedVector2Array()
+	for step in 18:
+		var angle := TAU * float(step) / 18.0
+		var radius := 22.0 if step % 2 == 0 else 9.0
+		ring.polygon.append(Vector2(cos(angle) * radius, sin(angle) * radius))
+	ring.global_position = global_position + Vector2(0.0, -10.0)
+	ring.color = Color(1.0, 0.92, 0.82, 0.62 if heavy_hit else 0.42)
+	ring.z_index = 23
+	scene.add_child(ring)
+	var ring_tween := ring.create_tween()
+	ring_tween.set_parallel(true)
+	ring_tween.tween_property(ring, "scale", Vector2.ONE * (2.0 if heavy_hit else 1.45), 0.14).from(Vector2.ONE * 0.35)
+	ring_tween.tween_property(ring, "modulate:a", 0.0, 0.16)
+	ring_tween.set_parallel(false)
+	ring_tween.tween_callback(ring.queue_free)
 
 
 func _detect_landing() -> void:

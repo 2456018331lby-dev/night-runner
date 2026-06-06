@@ -483,9 +483,12 @@ func _on_enemy_defeated(points: int, source: Node2D) -> void:
 
 func _on_player_hit() -> void:
 	var damage_summary := GameState.get_last_damage_source_summary()
-	_spawn_screen_impact(Color(1.0, 0.12, 0.08, 0.45), 0.28)
+	var damage_feedback := _get_damage_feedback_profile(GameState.last_damage_source_kind, GameState.last_damage_source_detail)
+	_spawn_screen_impact(damage_feedback["color"], damage_feedback["duration"])
 	GameState.lose_health(1)
 	PlatformProfile.vibrate_warn()
+	if bool(damage_feedback.get("heavy", false)):
+		GameState.push_event_banner("HEAVY IMPACT", 0.62)
 	if GameState.pending_extraction_bonus > 0:
 		_show_toast("%s hit. Cash out before %s slips away." % [damage_summary.capitalize(), GameState.get_extraction_bonus_label()], 1.8)
 	else:
@@ -634,6 +637,40 @@ func _spawn_screen_impact(color: Color, duration: float) -> void:
 	var tween := flash.create_tween()
 	tween.tween_property(flash, "modulate:a", 0.0, duration)
 	tween.tween_callback(flash.queue_free)
+
+
+func _get_damage_feedback_profile(source_kind: String, source_detail: String) -> Dictionary:
+	var heavy := source_kind == "hazard" or source_detail in ["stalker_landing", "bastion_shockwave", "phantom_dive"]
+	match source_detail:
+		"stalker_landing":
+			return {
+				"color": Color(1.0, 0.22, 0.08, 0.58),
+				"duration": 0.38,
+				"heavy": true,
+			}
+		"bastion_shockwave":
+			return {
+				"color": Color(1.0, 0.38, 0.08, 0.52),
+				"duration": 0.34,
+				"heavy": true,
+			}
+		"phantom_dive":
+			return {
+				"color": Color(0.72, 1.0, 0.94, 0.46),
+				"duration": 0.3,
+				"heavy": true,
+			}
+	if source_kind == "hazard":
+		return {
+			"color": Color(1.0, 0.12, 0.04, 0.54),
+			"duration": 0.36,
+			"heavy": true,
+		}
+	return {
+		"color": Color(1.0, 0.12, 0.08, 0.42 if not heavy else 0.52),
+		"duration": 0.26 if not heavy else 0.34,
+		"heavy": heavy,
+	}
 
 
 func _spawn_extraction_burst(at_position: Vector2) -> void:

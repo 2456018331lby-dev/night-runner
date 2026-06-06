@@ -8,20 +8,22 @@
 - 给 `EnemyStalker` 补坠击残影：plunge 阶段按短间隔生成半透明立绘残影，强调垂直下砸速度和危险方向
 - 给 `AudioEngine` 增加 `stalker_impact` 程序合成重击音效，并在 Stalker 落地触发，避免精英压迫只靠 toast 和视觉脉冲成立
 - 保持 Stalker 的逻辑边界不变：敌人只管理自身预警、残影、冲击表现；分数、UI 和全局流程仍留在 `World` / `GameState`
+- 给玩家受击补第一版强反馈：普通命中和重击命中现在有不同短冻结、击退力度、角色白闪、受击残影和方向性碎片
+- 给 `World` 的受击屏幕反馈做来源分级：Stalker 落地、Bastion shockwave、Phantom dive 和路线机关会触发更强屏幕冲击，并短暂推送 `HEAVY IMPACT` 事件 banner
 - 通过 Godot headless 项目加载校验和 `enemy_stalker.tscn` 单场景加载校验
-- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,341,395` bytes，`apksigner verify --verbose --print-certs` 确认 v2 / v3 签名通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,345,491` bytes，`apksigner verify --verbose --print-certs` 确认 v2 / v3 签名通过
 - 用 `apkanalyzer` 确认最新 APK 包名 `com.nousresearch.nightrunner`、版本 `0.1.0`、`minSdk 24`、`targetSdk 35` 和横屏方向配置
-- 在 `NightRunner35` Android 35 模拟器完成最新 APK 安装和启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `5795`，`dumpsys window` 显示 Godot launcher activity 获得焦点
+- 在 `NightRunner35` Android 35 模拟器完成最新 APK 安装和启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `6063`，`dumpsys window` 显示 Godot launcher activity 获得焦点
 
 ### 当前问题
 
-- Stalker 的落点预警和残影已补齐第一版，但仍缺真机画面检查、命中停顿、玩家受击闪白和更完整的混音层
+- Stalker 的落点预警、残影和玩家受击闪白已补齐第一版，但仍缺真机画面检查、命中停顿手感调参和更完整的混音层
 - 多敌人混编仍需要继续验证，尤其是远程压制者与 Stalker 同屏时是否会形成无解站位
 - Android 模拟器可安装启动的证据已更新到 2026-06-06 最新 APK，但仍缺真机触屏 / 刘海屏 / 震动强度验证
 
 ### 下一步建议
 
-- 给玩家受击和敌人命中补更明确的 hit-stop / 闪白 / 屏幕冲击节奏
+- 上真机调玩家受击冻结时长、闪白强度、屏幕冲击透明度和震动强度，避免小屏上过亮或过吵
 - 调整 Stalker 与 Suppressor 的同屏刷怪规则，避免高处坠击和远程压制同时锁死路线
 - 上真机安装最新 APK，补实际画面、触控、刘海屏和震动强度验证证据
 
@@ -55,14 +57,14 @@
 
 ### 当前问题
 
-- `EnemyStalker` 现在已有独立轮廓和更稳定的附着位；坠击残影、专门落点预警和音效层已在 2026-06-06 补第一版，后续重点转向命中停顿、受击闪白和混编节奏
+- `EnemyStalker` 现在已有独立轮廓和更稳定的附着位；坠击残影、专门落点预警、音效层和玩家受击闪白已在 2026-06-06 补第一版，后续重点转向真机调参和混编节奏
 - 战斗反馈整体仍偏视觉脉冲，命中停顿、受击闪白和音效还有继续加密空间
 - 移动端安全区、振动反馈和触控区现在已经接入，但还没做真机验证和更细的多设备调优
 - Android 模拟器能证明“可安装、可启动、不立即崩”，但系统截图对 Godot `SurfaceView` 取证仍不可靠，目前还缺一张可直接展示游戏内容的 Android 运行截图
 
 ### 下一步建议
 
-- 继续给 `EnemyStalker` 和其他精英补 hit-stop、受击闪白、混音层和危险提示联动，避免高压只靠数值成立
+- 继续给 `EnemyStalker` 和其他精英补 hit-stop 调参、混音层和危险提示联动，避免高压只靠数值成立
 - 上真机验证 18:9 / 刘海屏安全区、触控布局和震动强度
 - 用真机或更稳定的图像抓取路径确认 Android 实际首屏画面，顺手核对 `SessionScreen` 新的安全区与结果页层级
 - 继续加强 hit-stop、受击闪白、命中特效和危险提示

@@ -9,7 +9,7 @@
 - 已有 `Android` export preset（见 `export_presets.cfg`）
 - 本机已安装 Godot Android export templates（`android_debug.apk` / `android_release.apk` 模板存在）
 - Godot headless 加载校验已通过，命令行要使用 Winget 安装的 console exe 完整路径
-- 2026-06-06 已重新成功导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,341,395` bytes，签名验证通过 v2/v3
+- 2026-06-06 已重新成功导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,345,491` bytes，签名验证通过 v2/v3
 - 已完成 Android 35 模拟器安装与启动验证：`adb install -r` 成功，应用可拉起并保持前台进程
 - Android 侧当前结论：`renderer/rendering_method.mobile` 需要使用 `mobile`；此前的 `gl_compatibility` 在模拟器 SwiftShader 上会触发 `GL_MAX_FRAGMENT_UNIFORM_VECTORS` 着色器报错
 - 2026-06-01 12:21 重新导出最新 APK 后，再次完成模拟器安装验证；最新一次 `logcat` 仍显示 `usesVulkan(): true`、`renderingDevice: vulkan`、`renderer: mobile`

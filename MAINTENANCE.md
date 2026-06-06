@@ -124,3 +124,4 @@
 - 2026-05-10：新增 directive 预选、次级目标展示、cashout 风险收益和中枢/HUD 扩展后再次执行同一命令，结果通过
 - 2026-06-06：新增 `EnemyStalker` 落点预警、坠击残影和重击音效后，项目 headless 加载与 `enemy_stalker.tscn` 单场景加载均通过
 - 2026-06-06：重新导出 `exports/android/NightRunner-debug.apk`，`apksigner` v2 / v3 验证通过，`apkanalyzer` 确认包名 / minSdk / targetSdk，`NightRunner35` Android 35 模拟器安装启动通过
+- 2026-06-06：新增玩家受击白闪、受击残影、方向性碎片和来源级重击屏幕反馈后，项目 headless 加载通过
