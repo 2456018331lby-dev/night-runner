@@ -108,6 +108,7 @@
 - 网页导出入口：[export_web_to_docs.bat](/C:/Users/24560/Desktop/study/gametwo/export_web_to_docs.bat)
 - Android 导出预设：`export_presets.cfg` 中已预留 `Android` preset，目标包路径 `exports/android/NightRunner-debug.apk`
 - 当前环境判断：Godot Android export templates、SDK、JDK、build-tools、`adb` 和 Android 35 模拟器已可用；命令行出包、签名验证、模拟器安装启动已打通，当前缺口主要是真机画面、触控和震动强度验证
+- `scripts/tools/verify_encounter_pressure.gd` 是行动调表护栏；新增 Suppressor / Bastion / Stalker 刷怪时先跑它，避免同一波把远程锁线、shockwave 和坠击压到同一小区域
 
 后续如果要更新线上版本：
 
@@ -128,3 +129,4 @@
 - 2026-06-06：新增玩家受击白闪、受击残影、方向性碎片和来源级重击屏幕反馈后，项目 headless 加载通过
 - 2026-06-06：修复 `EnemySuppressor` / `EnemyBastion` / `EnemyPhantom` 命中不扣血和血条未初始化问题后，项目 headless 加载与三个敌人单场景加载均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` Android 35 模拟器安装启动通过，`pidof` 返回进程 `6044`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - 2026-06-06：新增移动端左右触控仲裁、运行中暂停按钮和暂停页继续响应输入后，`verify_touch_input.gd` 与 `verify_touch_pause.tscn` 均通过；项目 / 触控场景 / 主场景 headless 加载通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `6716`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
+- 2026-06-06：新增遭遇压力预算脚本后，三条行动的初始 / timeline / core / completion / cashout / setpiece 刷怪桶通过 Suppressor / Bastion / Stalker 同桶距离回归检查；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2938`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity

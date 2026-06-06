@@ -10,8 +10,18 @@
 - 新增 `scripts/tools/verify_touch_input.gd`，覆盖左右方向按住 / 释放仲裁和动作一次性消费逻辑
 - 新增 `scenes/tools/verify_touch_pause.tscn` / `scripts/tools/verify_touch_pause.gd`，覆盖触控暂停按钮必须经 `FrontendBridge.toggle_pause()` 进入暂停态
 - 已通过触控输入回归脚本、触控暂停回归场景、Godot headless 项目加载、`touch_controls.tscn` 单场景加载和 `main.tscn` 主场景加载校验
-- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,350,189` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；当时 APK `28,350,189` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
 - 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `6716`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
+
+### 已完成（遭遇压力预算）
+
+- 新增 `scripts/tools/verify_encounter_pressure.gd`，扫描三条行动的初始遭遇、timeline、core、completion、cashout 和 setpiece 刷怪桶
+- 给 Suppressor / Bastion / Stalker 增加同桶距离预算，避免远程锁线、冲击波封锁和垂直坠击在同一小区域同时生成
+- 调整 `Blitz Pursuit`、`Ghost Circuit`、`Overdrive Protocol` 中几处过密控场精英刷怪：把部分 Bastion 降级为 Runner 压力，或挪到另一段路线
+- 这个脚本只约束“同一波刷怪的基础站位”，不替代真机实玩；它的目标是防止明显无解的初始叠压重新进入调表
+- 已通过遭遇压力回归场景、Godot headless 项目加载、`main.tscn` 主场景加载、触控输入回归和触控暂停回归
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,358,828` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `2938`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 
 ### 已完成（敌人生命闭环修复）
 
@@ -39,13 +49,13 @@
 ### 当前问题
 
 - Stalker 的落点预警、残影和玩家受击闪白已补齐第一版，但仍缺真机画面检查、命中停顿手感调参和更完整的混音层
-- 多敌人混编仍需要继续验证，尤其是远程压制者与 Stalker 同屏时是否会形成无解站位；远程压制者本轮已修复可击杀性，不再应出现“打中但不掉血”的基础缺陷
-- Android 模拟器可安装启动的证据已更新到 2026-06-06 最新 APK；触控输入逻辑已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
+- 多敌人混编已有第一道脚本护栏，但仍需要继续实玩验证，尤其是移动中敌人 AI 追位后是否会再次形成无解站位；远程压制者本轮已修复可击杀性，不再应出现“打中但不掉血”的基础缺陷
+- Android 模拟器可安装启动的证据已更新到 2026-06-06 19:23 APK；触控输入逻辑已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
 
 ### 下一步建议
 
 - 上真机调玩家受击冻结时长、闪白强度、屏幕冲击透明度和震动强度，避免小屏上过亮或过吵
-- 调整 Stalker 与 Suppressor 的同屏刷怪规则，避免高处坠击和远程压制同时锁死路线
+- 继续实玩 Stalker 与 Suppressor 的同屏节奏，重点看移动中 AI 追位和现金兑现阶段是否仍会锁死路线
 - 上真机安装最新 APK，补实际画面、触控多指、刘海屏和震动强度验证证据
 
 ## 2026-06-01

@@ -41,8 +41,8 @@ const OPERATIONS := [
 			{"scene": RUNNER_SCENE, "position": Vector2(1240, 214)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1700, 88)},
 			{"scene": RUNNER_SCENE, "position": Vector2(1900, 124)},
-			{"scene": BASTION_SCENE, "position": Vector2(1536, 206)},
-			{"scene": STALKER_SCENE, "position": Vector2(1060, 294)},
+			{"scene": BASTION_SCENE, "position": Vector2(1458, 206)},
+			{"scene": STALKER_SCENE, "position": Vector2(1224, 294)},
 		],
 		"data_cores": [
 			Vector2(690, 364),
@@ -229,7 +229,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1824, 88)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2140, 126)},
-					{"scene": BASTION_SCENE, "position": Vector2(2020, 126)},
+					{"scene": RUNNER_SCENE, "position": Vector2(2020, 126)},
 				],
 			},
 		],
@@ -269,8 +269,8 @@ const OPERATIONS := [
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1416, 204)},
 			{"scene": RUNNER_SCENE, "position": Vector2(1680, 124)},
 			{"scene": SUPPRESSOR_SCENE, "position": Vector2(1996, 74)},
-			{"scene": BASTION_SCENE, "position": Vector2(1108, 282)},
-			{"scene": STALKER_SCENE, "position": Vector2(1362, 194)},
+			{"scene": RUNNER_SCENE, "position": Vector2(1108, 282)},
+			{"scene": STALKER_SCENE, "position": Vector2(1724, 118)},
 		],
 		"data_cores": [
 			Vector2(506, 470),
@@ -375,7 +375,7 @@ const OPERATIONS := [
 				"toast": "Mirror bloom. Upper ledges are safer, but the relay core is baiting you wide.",
 				"spawn": [
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2096, 74)},
-					{"scene": BASTION_SCENE, "position": Vector2(1880, 76)},
+					{"scene": BASTION_SCENE, "position": Vector2(1688, 126)},
 				],
 			},
 		],
@@ -612,7 +612,7 @@ const OPERATIONS := [
 				"spawn": [
 					{"scene": RUNNER_SCENE, "position": Vector2(980, 338)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2048, 90)},
-					{"scene": BASTION_SCENE, "position": Vector2(1990, 152)},
+					{"scene": BASTION_SCENE, "position": Vector2(1788, 254)},
 				],
 			},
 		],
