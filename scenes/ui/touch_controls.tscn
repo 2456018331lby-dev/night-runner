@@ -75,3 +75,11 @@ text = "ATK"
 [node name="Dash" type="Button" parent="Controls/ActionPad/Margin/VBox/ActionRow"]
 custom_minimum_size = Vector2(142, 142)
 text = "DASH"
+
+[node name="PauseButton" type="Button" parent="Controls"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -82.0
+offset_right = 0.0
+offset_bottom = 58.0
+text = "II"

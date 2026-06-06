@@ -58,6 +58,7 @@ var decor_bottom_bar: ColorRect
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_backdrop_decor()
 	_apply_theme()
 	_build_first_run_brief()

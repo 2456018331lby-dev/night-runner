@@ -12,6 +12,7 @@ const LABEL_COLOR := Color(0.95, 0.98, 1.0)
 @onready var jump_button: Button = $Controls/ActionPad/Margin/VBox/Jump
 @onready var attack_button: Button = $Controls/ActionPad/Margin/VBox/ActionRow/Attack
 @onready var dash_button: Button = $Controls/ActionPad/Margin/VBox/ActionRow/Dash
+@onready var pause_button: Button = $Controls/PauseButton
 
 
 func _ready() -> void:
@@ -19,11 +20,13 @@ func _ready() -> void:
 	left_button.text = "L"
 	right_button.text = "R"
 	attack_button.text = "ATK"
+	pause_button.text = "II"
 	_wire_move_button(left_button, -1.0)
 	_wire_move_button(right_button, 1.0)
 	_wire_action_button(jump_button, "jump")
 	_wire_action_button(attack_button, "attack")
 	_wire_action_button(dash_button, "dash")
+	_wire_pause_button()
 	call_deferred("_finalize_button_pivots")
 
 
@@ -51,19 +54,23 @@ func _apply_mobile_layout() -> void:
 	action_pad.offset_top = -302.0 * ui_scale
 	action_pad.offset_right = -8.0
 	action_pad.offset_bottom = -8.0
+	pause_button.scale = Vector2.ONE * ui_scale
+	pause_button.offset_left = -82.0 * ui_scale
+	pause_button.offset_top = 0.0
+	pause_button.offset_right = 0.0
+	pause_button.offset_bottom = 58.0 * ui_scale
 
 
 func _release_move(expected: float) -> void:
-	if is_equal_approx(InputRouter.move_axis, expected):
-		InputRouter.set_move_axis(0.0)
+	InputRouter.set_move_button(expected, false)
 
 
 func _release_all_inputs() -> void:
-	InputRouter.set_move_axis(0.0)
+	InputRouter.clear_move_buttons()
 	InputRouter.release_action("jump")
 	InputRouter.release_action("attack")
 	InputRouter.release_action("dash")
-	for button in [left_button, right_button, jump_button, attack_button, dash_button]:
+	for button in [left_button, right_button, jump_button, attack_button, dash_button, pause_button]:
 		_set_button_visual(button, false)
 
 
@@ -75,11 +82,12 @@ func _apply_theme() -> void:
 	_style_button(jump_button, Color(0.12, 0.35, 0.55, 0.94), Color(0.47, 0.91, 1.0, 0.9), 26, 18)
 	_style_button(attack_button, Color(0.57, 0.18, 0.22, 0.95), Color(1.0, 0.55, 0.42, 0.92), 30, 18)
 	_style_button(dash_button, Color(0.48, 0.34, 0.08, 0.95), Color(1.0, 0.82, 0.35, 0.9), 30, 17)
+	_style_button(pause_button, Color(0.1, 0.15, 0.24, 0.92), Color(0.62, 0.88, 1.0, 0.78), 18, 16)
 
 
 func _wire_move_button(button: Button, axis: float) -> void:
 	button.button_down.connect(func() -> void:
-		InputRouter.set_move_axis(axis)
+		InputRouter.set_move_button(axis, true)
 		PlatformProfile.vibrate_light()
 		_set_button_visual(button, true)
 	)
@@ -108,6 +116,16 @@ func _wire_action_button(button: Button, action_name: String) -> void:
 	)
 
 
+func _wire_pause_button() -> void:
+	pause_button.pressed.connect(func() -> void:
+		if FrontendBridge.app_phase != FrontendBridge.PHASE_RUN:
+			return
+		PlatformProfile.vibrate_light()
+		_set_button_visual(pause_button, true)
+		FrontendBridge.toggle_pause()
+	)
+
+
 func _style_button(button: Button, fill: Color, border: Color, radius: int, font_size: int) -> void:
 	button.add_theme_stylebox_override("normal", _make_panel_style(fill, border, radius))
 	button.add_theme_stylebox_override("hover", _make_panel_style(fill.lightened(0.08), border.lightened(0.08), radius))
@@ -121,7 +139,7 @@ func _style_button(button: Button, fill: Color, border: Color, radius: int, font
 
 
 func _finalize_button_pivots() -> void:
-	for button in [left_button, right_button, jump_button, attack_button, dash_button]:
+	for button in [left_button, right_button, jump_button, attack_button, dash_button, pause_button]:
 		button.pivot_offset = button.size * 0.5
 		_set_button_visual(button, false)
 

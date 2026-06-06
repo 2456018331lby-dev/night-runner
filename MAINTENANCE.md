@@ -52,13 +52,14 @@
 
 - `GameState`：本局状态、局外进度、成绩记录和存档入口
 - `PlatformProfile`：平台差异入口
-- `InputRouter`：触屏、键盘、未来手柄的统一输入层
+- `InputRouter`：触屏、键盘、未来手柄的统一输入层；触屏左右移动记录左右按钮按住状态，多指同时按住时以后按下方向为准，松开后恢复仍按住的另一方向
 - `FrontendBridge`：应用壳和玩法之间的前端桥接层
 - `RunCatalog`：行动目录、模式差异、directive 池、次级目标和兑现规则的数据源
 - `World`：按行动定义装配关卡和本局事件
 - `RouteHazard`：路线机关执行器，现已支持多种行为 archetype，不要再把路线机关硬写回 `World`
 - `Presentation`：纯视觉氛围层，负责背景城市、雾、灯带和后续环境演出
 - `SessionScreen`：中枢 / 结果 / 暂停产品壳
+- `TouchControls`：安卓运行中虚拟按键和暂停入口；暂停只调用 `FrontendBridge.toggle_pause()`，不要直接改 `SceneTree.paused`
 - `DataCore` / `ExtractionGate`：短局目标层，负责“为什么要继续跑”
 - `BoostPad`：地形节奏层，负责让推进更快更立体
 - `Player` / `EnemyRunner` / `EnemySuppressor`：只做角色行为，不管理全局状态
@@ -126,3 +127,4 @@
 - 2026-06-06：重新导出 `exports/android/NightRunner-debug.apk`，`apksigner` v2 / v3 验证通过，`apkanalyzer` 确认包名 / minSdk / targetSdk，`NightRunner35` Android 35 模拟器安装启动通过
 - 2026-06-06：新增玩家受击白闪、受击残影、方向性碎片和来源级重击屏幕反馈后，项目 headless 加载通过
 - 2026-06-06：修复 `EnemySuppressor` / `EnemyBastion` / `EnemyPhantom` 命中不扣血和血条未初始化问题后，项目 headless 加载与三个敌人单场景加载均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` Android 35 模拟器安装启动通过，`pidof` 返回进程 `6044`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
+- 2026-06-06：新增移动端左右触控仲裁、运行中暂停按钮和暂停页继续响应输入后，`verify_touch_input.gd` 与 `verify_touch_pause.tscn` 均通过；项目 / 触控场景 / 主场景 headless 加载通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `6716`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity

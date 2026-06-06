@@ -43,6 +43,7 @@
 
 - 把触屏输入和物理输入统一成同一接口
 - 避免 `Player` 直接依赖具体按钮节点
+- 当前触屏移动不是单个瞬时轴值，而是记录左右按钮各自按住状态；多指同时按住时以后按下方向为准，松开后恢复仍按住的另一方向
 - 后续能接手柄、重绑定和 Steam Input
 
 ### `FrontendBridge`
@@ -153,6 +154,7 @@
 - `SessionScreen` 负责中枢甲板、首开 brief、结果页、暂停页和局前构筑展示
 - `SessionScreen` 当前还负责移动端安全区避让、结果页 debrief 卡片和首开一键快开入口
 - `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标、cashout 状态和移动端低打断提示
+- `TouchControls` 负责移动端虚拟移动 / 跳跃 / 攻击 / 冲刺 / 暂停入口；运行中暂停必须经 `FrontendBridge.toggle_pause()`，不要让触控层直接改 `SceneTree.paused`
 - 这两层都只读 `FrontendBridge` 和 `GameState` 暴露出来的展示数据，不直接驱动玩法判定，便于后续完全重做前端
 
 ## 前端重做接管约定

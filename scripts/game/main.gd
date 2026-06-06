@@ -7,6 +7,7 @@ const RunCatalog := preload("res://scripts/game/run_catalog.gd")
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	FrontendBridge.start_requested.connect(_on_start_requested)
 	FrontendBridge.retry_requested.connect(_on_retry_requested)
 	FrontendBridge.return_to_hub_requested.connect(_on_return_to_hub_requested)

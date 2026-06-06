@@ -2,6 +2,17 @@
 
 ## 2026-06-06
 
+### 已完成（移动端触控与暂停入口）
+
+- 修复触屏左右移动的多指仲裁：`InputRouter` 现在记录左右键各自按住状态，最后按下的方向优先；松开后会恢复仍按住的另一方向，避免安卓上双指误触后角色突然停住
+- 给 `TouchControls` 增加运行中暂停按钮，安卓玩家不再依赖键盘 `P` / `Esc` 才能进入暂停页
+- 让 `Main` 和 `SessionScreen` 在 `SceneTree.paused` 后仍能处理输入和按钮事件，避免暂停页 Resume / Hub 被暂停状态本身冻结
+- 新增 `scripts/tools/verify_touch_input.gd`，覆盖左右方向按住 / 释放仲裁和动作一次性消费逻辑
+- 新增 `scenes/tools/verify_touch_pause.tscn` / `scripts/tools/verify_touch_pause.gd`，覆盖触控暂停按钮必须经 `FrontendBridge.toggle_pause()` 进入暂停态
+- 已通过触控输入回归脚本、触控暂停回归场景、Godot headless 项目加载、`touch_controls.tscn` 单场景加载和 `main.tscn` 主场景加载校验
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,350,189` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `6716`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
+
 ### 已完成（敌人生命闭环修复）
 
 - 修复 `EnemySuppressor`、`EnemyBastion`、`EnemyPhantom` 的命中生命闭环：`receive_hit()` 现在会实际扣减 `current_hp`，避免玩家打到敌人但敌人无法被击败
@@ -29,13 +40,13 @@
 
 - Stalker 的落点预警、残影和玩家受击闪白已补齐第一版，但仍缺真机画面检查、命中停顿手感调参和更完整的混音层
 - 多敌人混编仍需要继续验证，尤其是远程压制者与 Stalker 同屏时是否会形成无解站位；远程压制者本轮已修复可击杀性，不再应出现“打中但不掉血”的基础缺陷
-- Android 模拟器可安装启动的证据已更新到 2026-06-06 最新 APK，但仍缺真机触屏 / 刘海屏 / 震动强度验证
+- Android 模拟器可安装启动的证据已更新到 2026-06-06 最新 APK；触控输入逻辑已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
 
 ### 下一步建议
 
 - 上真机调玩家受击冻结时长、闪白强度、屏幕冲击透明度和震动强度，避免小屏上过亮或过吵
 - 调整 Stalker 与 Suppressor 的同屏刷怪规则，避免高处坠击和远程压制同时锁死路线
-- 上真机安装最新 APK，补实际画面、触控、刘海屏和震动强度验证证据
+- 上真机安装最新 APK，补实际画面、触控多指、刘海屏和震动强度验证证据
 
 ## 2026-06-01
 
