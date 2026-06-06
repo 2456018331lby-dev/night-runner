@@ -11,7 +11,8 @@
 - Godot headless 加载校验已通过，命令行要使用 Winget 安装的 console exe 完整路径
 - 2026-06-06 18:01 因敌人生命闭环修复重新导出 `exports/android/NightRunner-debug.apk`；当时 APK `28,345,491` bytes，签名验证通过 v2/v3
 - 2026-06-06 18:55 因移动端触控仲裁和运行中暂停按钮重新导出 `exports/android/NightRunner-debug.apk`；当时 APK `28,350,189` bytes，签名验证通过 v2/v3
-- 2026-06-06 19:23 因遭遇压力预算与刷怪调表重新导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,358,828` bytes，签名验证通过 v2/v3
+- 2026-06-06 19:23 因遭遇压力预算与刷怪调表重新导出 `exports/android/NightRunner-debug.apk`；当时 APK `28,358,828` bytes，签名验证通过 v2/v3
+- 2026-06-06 20:01 因暂停页持久化音量 / 震动设置和旧存档设置防御重新导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,371,954` bytes，签名验证通过 v2/v3
 - 已完成 Android 35 模拟器安装与启动验证：`adb install -r` 成功，应用可拉起并保持前台进程
 - Android 侧当前结论：`renderer/rendering_method.mobile` 需要使用 `mobile`；此前的 `gl_compatibility` 在模拟器 SwiftShader 上会触发 `GL_MAX_FRAGMENT_UNIFORM_VECTORS` 着色器报错
 - 2026-06-01 12:21 重新导出最新 APK 后，再次完成模拟器安装验证；最新一次 `logcat` 仍显示 `usesVulkan(): true`、`renderingDevice: vulkan`、`renderer: mobile`
@@ -19,6 +20,7 @@
 - 2026-06-06 18:01 本轮重导出后完成 `apksigner` 和 `apkanalyzer` 校验；随后启动 `NightRunner35` 复验，`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `6044`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - 2026-06-06 18:55 本轮重导出后完成 `apksigner` 和 `apkanalyzer` 校验；随后启动 `NightRunner35` 复验，`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `6716`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - 2026-06-06 19:23 本轮重导出后完成 `apksigner` 和 `apkanalyzer` 校验；随后启动 `NightRunner35` 复验，`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `2938`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
+- 2026-06-06 20:01 本轮重导出后完成 `apksigner` 和 `apkanalyzer` 校验；随后启动 `NightRunner35` 复验，`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `3396`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - Godot 当前使用 Android SDK：`C:/Users/24560/Desktop/study/Englishdemo/.android-sdk`
 - `apkanalyzer` / `aapt` 已确认当前 APK 的关键信息：
   - 包名 `com.nousresearch.nightrunner`

@@ -143,7 +143,7 @@
 
 ## PC 扩展接口
 
-- `GameState` 预留 `meta_progress` 字典
+- `GameState` 预留 `meta_progress` 字典，并持久化局外进度、首开 UX 标记、音量和震动设置
 - `PlatformProfile` 预留桌面特性检测层
 - `InputRouter` 可直接加手柄轴和重绑定
 - `FrontendBridge` 允许未来替换成更复杂的前端、设置页和商店壳层
@@ -153,10 +153,11 @@
 ## 当前产品壳分工
 
 - `SessionScreen` 负责中枢甲板、首开 brief、结果页、暂停页和局前构筑展示
-- `SessionScreen` 当前还负责移动端安全区避让、结果页 debrief 卡片和首开一键快开入口
+- `SessionScreen` 当前还负责移动端安全区避让、结果页 debrief 卡片、首开一键快开入口和暂停页轻量设置
 - `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标、cashout 状态和移动端低打断提示
 - `TouchControls` 负责移动端虚拟移动 / 跳跃 / 攻击 / 冲刺 / 暂停入口；运行中暂停必须经 `FrontendBridge.toggle_pause()`，不要让触控层直接改 `SceneTree.paused`
 - 这两层都只读 `FrontendBridge` 和 `GameState` 暴露出来的展示数据，不直接驱动玩法判定，便于后续完全重做前端
+- 暂停页设置只通过 `GameState.set_master_volume()` / `GameState.set_haptics_enabled()` 改持久化设置；`PlatformProfile` 是震动是否执行的唯一平台门禁
 
 ## 前端重做接管约定
 

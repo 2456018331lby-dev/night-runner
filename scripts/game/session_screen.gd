@@ -317,22 +317,48 @@ func _add_pause_metrics() -> void:
 
 func _add_pause_settings() -> void:
 	_add_route_note("", TEXT_MUTED)
+	var settings_label := Label.new()
+	settings_label.text = "SETTINGS"
+	settings_label.add_theme_font_size_override("font_size", int(12 * PlatformProfile.get_mobile_ui_scale()))
+	settings_label.add_theme_color_override("font_color", TEXT_GOLD)
+	route_list.add_child(settings_label)
+
 	var vol_label := Label.new()
-	vol_label.text = "VOLUME"
-	vol_label.add_theme_font_size_override("font_size", int(12 * PlatformProfile.get_mobile_ui_scale()))
-	vol_label.add_theme_color_override("font_color", TEXT_MUTED)
+	vol_label.add_theme_font_size_override("font_size", int(13 * PlatformProfile.get_mobile_ui_scale()))
+	vol_label.add_theme_color_override("font_color", TEXT_PRIMARY)
 	route_list.add_child(vol_label)
 	var vol_slider := HSlider.new()
 	vol_slider.min_value = 0.0
 	vol_slider.max_value = 1.0
 	vol_slider.step = 0.05
-	vol_slider.value = db_to_linear(AudioServer.get_bus_volume_db(0))
-	vol_slider.custom_minimum_size = Vector2(200, 24)
-	vol_slider.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	vol_slider.value = GameState.get_master_volume()
+	vol_slider.custom_minimum_size = Vector2(228, 32)
+	vol_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_update_volume_label(vol_label, vol_slider.value)
 	vol_slider.value_changed.connect(func(val: float) -> void:
-		AudioServer.set_bus_volume_db(0, linear_to_db(val))
+		GameState.set_master_volume(val)
+		_update_volume_label(vol_label, val)
 	)
 	route_list.add_child(vol_slider)
+
+	var haptics_toggle := CheckButton.new()
+	haptics_toggle.text = "HAPTICS"
+	haptics_toggle.button_pressed = GameState.are_haptics_enabled()
+	haptics_toggle.disabled = not PlatformProfile.supports_haptics()
+	haptics_toggle.focus_mode = Control.FOCUS_NONE
+	haptics_toggle.add_theme_font_size_override("font_size", int(13 * PlatformProfile.get_mobile_ui_scale()))
+	haptics_toggle.add_theme_color_override("font_color", TEXT_PRIMARY)
+	haptics_toggle.add_theme_color_override("font_disabled_color", TEXT_MUTED)
+	haptics_toggle.toggled.connect(func(enabled: bool) -> void:
+		GameState.set_haptics_enabled(enabled)
+		if enabled:
+			PlatformProfile.vibrate_light()
+	)
+	route_list.add_child(haptics_toggle)
+
+
+func _update_volume_label(label: Label, value: float) -> void:
+	label.text = "VOLUME %d%%" % int(round(clampf(value, 0.0, 1.0) * 100.0))
 
 
 func _add_route_note(text: String, color: Color) -> void:

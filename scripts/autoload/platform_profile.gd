@@ -34,15 +34,19 @@ func supports_haptics() -> bool:
 	return is_mobile
 
 
+func haptics_enabled() -> bool:
+	return supports_haptics() and GameState.are_haptics_enabled()
+
+
 func vibrate_light() -> void:
-	if not supports_haptics():
+	if not haptics_enabled():
 		return
 	if Input.has_method("vibrate_handheld"):
 		Input.vibrate_handheld(30)
 
 
 func vibrate_warn() -> void:
-	if not supports_haptics():
+	if not haptics_enabled():
 		return
 	if Input.has_method("vibrate_handheld"):
 		Input.vibrate_handheld(65)

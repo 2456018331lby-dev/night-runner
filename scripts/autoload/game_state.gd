@@ -25,6 +25,10 @@ const DEFAULT_META_PROGRESS := {
 		"blitz_hint_core_seen": false,
 		"blitz_hint_extract_seen": false,
 	},
+	"settings": {
+		"master_volume": 0.82,
+		"haptics_enabled": true,
+	},
 }
 
 var score: int = 0
@@ -76,6 +80,7 @@ var event_banner_emphasis: float = 0.0
 func _ready() -> void:
 	randomize()
 	load_progress()
+	apply_runtime_settings()
 
 
 func _process(delta: float) -> void:
@@ -332,9 +337,64 @@ func load_progress() -> void:
 		return
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if parsed is Dictionary:
-		meta_progress = DEFAULT_META_PROGRESS.duplicate(true).merged(parsed, true)
-	meta_progress = DEFAULT_META_PROGRESS.duplicate(true).merged(meta_progress, true)
+		meta_progress = _merge_meta_progress(parsed)
+	meta_progress = _merge_meta_progress(meta_progress)
+	apply_runtime_settings()
 	progress_changed.emit()
+
+
+func get_settings() -> Dictionary:
+	return _dictionary_or_empty(meta_progress.get("settings", {}))
+
+
+func get_master_volume() -> float:
+	return clampf(float(get_settings().get("master_volume", 0.82)), 0.0, 1.0)
+
+
+func set_master_volume(value: float, save_now: bool = true) -> void:
+	var settings := get_settings()
+	settings["master_volume"] = clampf(value, 0.0, 1.0)
+	meta_progress["settings"] = settings
+	_apply_master_volume()
+	if save_now:
+		save_progress()
+	progress_changed.emit()
+
+
+func are_haptics_enabled() -> bool:
+	return bool(get_settings().get("haptics_enabled", true))
+
+
+func set_haptics_enabled(enabled: bool, save_now: bool = true) -> void:
+	var settings := get_settings()
+	settings["haptics_enabled"] = enabled
+	meta_progress["settings"] = settings
+	if save_now:
+		save_progress()
+	progress_changed.emit()
+
+
+func apply_runtime_settings() -> void:
+	_apply_master_volume()
+
+
+func _apply_master_volume() -> void:
+	var bus_index := AudioServer.get_bus_index("Master")
+	if bus_index < 0:
+		bus_index = 0
+	var volume := get_master_volume()
+	AudioServer.set_bus_volume_db(bus_index, -80.0 if volume <= 0.001 else linear_to_db(volume))
+
+
+func _merge_meta_progress(raw: Dictionary) -> Dictionary:
+	var merged := DEFAULT_META_PROGRESS.duplicate(true).merged(raw, true)
+	merged["ux_flags"] = Dictionary(DEFAULT_META_PROGRESS["ux_flags"]).merged(_dictionary_or_empty(raw.get("ux_flags", {})), true)
+	merged["settings"] = Dictionary(DEFAULT_META_PROGRESS["settings"]).merged(_dictionary_or_empty(raw.get("settings", {})), true)
+	return merged
+
+
+func _dictionary_or_empty(value: Variant) -> Dictionary:
+	return Dictionary(value) if value is Dictionary else {}
 
 
 func get_modifier_value(key: String, fallback: float = 1.0) -> float:

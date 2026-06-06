@@ -23,6 +23,19 @@
 - 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,358,828` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
 - 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `2938`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 
+### 已完成（暂停页设置持久化）
+
+- 给 `GameState.meta_progress` 增加 `settings`，旧存档会自动补默认 `master_volume` 和 `haptics_enabled`
+- 设置迁移会修复异常旧存档里的非字典 `settings` / `ux_flags`，避免坏存档阻断启动期默认设置回填
+- 新增 `GameState.set_master_volume()` / `set_haptics_enabled()`，音量立即应用到 `Master` bus，震动开关会随存档持久化
+- `PlatformProfile` 现在执行震动前会同时检查平台能力和 `GameState.are_haptics_enabled()`，暂停页关闭震动后不会继续触发轻/重震动
+- `SessionScreen` 暂停页的设置区从临时音量滑杆升级为可持久化的 `VOLUME` 滑杆和 `HAPTICS` 开关
+- 新增 `scenes/tools/verify_settings.tscn` / `scripts/tools/verify_settings.gd`，覆盖旧存档迁移、音量夹取、AudioServer 应用和震动开关写入
+- 新增 `scenes/tools/verify_pause_settings.tscn` / `scripts/tools/verify_pause_settings.gd`，覆盖暂停页会生成音量滑杆 / 震动开关，且控件变化会写回 `GameState`
+- 已通过设置回归、暂停页设置回归、遭遇压力回归、触控输入回归、触控暂停回归和 `main.tscn` 主场景加载
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,371,954` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `3396`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
+
 ### 已完成（敌人生命闭环修复）
 
 - 修复 `EnemySuppressor`、`EnemyBastion`、`EnemyPhantom` 的命中生命闭环：`receive_hit()` 现在会实际扣减 `current_hp`，避免玩家打到敌人但敌人无法被击败
@@ -50,11 +63,12 @@
 
 - Stalker 的落点预警、残影和玩家受击闪白已补齐第一版，但仍缺真机画面检查、命中停顿手感调参和更完整的混音层
 - 多敌人混编已有第一道脚本护栏，但仍需要继续实玩验证，尤其是移动中敌人 AI 追位后是否会再次形成无解站位；远程压制者本轮已修复可击杀性，不再应出现“打中但不掉血”的基础缺陷
-- Android 模拟器可安装启动的证据已更新到 2026-06-06 19:23 APK；触控输入逻辑已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
+- Android 模拟器可安装启动的证据已更新到 2026-06-06 20:01 APK；触控输入和暂停页设置已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
 
 ### 下一步建议
 
 - 上真机调玩家受击冻结时长、闪白强度、屏幕冲击透明度和震动强度，避免小屏上过亮或过吵
+- 上真机确认暂停页 `VOLUME` / `HAPTICS` 控件尺寸和触控命中范围，尤其是刘海屏安全区与系统手势区
 - 继续实玩 Stalker 与 Suppressor 的同屏节奏，重点看移动中 AI 追位和现金兑现阶段是否仍会锁死路线
 - 上真机安装最新 APK，补实际画面、触控多指、刘海屏和震动强度验证证据
 

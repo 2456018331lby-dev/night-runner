@@ -50,15 +50,15 @@
 
 ## 关键边界
 
-- `GameState`：本局状态、局外进度、成绩记录和存档入口
-- `PlatformProfile`：平台差异入口
+- `GameState`：本局状态、局外进度、成绩记录、音量 / 震动设置和存档入口
+- `PlatformProfile`：平台差异入口；震动执行必须经过这里，并尊重 `GameState` 的 haptics 设置
 - `InputRouter`：触屏、键盘、未来手柄的统一输入层；触屏左右移动记录左右按钮按住状态，多指同时按住时以后按下方向为准，松开后恢复仍按住的另一方向
 - `FrontendBridge`：应用壳和玩法之间的前端桥接层
 - `RunCatalog`：行动目录、模式差异、directive 池、次级目标和兑现规则的数据源
 - `World`：按行动定义装配关卡和本局事件
 - `RouteHazard`：路线机关执行器，现已支持多种行为 archetype，不要再把路线机关硬写回 `World`
 - `Presentation`：纯视觉氛围层，负责背景城市、雾、灯带和后续环境演出
-- `SessionScreen`：中枢 / 结果 / 暂停产品壳
+- `SessionScreen`：中枢 / 结果 / 暂停产品壳；暂停页承载轻量设置，不直接写存档文件
 - `TouchControls`：安卓运行中虚拟按键和暂停入口；暂停只调用 `FrontendBridge.toggle_pause()`，不要直接改 `SceneTree.paused`
 - `DataCore` / `ExtractionGate`：短局目标层，负责“为什么要继续跑”
 - `BoostPad`：地形节奏层，负责让推进更快更立体
@@ -109,6 +109,7 @@
 - Android 导出预设：`export_presets.cfg` 中已预留 `Android` preset，目标包路径 `exports/android/NightRunner-debug.apk`
 - 当前环境判断：Godot Android export templates、SDK、JDK、build-tools、`adb` 和 Android 35 模拟器已可用；命令行出包、签名验证、模拟器安装启动已打通，当前缺口主要是真机画面、触控和震动强度验证
 - `scripts/tools/verify_encounter_pressure.gd` 是行动调表护栏；新增 Suppressor / Bastion / Stalker 刷怪时先跑它，避免同一波把远程锁线、shockwave 和坠击压到同一小区域
+- `scripts/tools/verify_settings.gd` / `scripts/tools/verify_pause_settings.gd` 是设置护栏；改 `GameState` 设置结构、暂停页设置控件或 `PlatformProfile` 震动边界时先跑它们
 
 后续如果要更新线上版本：
 
@@ -130,3 +131,4 @@
 - 2026-06-06：修复 `EnemySuppressor` / `EnemyBastion` / `EnemyPhantom` 命中不扣血和血条未初始化问题后，项目 headless 加载与三个敌人单场景加载均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` Android 35 模拟器安装启动通过，`pidof` 返回进程 `6044`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - 2026-06-06：新增移动端左右触控仲裁、运行中暂停按钮和暂停页继续响应输入后，`verify_touch_input.gd` 与 `verify_touch_pause.tscn` 均通过；项目 / 触控场景 / 主场景 headless 加载通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `6716`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - 2026-06-06：新增遭遇压力预算脚本后，三条行动的初始 / timeline / core / completion / cashout / setpiece 刷怪桶通过 Suppressor / Bastion / Stalker 同桶距离回归检查；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2938`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
+- 2026-06-06：新增可持久化音量 / 震动设置后，`verify_settings.tscn` 和 `verify_pause_settings.tscn` 均通过；设置会写入 `GameState.meta_progress.settings`，暂停页控件通过 `GameState` 更新运行时音量和震动开关，异常旧存档的非字典设置会回退到默认结构；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3396`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
