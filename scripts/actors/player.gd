@@ -15,6 +15,8 @@ const ATTACK_RANGE_Y := 98.0
 const ATTACK_FORCE := 590.0
 const ATTACK_COOLDOWN := 0.16
 const DAMAGE_AFTERIMAGE_LIFETIME := 0.24
+const JUMP_BUFFER_TIME := 0.14
+const COYOTE_TIME := 0.1
 
 @onready var body_visual: Polygon2D = $Body
 @onready var art_sprite: Sprite2D = $Art
@@ -41,6 +43,8 @@ var damage_afterimages: Array[Sprite2D] = []
 var was_on_floor: bool = true
 var landing_dust_timer: float = 0.0
 var speed_line_timer: float = 0.0
+var jump_buffer_timer: float = 0.0
+var coyote_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -53,6 +57,7 @@ func _physics_process(delta: float) -> void:
 		_refresh_visuals()
 		return
 	_collect_actions()
+	_consume_jump_buffer_if_possible()
 	_apply_gravity(delta)
 	_handle_horizontal_motion(delta)
 	_handle_fall_check()
@@ -61,8 +66,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_timers(delta: float) -> void:
-	if is_on_floor():
-		jumps_remaining = 2
+	_refresh_jump_windows(delta, is_on_floor())
 	if dash_timer > 0.0:
 		dash_timer -= delta
 	if dash_cooldown_timer > 0.0:
@@ -105,7 +109,7 @@ func _collect_actions() -> void:
 		facing = signf(axis)
 
 	if Input.is_action_just_pressed("jump") or InputRouter.consume_jump():
-		_try_jump()
+		_queue_jump()
 	if Input.is_action_just_pressed("dash") or InputRouter.consume_dash():
 		_try_dash()
 	if Input.is_action_just_pressed("attack") or InputRouter.consume_attack():
@@ -117,11 +121,37 @@ func _collect_actions() -> void:
 		velocity.x = move_toward(velocity.x, axis * move_speed, move_speed * control * 0.18)
 
 
-func _try_jump() -> void:
+func _queue_jump() -> void:
+	jump_buffer_timer = JUMP_BUFFER_TIME
+
+
+func _try_jump() -> bool:
 	if jumps_remaining <= 0:
-		return
+		return false
 	jumps_remaining -= 1
+	coyote_timer = 0.0
+	jump_buffer_timer = 0.0
 	velocity.y = JUMP_VELOCITY * GameState.get_modifier_value("jump_multiplier", 1.0)
+	return true
+
+
+func _consume_jump_buffer_if_possible() -> bool:
+	if jump_buffer_timer <= 0.0:
+		return false
+	return _try_jump()
+
+
+func _refresh_jump_windows(delta: float, grounded: bool) -> void:
+	if grounded:
+		jumps_remaining = 2
+		coyote_timer = COYOTE_TIME
+	else:
+		if coyote_timer > 0.0:
+			coyote_timer = maxf(0.0, coyote_timer - delta)
+		if coyote_timer <= 0.0 and jumps_remaining > 1:
+			jumps_remaining = 1
+	if jump_buffer_timer > 0.0:
+		jump_buffer_timer = maxf(0.0, jump_buffer_timer - delta)
 
 
 func _try_dash() -> void:

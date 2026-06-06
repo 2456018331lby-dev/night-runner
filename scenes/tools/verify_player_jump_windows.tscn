@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/tools/verify_player_jump_windows.gd" id="1_6k6yy"]
+
+[node name="VerifyPlayerJumpWindows" type="Node"]
+script = ExtResource("1_6k6yy")

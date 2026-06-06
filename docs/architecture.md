@@ -104,6 +104,7 @@
 
 - 只关心移动、跳跃、冲刺、攻击和受击
 - 不直接管理总分和 UI
+- 跳跃手感包含短 jump buffer 和 coyote time：触屏提前点跳不会被直接吞掉，刚离开平台也只有一个明确的宽限窗口；改跳跃窗口、二段跳或落地逻辑后先跑 `verify_player_jump_windows.tscn`
 - 受击反馈在本脚本内完成：短冻结、方向性击退、角色白闪、受击残影和碎片；伤害来源记录仍通过 `GameState.register_damage_source`
 
 ### `EnemyRunner`

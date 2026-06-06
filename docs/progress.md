@@ -2,6 +2,15 @@
 
 ## 2026-06-06
 
+### 已完成（跳跃输入容错）
+
+- 给 `Player` 增加短 jump buffer：安卓触屏或键盘提前点跳时，输入会在短窗口内等待可跳状态，不会因为刚好早于落地而直接丢失
+- 把离开平台后的跳跃宽限改成明确 coyote time：刚离台仍能补跳，但窗口结束后只保留一次空中跳，避免旧逻辑里“离台后无限期保留两次跳跃”的数值漏洞
+- 新增 `scenes/tools/verify_player_jump_windows.tscn` / `scripts/tools/verify_player_jump_windows.gd`，覆盖提前点跳缓存、缓存消耗、coyote 过期收束和 coyote jump 后仍保留一次空中跳
+- 已通过玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控暂停和触控输入回归；项目和主场景 headless 加载也通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,381,044` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `3139`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（动态生命 HUD 护栏）
 
 - 修复 HUD 生命显示固定 3 格的问题：现在生命 pips 会根据 `GameState.health` 和 `run_modifiers.health_bonus` 动态生成，`Blitz Pursuit` 这类带基础生命加成的路线不会再显示少一格生命
