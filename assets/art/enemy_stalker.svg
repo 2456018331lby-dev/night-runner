@@ -1,0 +1,23 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="stalkerArmor" x1="72" y1="28" x2="188" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB36E"/>
+      <stop offset="0.55" stop-color="#FF5A3A"/>
+      <stop offset="1" stop-color="#B5171A"/>
+    </linearGradient>
+    <linearGradient id="stalkerClaw" x1="58" y1="110" x2="216" y2="194" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF1A6"/>
+      <stop offset="1" stop-color="#FF8840"/>
+    </linearGradient>
+  </defs>
+  <path d="M128 28C112 28 98 40 98 56C98 70 112 82 128 82C144 82 158 70 158 56C158 40 144 28 128 28Z" fill="url(#stalkerArmor)"/>
+  <path d="M102 82L154 82L176 112L170 150L150 170L144 208H112L106 170L86 150L80 112L102 82Z" fill="url(#stalkerArmor)"/>
+  <path d="M86 102L56 116L38 144L50 154L74 138L98 122L86 102Z" fill="url(#stalkerClaw)"/>
+  <path d="M170 102L200 116L218 144L206 154L182 138L158 122L170 102Z" fill="url(#stalkerClaw)"/>
+  <path d="M108 168L84 190L66 220H44L62 192L86 160L108 168Z" fill="#FFCC84"/>
+  <path d="M148 168L172 190L190 220H168L150 194L148 168Z" fill="#FF984A"/>
+  <path d="M100 96L76 84L58 64L74 58L98 74L100 96Z" fill="#FFD89C" fill-opacity="0.8"/>
+  <path d="M156 96L180 84L198 64L182 58L158 74L156 96Z" fill="#FFD89C" fill-opacity="0.8"/>
+  <path d="M112 56H144" stroke="#FFF2C4" stroke-width="10" stroke-linecap="round"/>
+  <path d="M100 220H156" stroke="#FF5A3A" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+</svg>

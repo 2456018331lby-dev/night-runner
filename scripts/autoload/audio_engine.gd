@@ -64,6 +64,10 @@ func play_stalker_warn() -> void:
 	_play("stalker_warn")
 
 
+func play_stalker_impact() -> void:
+	_play("stalker_impact")
+
+
 func play_phantom_dive() -> void:
 	_play("phantom_dive")
 
@@ -108,6 +112,7 @@ func _generate_all_sounds() -> void:
 	_streams["extraction_unlock"] = _make_chime(0.35, 660.0, 1320.0, 0.6)
 	_streams["enemy_defeat"] = _make_sweep(0.1, 500.0, 200.0, 0.35)
 	_streams["stalker_warn"] = _make_sweep(0.3, 180.0, 120.0, 0.4)
+	_streams["stalker_impact"] = _make_thump(0.18, 54.0, 0.85)
 	_streams["phantom_dive"] = _make_sweep(0.15, 600.0, 300.0, 0.45)
 	_streams["bastion_shock"] = _make_noise_burst(0.18, 0.7)
 	_streams["hazard_warn"] = _make_sweep(0.12, 400.0, 300.0, 0.3)

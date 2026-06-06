@@ -28,13 +28,16 @@
 - 对外提供 `start_run`、`add_score`、`lose_health`、`finish_run`
 - 负责局外进度、行动解锁、行动成绩和本地存档
 - 当前还持有 run 级选择和奖励状态：选定 directive、次级目标、撤离后兑现奖励窗口
+- 当前还持有轻量 UX 持久化标志：首开 brief、`Blitz Pursuit` 首局引导提示是否已看过
 - 后续可接入 Steam 成就映射和平台存档同步
 
 ### `PlatformProfile`
 
 - 统一判断当前平台
 - 暴露 `is_mobile`、`is_desktop`
+- 暴露 UI 安全区、移动端缩放和轻量震动入口；移动端反馈优先经这里，不要把平台分支散回玩法脚本
 - 未来可扩展画质、UI 安全区、震动、广告开关、Steam 检测
+- 当前 `SessionScreen`、`HUD`、`TouchControls` 都应经这里读安全区；新的移动端 UI 不要再写死边距
 
 ### `InputRouter`
 
@@ -56,6 +59,7 @@
 - 负责按行动定义装配玩家出生点、敌人、平台段、核心、撤离门
 - 监听胜负和掉落
 - 只通过前端桥接层下发目标文本和提示
+- 当前也负责 `Blitz Pursuit` 的轻量首局引导触发：开局、首遇敌、首个核心、撤离解锁这四个节点只发提示，不暂停游戏
 
 ### `Presentation`
 
@@ -120,6 +124,13 @@
 - 只输出自身受击、碰撞伤害和俯冲压迫，不直接接 UI、进度或结算
 - 掉落离场不计分，避免把高机动失足变成白送分数
 
+### `EnemyStalker`
+
+- 垂直伏击型精英
+- 负责平台上方 cling -> warning -> plunge -> recovery -> reposition 循环
+- warning 阶段自己预测落点并显示世界坐标坠落线 / 危险圈，plunge 阶段自己生成残影，landing 阶段自己触发冲击视觉和专属重击音效
+- 只输出自身受击、碰撞伤害和落地冲击，不直接接 UI、进度或结算
+
 ### `EnemyBolt`
 
 - 由 `EnemySuppressor` 生成
@@ -137,8 +148,9 @@
 
 ## 当前产品壳分工
 
-- `SessionScreen` 负责中枢甲板、结果页、暂停页和局前构筑展示
-- `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标和 cashout 状态
+- `SessionScreen` 负责中枢甲板、首开 brief、结果页、暂停页和局前构筑展示
+- `SessionScreen` 当前还负责移动端安全区避让、结果页 debrief 卡片和首开一键快开入口
+- `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标、cashout 状态和移动端低打断提示
 - 这两层都只读 `FrontendBridge` 和 `GameState` 暴露出来的展示数据，不直接驱动玩法判定，便于后续完全重做前端
 
 ## 前端重做接管约定

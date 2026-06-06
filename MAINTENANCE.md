@@ -106,7 +106,7 @@
 - 在线版本：[GitHub Pages](https://2456018331lby-dev.github.io/night-runner/)
 - 网页导出入口：[export_web_to_docs.bat](/C:/Users/24560/Desktop/study/gametwo/export_web_to_docs.bat)
 - Android 导出预设：`export_presets.cfg` 中已预留 `Android` preset，目标包路径 `exports/android/NightRunner-debug.apk`
-- 当前环境判断：Godot Android export templates 已存在；Windows 侧 Android SDK / adb / Gradle 仍缺，暂不能在这里直接完整出包
+- 当前环境判断：Godot Android export templates、SDK、JDK、build-tools、`adb` 和 Android 35 模拟器已可用；命令行出包、签名验证、模拟器安装启动已打通，当前缺口主要是真机画面、触控和震动强度验证
 
 后续如果要更新线上版本：
 
@@ -122,3 +122,5 @@
 - 2026-05-06：新增 `DataCore` / `ExtractionGate` / 结算逻辑后再次执行同一命令，结果通过
 - 2026-05-10：新增 `RunCatalog` / `FrontendBridge` / `SessionScreen` / 存档与行动目录后再次执行同一命令，结果通过
 - 2026-05-10：新增 directive 预选、次级目标展示、cashout 风险收益和中枢/HUD 扩展后再次执行同一命令，结果通过
+- 2026-06-06：新增 `EnemyStalker` 落点预警、坠击残影和重击音效后，项目 headless 加载与 `enemy_stalker.tscn` 单场景加载均通过
+- 2026-06-06：重新导出 `exports/android/NightRunner-debug.apk`，`apksigner` v2 / v3 验证通过，`apkanalyzer` 确认包名 / minSdk / targetSdk，`NightRunner35` Android 35 模拟器安装启动通过

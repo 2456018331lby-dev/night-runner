@@ -17,6 +17,14 @@ const DEFAULT_META_PROGRESS := {
 	"career_successes": 0,
 	"career_failures": 0,
 	"operation_records": {},
+	"ux_flags": {
+		"first_run_brief_seen": false,
+		"blitz_tutorial_completed": false,
+		"blitz_hint_move_seen": false,
+		"blitz_hint_combat_seen": false,
+		"blitz_hint_core_seen": false,
+		"blitz_hint_extract_seen": false,
+	},
 }
 
 var score: int = 0
@@ -133,6 +141,8 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	final_rank = "--"
 	result_summary = ""
 	meta_progress["selected_operation_id"] = current_operation_id
+	if not has_ux_flag("first_run_brief_seen"):
+		set_ux_flag("first_run_brief_seen")
 	save_progress()
 	run_started.emit()
 	state_changed.emit()
@@ -204,6 +214,8 @@ func finish_run(success: bool) -> void:
 	run_success = success
 	combo_count = 0
 	combo_timer = 0.0
+	if success and current_operation_id == "blitz_pursuit" and not has_ux_flag("blitz_tutorial_completed"):
+		set_ux_flag("blitz_tutorial_completed", true, false)
 	_commit_run_record(success)
 	if is_run_failed:
 		run_failed.emit()
@@ -263,6 +275,45 @@ func get_operation_record(operation_id: String) -> Dictionary:
 	return _default_operation_record().merged(raw, true)
 
 
+func get_ux_flags() -> Dictionary:
+	return Dictionary(meta_progress.get("ux_flags", {}))
+
+
+func has_ux_flag(flag_name: String) -> bool:
+	return bool(get_ux_flags().get(flag_name, false))
+
+
+func set_ux_flag(flag_name: String, value: bool = true, save_now: bool = true) -> void:
+	var ux_flags := get_ux_flags()
+	if bool(ux_flags.get(flag_name, false)) == value:
+		return
+	ux_flags[flag_name] = value
+	meta_progress["ux_flags"] = ux_flags
+	if save_now:
+		save_progress()
+	progress_changed.emit()
+
+
+func is_blitz_tutorial_active() -> bool:
+	return current_operation_id == "blitz_pursuit" and not has_ux_flag("blitz_tutorial_completed")
+
+
+func get_first_run_brief_lines() -> Array[String]:
+	return [
+		"Move / Jump / Attack / Dash",
+		"Collect all data cores",
+		"Extract when the gate unlocks",
+	]
+
+
+func get_quick_reminder_lines() -> Array[String]:
+	return [
+		"MOVE · JUMP · ATK · DASH",
+		"TAKE ALL CORES",
+		"EXTRACT ON UNLOCK",
+	]
+
+
 func save_progress() -> void:
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -282,6 +333,7 @@ func load_progress() -> void:
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if parsed is Dictionary:
 		meta_progress = DEFAULT_META_PROGRESS.duplicate(true).merged(parsed, true)
+	meta_progress = DEFAULT_META_PROGRESS.duplicate(true).merged(meta_progress, true)
 	progress_changed.emit()
 
 
@@ -522,6 +574,32 @@ func get_run_verdict_text() -> String:
 		combo_clause,
 		hazard_clause,
 	]
+
+
+func get_result_outcome_summary() -> String:
+	if run_success:
+		return "All %d cores secured. Extracted in %s with rank %s." % [
+			data_cores_total,
+			formatted_time(),
+			final_rank,
+		]
+	if extraction_unlocked:
+		return "Extraction was live, but the run collapsed to %s." % get_last_damage_source_summary()
+	return "The run ended before extraction unlocked. Last pressure came from %s." % get_last_damage_source_summary()
+
+
+func get_result_next_hint() -> String:
+	if run_success:
+		if extraction_bonus_awarded > 0:
+			return "Next run, stay in the cashout lane a little longer if the route still feels stable."
+		return "Next run, try a short cashout overstay after the gate unlocks for bonus score."
+	if not extraction_unlocked:
+		if data_cores_collected <= 1:
+			return "Follow the route vector and secure the early cores before taking long fights."
+		return "Finish the remaining cores first. Extraction matters more than greed."
+	if pending_extraction_bonus > 0:
+		return "The gate was open. Cash out earlier instead of holding the lane for one more fight."
+	return "Once extraction opens, reset the lane and leave instead of brawling in place."
 
 
 func get_last_damage_source_summary() -> String:

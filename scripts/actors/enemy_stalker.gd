@@ -22,16 +22,28 @@ const RECOVERY_TIME := 0.48
 const REPOSITION_TIME := 1.2
 const LANDING_IMPACT_RANGE := 120.0
 const POINTS_AWARD := 240
+const PLATFORM_REACH_X := 380.0
+const PLATFORM_MIN_VERTICAL_GAP := 56.0
+const PLATFORM_EDGE_PADDING := 28.0
+const CLING_SURFACE_MARGIN := 6.0
+const AFTERIMAGE_INTERVAL := 0.05
+const AFTERIMAGE_LIFETIME := 0.22
+const LANDING_PREVIEW_RAY_LENGTH := 760.0
+const LANDING_PREVIEW_FALLBACK_Y := 720.0
 
+@onready var body_shape_node: CollisionShape2D = $CollisionShape2D
 @onready var rig: Node2D = $Rig
 @onready var body_visual: Polygon2D = $Rig/Body
 @onready var mask_visual: Polygon2D = $Rig/Mask
 @onready var eye_visual: Polygon2D = $Rig/Eye
+@onready var art_sprite: Sprite2D = $Rig/Art
 @onready var shadow_visual: Polygon2D = $Shadow
 @onready var landing_zone: Area2D = $LandingZone
 @onready var landing_shape: CollisionShape2D = $LandingZone/CollisionShape2D
 @onready var landing_ring: Polygon2D = $LandingZone/LandingRing
 @onready var warning_marker: Polygon2D = $WarningMarker
+@onready var landing_preview_line: Line2D = Line2D.new()
+@onready var landing_preview_ring: Polygon2D = Polygon2D.new()
 
 var player: Node2D
 var knocked_velocity: Vector2 = Vector2.ZERO
@@ -50,6 +62,10 @@ var max_hp: int = 4
 var current_hp: int = 4
 var hp_bar_bg: Polygon2D
 var hp_bar_fill: Polygon2D
+var base_art_scale: Vector2 = Vector2.ONE
+var predicted_landing_position: Vector2 = Vector2.ZERO
+var afterimage_timer: float = 0.0
+var afterimages: Array[Sprite2D] = []
 
 
 func _ready() -> void:
@@ -62,7 +78,9 @@ func _ready() -> void:
 	landing_shape.disabled = true
 	landing_ring.visible = false
 	_setup_warning_marker()
+	_setup_landing_preview()
 	cling_origin = global_position
+	base_art_scale = art_sprite.scale
 
 
 func _setup_warning_marker() -> void:
@@ -76,6 +94,26 @@ func _setup_warning_marker() -> void:
 	warning_marker.color = Color(1.0, 0.28, 0.22, 0.0)
 	warning_marker.z_index = 12
 	warning_marker.visible = false
+
+
+func _setup_landing_preview() -> void:
+	landing_preview_line.top_level = true
+	landing_preview_line.width = 3.0
+	landing_preview_line.default_color = Color(1.0, 0.28, 0.18, 0.74)
+	landing_preview_line.z_index = -1
+	landing_preview_line.visible = false
+	add_child(landing_preview_line)
+
+	landing_preview_ring.top_level = true
+	landing_preview_ring.polygon = PackedVector2Array()
+	for step in 24:
+		var angle := TAU * float(step) / 24.0
+		var radius := LANDING_IMPACT_RANGE if step % 2 == 0 else LANDING_IMPACT_RANGE * 0.82
+		landing_preview_ring.polygon.append(Vector2(cos(angle) * radius, sin(angle) * radius * 0.26))
+	landing_preview_ring.color = Color(1.0, 0.18, 0.12, 0.28)
+	landing_preview_ring.z_index = -2
+	landing_preview_ring.visible = false
+	add_child(landing_preview_ring)
 
 
 
@@ -160,6 +198,7 @@ func _physics_process(delta: float) -> void:
 	_update_state(delta)
 	move_and_slide()
 	_try_contact_damage()
+	_update_afterimages(delta)
 	_refresh_visuals()
 	if global_position.y > 920.0:
 		_defeat(true, true)
@@ -260,12 +299,15 @@ func _begin_warning() -> void:
 		facing = signf(player.global_position.x - global_position.x)
 		if facing == 0.0:
 			facing = -1.0
+	predicted_landing_position = _compute_landing_preview_position()
+	_update_landing_preview_geometry()
 
 
 func _launch_plunge() -> void:
 	state = "plunge"
 	velocity.x = facing * 60.0
 	velocity.y = PLUNGE_SPEED_Y
+	afterimage_timer = 0.0
 
 
 func _on_landing() -> void:
@@ -273,6 +315,9 @@ func _on_landing() -> void:
 	recovery_timer = RECOVERY_TIME
 	velocity = Vector2.ZERO
 	landing_flash_timer = 0.25
+	landing_preview_line.visible = false
+	landing_preview_ring.visible = false
+	AudioEngine.play_stalker_impact()
 	_activate_landing_impact()
 	_spawn_landing_burst()
 
@@ -339,30 +384,132 @@ func _damage_players_in_landing_zone() -> void:
 			body.take_contact_hit(facing, "enemy", "stalker_landing")
 
 
+func _compute_landing_preview_position() -> Vector2:
+	var space_state := get_world_2d().direct_space_state
+	var query := PhysicsRayQueryParameters2D.create(
+		global_position + Vector2(0.0, _get_body_half_height()),
+		global_position + Vector2(0.0, LANDING_PREVIEW_RAY_LENGTH),
+		4
+	)
+	query.exclude = [get_rid()]
+	var hit := space_state.intersect_ray(query)
+	if hit.has("position"):
+		var hit_position: Vector2 = hit["position"]
+		return hit_position
+	return Vector2(global_position.x, LANDING_PREVIEW_FALLBACK_Y)
+
+
+func _update_landing_preview_geometry() -> void:
+	var launch_position := global_position + Vector2(0.0, _get_body_half_height() + 4.0)
+	landing_preview_line.global_position = Vector2.ZERO
+	landing_preview_line.points = PackedVector2Array([
+		launch_position,
+		predicted_landing_position,
+	])
+	landing_preview_ring.global_position = predicted_landing_position
+	landing_preview_ring.rotation = 0.0
+
+
+func _update_afterimages(delta: float) -> void:
+	for index in range(afterimages.size() - 1, -1, -1):
+		var image := afterimages[index]
+		if not is_instance_valid(image):
+			afterimages.remove_at(index)
+			continue
+		var next_life := float(image.get_meta("life", AFTERIMAGE_LIFETIME)) - delta
+		if next_life <= 0.0:
+			image.queue_free()
+			afterimages.remove_at(index)
+			continue
+		image.set_meta("life", next_life)
+		image.modulate.a = clampf(next_life / AFTERIMAGE_LIFETIME, 0.0, 1.0) * 0.34
+	if state != "plunge":
+		afterimage_timer = 0.0
+		return
+	afterimage_timer -= delta
+	if afterimage_timer <= 0.0:
+		afterimage_timer = AFTERIMAGE_INTERVAL
+		_spawn_afterimage()
+
+
+func _spawn_afterimage() -> void:
+	var image := Sprite2D.new()
+	image.texture = art_sprite.texture
+	image.global_position = art_sprite.global_position
+	image.global_rotation = art_sprite.global_rotation
+	image.global_scale = art_sprite.global_scale
+	image.modulate = Color(1.0, 0.42, 0.28, 0.34)
+	image.z_index = -3
+	image.set_meta("life", AFTERIMAGE_LIFETIME)
+	get_parent().add_child(image)
+	afterimages.append(image)
+
+
 func _try_find_platform_above() -> void:
 	if not is_instance_valid(player) or GameState.is_run_failed:
 		state = "cling"
 		cling_timer = CLING_TIME
 		return
-	var best_x := player.global_position.x + facing * -160.0
-	var platforms := get_tree().get_nodes_in_group("platform")
+	var desired_x := player.global_position.x + facing * -48.0
+	var best_position := Vector2(desired_x, global_position.y - 80.0)
+	var best_score := INF
 	var found := false
+	var platforms := get_tree().get_nodes_in_group("platform")
 	for platform in platforms:
-		if not platform is Node2D:
+		var platform_rect := _get_platform_rect(platform)
+		if platform_rect.size == Vector2.ZERO:
 			continue
-		var plat: Node2D = platform as Node2D
-		if plat.global_position.y >= global_position.y - 40.0:
+		var top_y := platform_rect.position.y
+		if top_y >= global_position.y - PLATFORM_MIN_VERTICAL_GAP:
 			continue
-		if absf(plat.global_position.x - global_position.x) < 300.0:
-			best_x = plat.global_position.x
+		var min_x := platform_rect.position.x + PLATFORM_EDGE_PADDING
+		var max_x := platform_rect.end.x - PLATFORM_EDGE_PADDING
+		if min_x > max_x:
+			min_x = platform_rect.position.x
+			max_x = platform_rect.end.x
+		var cling_x := clampf(desired_x, min_x, max_x)
+		var horizontal_cost := absf(cling_x - desired_x)
+		if horizontal_cost > PLATFORM_REACH_X:
+			continue
+		var vertical_gap := global_position.y - top_y
+		var player_center_x := clampf(player.global_position.x, platform_rect.position.x, platform_rect.end.x)
+		var player_alignment_cost := absf(player_center_x - cling_x)
+		var score := horizontal_cost * 1.35 + vertical_gap * 0.42 + player_alignment_cost * 0.18
+		if score < best_score:
+			best_score = score
+			best_position = Vector2(cling_x, top_y - _get_body_half_height() - CLING_SURFACE_MARGIN)
 			found = true
-			break
 	if not found:
-		best_x = global_position.x + facing * -120.0
-	global_position = Vector2(best_x, global_position.y - 80.0)
+		best_position = Vector2(desired_x, minf(global_position.y - 80.0, player.global_position.y - 120.0))
+	global_position = best_position
+	velocity = Vector2.ZERO
 	cling_origin = global_position
 	state = "cling"
 	cling_timer = CLING_TIME
+
+
+func _get_platform_rect(platform: Node) -> Rect2:
+	if not platform is Node2D:
+		return Rect2()
+	for child in platform.get_children():
+		if not child is CollisionShape2D:
+			continue
+		var collision_child: CollisionShape2D = child as CollisionShape2D
+		if not collision_child.shape is RectangleShape2D:
+			continue
+		var rect_shape: RectangleShape2D = collision_child.shape as RectangleShape2D
+		var platform_node: Node2D = platform as Node2D
+		var shape_position := platform_node.to_global(collision_child.position)
+		var half := rect_shape.size * 0.5
+		return Rect2(shape_position - half, rect_shape.size)
+	return Rect2()
+
+
+func _get_body_half_height() -> float:
+	if body_shape_node.shape is RectangleShape2D:
+		var rect_shape: RectangleShape2D = body_shape_node.shape as RectangleShape2D
+		return rect_shape.size.y * 0.5
+	return 26.0
 
 
 func _try_contact_damage() -> void:
@@ -389,25 +536,31 @@ func _refresh_visuals() -> void:
 		body_visual.color = Color(1.0, 0.88, 0.72)
 		mask_visual.color = Color(1.0, 0.92, 0.78)
 		eye_visual.color = Color(1.0, 0.82, 0.6)
+		art_sprite.modulate = Color(1.0, 0.96, 0.86, 1.0)
 	elif landing_flash_timer > 0.0:
 		body_visual.color = Color(1.0, 0.52, 0.32)
 		mask_visual.color = Color(1.0, 0.72, 0.48)
 		eye_visual.color = Color(1.0, 0.9, 0.6)
+		art_sprite.modulate = Color(1.0, 0.84, 0.62, 1.0)
 	elif state == "warning":
 		body_visual.color = Color(0.86 + windup_mix * 0.14, 0.22 + windup_mix * 0.12, 0.18)
 		mask_visual.color = Color(0.92, 0.38 + windup_mix * 0.2, 0.24)
 		eye_visual.color = Color(1.0, 0.8 + windup_mix * 0.12, 0.42)
+		art_sprite.modulate = Color(1.0, 0.78 + windup_mix * 0.16, 0.7 - windup_mix * 0.08, 1.0)
 	elif plunge_mix > 0.0:
 		body_visual.color = Color(1.0, 0.32, 0.22)
 		mask_visual.color = Color(1.0, 0.58, 0.36)
 		eye_visual.color = Color(1.0, 0.9, 0.5)
+		art_sprite.modulate = Color(1.0, 0.72, 0.56, 1.0)
 	else:
 		body_visual.color = Color(0.82 + cling_pulse * 0.08, 0.2 + cling_pulse * 0.04, 0.18)
 		mask_visual.color = Color(0.88 + cling_pulse * 0.04, 0.36, 0.22)
 		eye_visual.color = Color(0.96, 0.78 + cling_pulse * 0.1, 0.48)
+		art_sprite.modulate = Color(1.0, 0.92 + cling_pulse * 0.05, 0.9 - cling_pulse * 0.04, 1.0)
 	var body_squash := 1.0 + plunge_mix * 0.18 - plunge_mix * 0.12
 	body_visual.scale.y = body_squash
 	body_visual.scale.x = absf(body_visual.scale.x) * (1.0 + cling_pulse * 0.03)
+	art_sprite.scale = base_art_scale * (1.0 + windup_mix * 0.06 + plunge_mix * 0.04 + cling_pulse * 0.02)
 	shadow_visual.visible = state == "cling" or state == "warning"
 	if shadow_visual.visible:
 		var shadow_alpha := 0.22 + sin(shadow_phase) * 0.06 + windup_mix * 0.14
@@ -418,6 +571,13 @@ func _refresh_visuals() -> void:
 		warning_marker.color = Color(1.0, 0.28, 0.22, 0.35 + windup_mix * 0.45)
 		warning_marker.scale = Vector2.ONE * (0.7 + windup_mix * 0.6)
 		warning_marker.position.y = -60.0 - windup_mix * 20.0
+	landing_preview_line.visible = state == "warning" or state == "plunge"
+	landing_preview_ring.visible = state == "warning" or state == "plunge"
+	if landing_preview_ring.visible:
+		var danger_mix := windup_mix if state == "warning" else 1.0
+		landing_preview_line.modulate.a = 0.18 + danger_mix * 0.58
+		landing_preview_ring.modulate.a = 0.18 + danger_mix * 0.5
+		landing_preview_ring.scale = Vector2.ONE * (0.82 + danger_mix * 0.24 + sin(shadow_phase * 5.0) * 0.05)
 
 
 func _on_landing_zone_body_entered(body: Node) -> void:
@@ -431,6 +591,10 @@ func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
+	for image in afterimages:
+		if is_instance_valid(image):
+			image.queue_free()
+	afterimages.clear()
 	_spawn_defeat_number()
 	if award_points:
 		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD

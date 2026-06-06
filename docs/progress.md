@@ -1,5 +1,72 @@
 # Progress Log
 
+## 2026-06-06
+
+### 已完成（Stalker 伏击读感）
+
+- 给 `EnemyStalker` 补专门落点预警：进入 warning 时用 physics ray 预测下方平台 / 地面，并在世界坐标固定显示坠落线和椭圆危险圈，玩家能提前判断冲击区
+- 给 `EnemyStalker` 补坠击残影：plunge 阶段按短间隔生成半透明立绘残影，强调垂直下砸速度和危险方向
+- 给 `AudioEngine` 增加 `stalker_impact` 程序合成重击音效，并在 Stalker 落地触发，避免精英压迫只靠 toast 和视觉脉冲成立
+- 保持 Stalker 的逻辑边界不变：敌人只管理自身预警、残影、冲击表现；分数、UI 和全局流程仍留在 `World` / `GameState`
+- 通过 Godot headless 项目加载校验和 `enemy_stalker.tscn` 单场景加载校验
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,341,395` bytes，`apksigner verify --verbose --print-certs` 确认 v2 / v3 签名通过
+- 用 `apkanalyzer` 确认最新 APK 包名 `com.nousresearch.nightrunner`、版本 `0.1.0`、`minSdk 24`、`targetSdk 35` 和横屏方向配置
+- 在 `NightRunner35` Android 35 模拟器完成最新 APK 安装和启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `5795`，`dumpsys window` 显示 Godot launcher activity 获得焦点
+
+### 当前问题
+
+- Stalker 的落点预警和残影已补齐第一版，但仍缺真机画面检查、命中停顿、玩家受击闪白和更完整的混音层
+- 多敌人混编仍需要继续验证，尤其是远程压制者与 Stalker 同屏时是否会形成无解站位
+- Android 模拟器可安装启动的证据已更新到 2026-06-06 最新 APK，但仍缺真机触屏 / 刘海屏 / 震动强度验证
+
+### 下一步建议
+
+- 给玩家受击和敌人命中补更明确的 hit-stop / 闪白 / 屏幕冲击节奏
+- 调整 Stalker 与 Suppressor 的同屏刷怪规则，避免高处坠击和远程压制同时锁死路线
+- 上真机安装最新 APK，补实际画面、触控、刘海屏和震动强度验证证据
+
+## 2026-06-01
+
+### 已完成（首开即玩 / 移动端体验包）
+
+- 把中枢首屏改成更明显的首开入口：默认仍落在 `Blitz Pursuit`，主按钮改成直接可开的 `START ...`，并增加仅首开显示的 `FIRST RUN BRIEF`
+- 给 `GameState.meta_progress` 增加 `ux_flags`，现在会记录首开 brief、`Blitz Pursuit` 轻量引导四个提示点和教程完成状态；旧存档缺字段会自动补默认值
+- 给 `World` 接入 `Blitz Pursuit` 轻量教程链路：开局移动提示、首次接近敌人的战斗提示、首次拿核心后的目标提示、撤离解锁后的“立即撤 / 继续 cashout”提示
+- 给结果页补 `WHY / TRY NEXT / QUICK REMINDER` 信息，让首次失败后能立刻知道自己为什么崩和下一把最该改什么
+- 给 `PlatformProfile` 增加移动端轻量 haptics 边界，并把按钮按下、核心收集、受击、低血、撤离解锁接到统一震动入口
+- 调整触屏布局和按钮文案：左右键缩成 `L / R`，攻击改成 `ATK`，整体触控区放大并继续避让安全区/系统手势区
+- 给 HUD 冲刺状态补文案，不再只靠颜色表达；移动端现在会直接显示 `DASH READY` / `DASH COOLING`
+- 把 `SessionScreen` 继续收口成更像正式产品壳：Hub 首屏改成 `QUICK DEPLOY`，结果页改成 `WHY YOU LOST / TRY NEXT / RUN VERDICT / SCORE BREAKDOWN` 卡片式复盘，首次失败的 `Quick Reminder` 改成更短的一眼提示
+- 给 `SessionScreen` 本身补上安全区边距读取，顶部信号条和内容壳现在会一起避让 Android 刘海/状态栏，不再只有 HUD 和触控层避让
+- 首开手机 Hub 继续减负：`Blitz Pursuit` 的第一次部署会隐藏完整 directive 列表和战绩栅格，只保留默认 directive 与更明确的“直接开始”文案，避免首屏像后台配置页
+- 把移动端局内 toast 上抬到触控区上方，减少提示文本压住右侧动作键和底部系统手势区的情况
+- 重新通过一轮 Godot headless 加载校验
+- 命令行重新导出 `exports/android/NightRunner-debug.apk` 成功；`apksigner` 验证通过 v2/v3，`aapt` 确认包名、应用名、`targetSdkVersion 35` 和传感器横屏配置正确
+- 已在 Android 35 模拟器上完成安装和启动验证：`adb install -r` 成功，应用进程可拉起并保持前台焦点
+- 模拟器上确认旧的 `gl_compatibility` 会打出 `Fragment shader active uniforms exceed GL_MAX_FRAGMENT_UNIFORM_VECTORS`；现已把 `renderer/rendering_method.mobile` 改成 `mobile`，重新导出后 Vulkan / Forward Mobile 正常启动，至少解决了已复现的 Android 渲染报错
+- 2026-06-01 12:21 再次重导出 APK，并完成一轮新包安装验证；模拟器上最新进程 `pid 6199`，`logcat` 继续显示 `usesVulkan(): true`、`renderingDevice: vulkan`、`renderer: mobile`，本轮未复现旧的 shader uniform 报错
+
+### 已完成
+
+- 给 `EnemyStalker` 新增原创 SVG 资产，并接回场景作为主立绘；原几何节点现在只保留为底层氛围与状态发光
+- 收紧 `EnemyStalker` 的再附着逻辑：不再简单找一个上方节点，而是读取 `platform` 碰撞矩形，优先选择真正能覆盖玩家路线的上方平台落点
+- 确认 `World._build_platforms()` 生成的动态平台已经加入 `platform` group，前一版维护文档里的“需要确认”现在已实际验证
+- 让 `EnemyStalker` 的 warning / plunge / hit / landing 状态同步驱动立绘 tint 和轻微缩放，伏击读感更接近正式敌人而不是占位图形
+
+### 当前问题
+
+- `EnemyStalker` 现在已有独立轮廓和更稳定的附着位；坠击残影、专门落点预警和音效层已在 2026-06-06 补第一版，后续重点转向命中停顿、受击闪白和混编节奏
+- 战斗反馈整体仍偏视觉脉冲，命中停顿、受击闪白和音效还有继续加密空间
+- 移动端安全区、振动反馈和触控区现在已经接入，但还没做真机验证和更细的多设备调优
+- Android 模拟器能证明“可安装、可启动、不立即崩”，但系统截图对 Godot `SurfaceView` 取证仍不可靠，目前还缺一张可直接展示游戏内容的 Android 运行截图
+
+### 下一步建议
+
+- 继续给 `EnemyStalker` 和其他精英补 hit-stop、受击闪白、混音层和危险提示联动，避免高压只靠数值成立
+- 上真机验证 18:9 / 刘海屏安全区、触控布局和震动强度
+- 用真机或更稳定的图像抓取路径确认 Android 实际首屏画面，顺手核对 `SessionScreen` 新的安全区与结果页层级
+- 继续加强 hit-stop、受击闪白、命中特效和危险提示
+
 ## 2026-05-28
 
 ### 已完成

@@ -16,6 +16,9 @@ const LABEL_COLOR := Color(0.95, 0.98, 1.0)
 
 func _ready() -> void:
 	_apply_theme()
+	left_button.text = "L"
+	right_button.text = "R"
+	attack_button.text = "ATK"
 	_wire_move_button(left_button, -1.0)
 	_wire_move_button(right_button, 1.0)
 	_wire_action_button(jump_button, "jump")
@@ -34,20 +37,20 @@ func configure(visible_on_platform: bool) -> void:
 func _apply_mobile_layout() -> void:
 	var safe := PlatformProfile.get_safe_area_margin()
 	var ui_scale := PlatformProfile.get_mobile_ui_scale()
-	controls_root.offset_left = 18.0 + safe.x
+	controls_root.offset_left = 22.0 + safe.x
 	controls_root.offset_top = 18.0 + safe.y
-	controls_root.offset_right = -18.0 - safe.z
-	controls_root.offset_bottom = -18.0 - safe.w
+	controls_root.offset_right = -22.0 - safe.z
+	controls_root.offset_bottom = -28.0 - safe.w
 	left_pad.scale = Vector2.ONE * ui_scale
 	action_pad.scale = Vector2.ONE * ui_scale
 	left_pad.offset_left = 0.0
-	left_pad.offset_top = -180.0 * ui_scale
-	left_pad.offset_right = 300.0 * ui_scale
-	left_pad.offset_bottom = -6.0
-	action_pad.offset_left = -342.0 * ui_scale
-	action_pad.offset_top = -258.0 * ui_scale
-	action_pad.offset_right = -6.0
-	action_pad.offset_bottom = -6.0
+	left_pad.offset_top = -206.0 * ui_scale
+	left_pad.offset_right = 332.0 * ui_scale
+	left_pad.offset_bottom = -8.0
+	action_pad.offset_left = -388.0 * ui_scale
+	action_pad.offset_top = -302.0 * ui_scale
+	action_pad.offset_right = -8.0
+	action_pad.offset_bottom = -8.0
 
 
 func _release_move(expected: float) -> void:
@@ -77,6 +80,7 @@ func _apply_theme() -> void:
 func _wire_move_button(button: Button, axis: float) -> void:
 	button.button_down.connect(func() -> void:
 		InputRouter.set_move_axis(axis)
+		PlatformProfile.vibrate_light()
 		_set_button_visual(button, true)
 	)
 	button.button_up.connect(func() -> void:
@@ -92,6 +96,7 @@ func _wire_move_button(button: Button, axis: float) -> void:
 func _wire_action_button(button: Button, action_name: String) -> void:
 	button.button_down.connect(func() -> void:
 		InputRouter.press_action(action_name)
+		PlatformProfile.vibrate_light()
 		_set_button_visual(button, true)
 	)
 	button.button_up.connect(func() -> void:

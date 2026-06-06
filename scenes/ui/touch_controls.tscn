@@ -34,12 +34,12 @@ theme_override_constants/margin_bottom = 16
 theme_override_constants/separation = 16
 
 [node name="MoveLeft" type="Button" parent="Controls/LeftPad/Margin/MoveRow"]
-custom_minimum_size = Vector2(126, 126)
-text = "LEFT"
+custom_minimum_size = Vector2(146, 138)
+text = "L"
 
 [node name="MoveRight" type="Button" parent="Controls/LeftPad/Margin/MoveRow"]
-custom_minimum_size = Vector2(126, 126)
-text = "RIGHT"
+custom_minimum_size = Vector2(146, 138)
+text = "R"
 
 [node name="ActionPad" type="PanelContainer" parent="Controls"]
 anchor_left = 1.0
@@ -61,17 +61,17 @@ theme_override_constants/margin_bottom = 18
 theme_override_constants/separation = 14
 
 [node name="Jump" type="Button" parent="Controls/ActionPad/Margin/VBox"]
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 84)
 text = "JUMP"
 
 [node name="ActionRow" type="HBoxContainer" parent="Controls/ActionPad/Margin/VBox"]
 theme_override_constants/separation = 14
 
 [node name="Attack" type="Button" parent="Controls/ActionPad/Margin/VBox/ActionRow"]
-custom_minimum_size = Vector2(170, 128)
+custom_minimum_size = Vector2(188, 142)
 size_flags_horizontal = 3
-text = "ATTACK"
+text = "ATK"
 
 [node name="Dash" type="Button" parent="Controls/ActionPad/Margin/VBox/ActionRow"]
-custom_minimum_size = Vector2(122, 128)
+custom_minimum_size = Vector2(142, 142)
 text = "DASH"

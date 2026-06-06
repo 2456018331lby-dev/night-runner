@@ -29,6 +29,8 @@ var last_hazard_status_text: String = ""
 var active_setpiece_label: String = ""
 var collapse_wall_node: StaticBody2D
 var collapse_wall_visual: Polygon2D
+var tutorial_move_prompt_time: float = -1.0
+var tutorial_combat_prompt_pending: bool = false
 
 
 func _ready() -> void:
@@ -66,6 +68,8 @@ func begin(operation: Dictionary) -> void:
 	last_hazard_status_text = ""
 	active_setpiece_label = ""
 	active_data_cores.clear()
+	tutorial_move_prompt_time = -1.0
+	tutorial_combat_prompt_pending = false
 	_build_platforms()
 	_apply_operation_theme()
 	_position_player()
@@ -80,10 +84,19 @@ func begin(operation: Dictionary) -> void:
 	if extraction_gate.has_method("set_unlocked"):
 		extraction_gate.call("set_unlocked", false)
 	extraction_gate.global_position = Vector2(active_operation.get("extraction_position", Vector2(2124, 128)))
-	_set_objective(String(active_operation.get("objective_intro", "Steal the data cores and extract.")))
+	var intro_objective := String(active_operation.get("objective_intro", "Steal the data cores and extract."))
+	if String(active_operation.get("id", "")) == "blitz_pursuit" and not GameState.has_ux_flag("blitz_tutorial_completed"):
+		intro_objective = "Collect 5 data cores, then extract."
+		tutorial_move_prompt_time = 1.15
+		tutorial_combat_prompt_pending = true
+	_set_objective(intro_objective)
 	GameState.push_event_banner(String(active_operation.get("title", "ROUTE LIVE")), 0.82)
-	_show_toast(String(active_operation.get("intro_toast", "Route live.")), 3.0)
-	_show_lane_signals()
+	if String(active_operation.get("id", "")) == "blitz_pursuit" and not GameState.has_ux_flag("blitz_tutorial_completed"):
+		_show_toast("Collect 5 data cores, then extract. Follow the route vector if you drift.", 3.2)
+	else:
+		_show_toast(String(active_operation.get("intro_toast", "Route live.")), 3.0)
+	if not GameState.is_blitz_tutorial_active():
+		_show_lane_signals()
 	_ensure_collapse_wall_hidden()
 	_refresh_live_route_status()
 	if hud.has_method("set_operation_context"):
@@ -128,6 +141,7 @@ func _process(_delta: float) -> void:
 	_update_hazard_states()
 	_refresh_live_route_status()
 	_refresh_navigation_target()
+	_check_tutorial_hints()
 
 
 func _spawn_initial_encounters() -> void:
@@ -471,10 +485,13 @@ func _on_player_hit() -> void:
 	var damage_summary := GameState.get_last_damage_source_summary()
 	_spawn_screen_impact(Color(1.0, 0.12, 0.08, 0.45), 0.28)
 	GameState.lose_health(1)
+	PlatformProfile.vibrate_warn()
 	if GameState.pending_extraction_bonus > 0:
 		_show_toast("%s hit. Cash out before %s slips away." % [damage_summary.capitalize(), GameState.get_extraction_bonus_label()], 1.8)
 	else:
 		_show_toast("%s hit. Protect your health for the extraction payout." % damage_summary.capitalize(), 1.8)
+	if GameState.health <= 1 and not GameState.is_run_failed:
+		PlatformProfile.vibrate_warn()
 
 
 func _on_player_fell() -> void:
@@ -503,22 +520,31 @@ func _on_data_core_collected(core: Area2D) -> void:
 	active_data_cores.erase(core)
 	GameState.collect_data_core(250)
 	AudioEngine.play_core_collect()
+	PlatformProfile.vibrate_light()
 	if hud.has_method("spawn_score_popup"):
 		hud.call("spawn_score_popup", 250, _world_to_hud_position(core.global_position), Color(0.36, 0.95, 1.0))
 	_check_core_events()
 	var remaining := GameState.data_cores_total - GameState.data_cores_collected
 	if remaining > 0:
+		if GameState.is_blitz_tutorial_active() and not GameState.has_ux_flag("blitz_hint_core_seen"):
+			_show_toast("Every core matters. Secure all 5 before the extraction gate unlocks.", 2.9)
+			GameState.set_ux_flag("blitz_hint_core_seen")
 		_set_objective("Secure the remaining %d data core(s)." % remaining)
 		_show_toast("Core secured. Keep the route alive.", 1.9)
 		return
 	if extraction_gate.has_method("set_unlocked"):
 		extraction_gate.call("set_unlocked", true)
 	AudioEngine.play_extraction_unlock()
+	PlatformProfile.vibrate_warn()
 	_spawn_completion_wave()
 	_set_objective(String(active_operation.get("objective_complete", "Extraction is now available.")))
 	var completion_text := String(active_operation.get("completion_toast", "Extraction route is live."))
 	if GameState.extraction_bonus_active:
 		completion_text += " %s" % GameState.get_extraction_bonus_status_text()
+	if GameState.is_blitz_tutorial_active() and not GameState.has_ux_flag("blitz_hint_extract_seen"):
+		GameState.push_event_banner("EXTRACTION LIVE", 1.0)
+		_show_toast("Extraction is open. Leave now for a clean clear, or stay for optional cashout score.", 3.0)
+		GameState.set_ux_flag("blitz_hint_extract_seen")
 	_show_toast(completion_text, 2.8)
 	_show_toast("Optional objective // %s" % GameState.get_secondary_objective_status_text(), 2.1)
 
@@ -746,6 +772,25 @@ func _set_objective(text: String) -> void:
 func _show_toast(text: String, duration: float = 2.3) -> void:
 	if hud.has_method("show_toast"):
 		hud.call("show_toast", text, duration)
+
+
+func _check_tutorial_hints() -> void:
+	if not GameState.is_blitz_tutorial_active():
+		return
+	if tutorial_move_prompt_time >= 0.0 and GameState.elapsed_time >= tutorial_move_prompt_time and not GameState.has_ux_flag("blitz_hint_move_seen"):
+		_show_toast("Move, jump, attack, dash. Stay on the route and keep climbing.", 2.9)
+		GameState.set_ux_flag("blitz_hint_move_seen")
+		tutorial_move_prompt_time = -1.0
+	if tutorial_combat_prompt_pending and not GameState.has_ux_flag("blitz_hint_combat_seen"):
+		for enemy in enemy_container.get_children():
+			if not enemy is Node2D:
+				continue
+			var enemy_node := enemy as Node2D
+			if player.global_position.distance_to(enemy_node.global_position) <= 240.0:
+				_show_toast("Attack to clear space. Dash through pressure instead of standing still.", 2.9)
+				GameState.set_ux_flag("blitz_hint_combat_seen")
+				tutorial_combat_prompt_pending = false
+				break
 
 
 func _world_to_hud_position(world_pos: Vector2) -> Vector2:

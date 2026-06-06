@@ -341,10 +341,17 @@ func _apply_theme() -> void:
 	objective_row.add_theme_constant_override("separation", 8 if PlatformProfile.is_mobile else 12)
 	directive_row.add_theme_constant_override("separation", 8 if PlatformProfile.is_mobile else 12)
 	cashout_row.add_theme_constant_override("separation", 8 if PlatformProfile.is_mobile else 12)
-	toast_anchor.offset_left = -250.0
-	toast_anchor.offset_top = -110.0
-	toast_anchor.offset_right = 250.0
-	toast_anchor.offset_bottom = -24.0
+	if PlatformProfile.is_mobile:
+		var toast_bottom := 308.0 * mobile_scale + safe.w
+		toast_anchor.offset_left = -220.0
+		toast_anchor.offset_top = -(toast_bottom + 86.0)
+		toast_anchor.offset_right = 220.0
+		toast_anchor.offset_bottom = -toast_bottom
+	else:
+		toast_anchor.offset_left = -250.0
+		toast_anchor.offset_top = -110.0
+		toast_anchor.offset_right = 250.0
+		toast_anchor.offset_bottom = -24.0
 	event_banner.add_theme_stylebox_override("panel", _make_panel_style(Color(0.13, 0.19, 0.3, 0.9), PANEL_ACCENT, 18, 2, 14))
 	event_label.add_theme_font_size_override("font_size", 18)
 	event_label.add_theme_color_override("font_color", TEXT_PRIMARY)
@@ -414,6 +421,7 @@ func _update_bars(delta: float) -> void:
 	dash_bar.value = move_toward(dash_bar.value, dash_target, delta * 5.0)
 	dash_bar.visible = true
 	if dash_bar.value >= 0.98:
+		dash_label.text = "DASH READY"
 		var fill_ready := StyleBoxFlat.new()
 		fill_ready.bg_color = Color(0.28, 0.88, 1.0, 0.95)
 		fill_ready.corner_radius_top_left = 6
@@ -423,6 +431,7 @@ func _update_bars(delta: float) -> void:
 		dash_bar.add_theme_stylebox_override("fill", fill_ready)
 		dash_label.add_theme_color_override("font_color", Color(0.42, 0.94, 1.0, 0.85))
 	else:
+		dash_label.text = "DASH COOLING"
 		var fill_cd := StyleBoxFlat.new()
 		fill_cd.bg_color = Color(0.18, 0.42, 0.62, 0.8)
 		fill_cd.corner_radius_top_left = 6
