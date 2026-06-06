@@ -2,6 +2,16 @@
 
 ## 2026-06-06
 
+### 已完成（动态生命 HUD 护栏）
+
+- 修复 HUD 生命显示固定 3 格的问题：现在生命 pips 会根据 `GameState.health` 和 `run_modifiers.health_bonus` 动态生成，`Blitz Pursuit` 这类带基础生命加成的路线不会再显示少一格生命
+- 生命 HUD 现在也能正确处理负生命修正和异常低生命修正，最少保留 1 格显示，避免高风险 directive 或后续调表造成 UI 空行
+- 受击动画改为只针对当前缺失的生命 pips 做缩放反馈，避免实际生命上限变化后动画数组和节点数量脱节
+- 新增 `scenes/tools/verify_dynamic_health_hud.tscn` / `scripts/tools/verify_dynamic_health_hud.gd`，覆盖正 `health_bonus`、负 `health_bonus` 和最小 1 格兜底
+- 已通过动态生命 HUD、设置、暂停页设置、遭遇压力、触控暂停和触控输入回归
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,376,497` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `3102`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（移动端触控与暂停入口）
 
 - 修复触屏左右移动的多指仲裁：`InputRouter` 现在记录左右键各自按住状态，最后按下的方向优先；松开后会恢复仍按住的另一方向，避免安卓上双指误触后角色突然停住
@@ -63,7 +73,7 @@
 
 - Stalker 的落点预警、残影和玩家受击闪白已补齐第一版，但仍缺真机画面检查、命中停顿手感调参和更完整的混音层
 - 多敌人混编已有第一道脚本护栏，但仍需要继续实玩验证，尤其是移动中敌人 AI 追位后是否会再次形成无解站位；远程压制者本轮已修复可击杀性，不再应出现“打中但不掉血”的基础缺陷
-- Android 模拟器可安装启动的证据已更新到 2026-06-06 20:01 APK；触控输入和暂停页设置已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
+- Android 模拟器可安装启动的证据已更新到 2026-06-06 20:18 APK；触控输入、暂停页设置和动态生命 HUD 已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
 
 ### 下一步建议
 

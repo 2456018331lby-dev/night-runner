@@ -109,6 +109,7 @@
 - Android 导出预设：`export_presets.cfg` 中已预留 `Android` preset，目标包路径 `exports/android/NightRunner-debug.apk`
 - 当前环境判断：Godot Android export templates、SDK、JDK、build-tools、`adb` 和 Android 35 模拟器已可用；命令行出包、签名验证、模拟器安装启动已打通，当前缺口主要是真机画面、触控和震动强度验证
 - `scripts/tools/verify_encounter_pressure.gd` 是行动调表护栏；新增 Suppressor / Bastion / Stalker 刷怪时先跑它，避免同一波把远程锁线、shockwave 和坠击压到同一小区域
+- `scripts/tools/verify_dynamic_health_hud.gd` 是生命 HUD 护栏；改行动基础生命、directive `health_bonus` 或 HUD 生命区时先跑它，避免实际生命和屏幕 pips 再次不一致
 - `scripts/tools/verify_settings.gd` / `scripts/tools/verify_pause_settings.gd` 是设置护栏；改 `GameState` 设置结构、暂停页设置控件或 `PlatformProfile` 震动边界时先跑它们
 
 后续如果要更新线上版本：
@@ -132,3 +133,4 @@
 - 2026-06-06：新增移动端左右触控仲裁、运行中暂停按钮和暂停页继续响应输入后，`verify_touch_input.gd` 与 `verify_touch_pause.tscn` 均通过；项目 / 触控场景 / 主场景 headless 加载通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `6716`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - 2026-06-06：新增遭遇压力预算脚本后，三条行动的初始 / timeline / core / completion / cashout / setpiece 刷怪桶通过 Suppressor / Bastion / Stalker 同桶距离回归检查；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2938`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - 2026-06-06：新增可持久化音量 / 震动设置后，`verify_settings.tscn` 和 `verify_pause_settings.tscn` 均通过；设置会写入 `GameState.meta_progress.settings`，暂停页控件通过 `GameState` 更新运行时音量和震动开关，异常旧存档的非字典设置会回退到默认结构；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3396`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
+- 2026-06-06：修复 HUD 固定 3 格生命导致 `health_bonus` 路线 / directive 显示不准的问题后，新增 `verify_dynamic_health_hud.tscn`，覆盖正生命修正、负生命修正和最小 1 格兜底；动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3102`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity

@@ -13,6 +13,8 @@ const TEXT_ALERT := Color(1.0, 0.74, 0.72)
 const TEXT_SOFT := Color(0.88, 0.93, 1.0)
 const HEALTH_ON := Color(1.0, 0.46, 0.36, 1.0)
 const HEALTH_OFF := Color(0.13, 0.2, 0.31, 1.0)
+const HEALTH_BASE_MAX := 3
+const HEALTH_PIP_SIZE := Vector2(28, 14)
 const PANEL_HIGHLIGHT := Color(0.96, 0.55, 0.26, 0.22)
 const COMBO_BAR_FILL := Color(1.0, 0.72, 0.22, 0.9)
 const COMBO_BAR_BG := Color(0.1, 0.15, 0.25, 0.7)
@@ -62,11 +64,7 @@ const DASH_BAR_BG := Color(0.08, 0.14, 0.24, 0.7)
 @onready var combo_bar: ProgressBar = $MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox/ComboBar
 @onready var dash_bar: ProgressBar = $MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/DashBar
 @onready var dash_label: Label = $MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/DashLabel
-@onready var health_pips: Array[PanelContainer] = [
-	$MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow/Pip1,
-	$MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow/Pip2,
-	$MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow/Pip3,
-]
+@onready var health_pip_row: HBoxContainer = $MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow
 @onready var margin_root: MarginContainer = $MarginContainer
 @onready var root_column: VBoxContainer = $MarginContainer/RootColumn
 @onready var top_row: HBoxContainer = $MarginContainer/RootColumn/TopRow
@@ -91,7 +89,9 @@ var navigation_direction: Vector2 = Vector2.ZERO
 var navigation_active: bool = false
 var score_popups: Array[Dictionary] = []
 var popup_container: Control
-var health_target_scale: Array[float] = [1.0, 1.0, 1.0]
+var health_pips: Array[PanelContainer] = []
+var health_target_scale: Array[float] = []
+var displayed_max_health: int = 0
 var low_health_overlay: ColorRect
 var cashout_border: ColorRect
 var combo_celebration_timer: float = 0.0
@@ -105,6 +105,7 @@ var last_combo_count: int = 0
 
 func _ready() -> void:
 	_apply_theme()
+	_sync_health_pip_count(_get_current_max_health())
 	_create_popup_container()
 	_create_screen_overlays()
 	toast_card.visible = false
@@ -150,9 +151,10 @@ func set_operation_context(operation: Dictionary, directive: Dictionary) -> void
 func _refresh() -> void:
 	if GameState.score > last_score:
 		score_pulse_timer = 0.32
+	_sync_health_pip_count(_get_current_max_health())
 	if GameState.health < last_health:
 		damage_pulse_timer = 0.42
-		for i in range(GameState.health, health_pips.size()):
+		for i in range(maxi(0, GameState.health), health_pips.size()):
 			health_target_scale[i] = 1.5
 	last_score = GameState.score
 	last_health = GameState.health
@@ -465,9 +467,8 @@ func _update_popups(delta: float) -> void:
 func _update_health_animation(delta: float) -> void:
 	for i in health_pips.size():
 		health_target_scale[i] = move_toward(health_target_scale[i], 1.0, delta * 12.0)
-		if health_target_scale[i] > 1.01:
-			health_pips[i].pivot_offset = health_pips[i].size * 0.5
-			health_pips[i].scale = Vector2.ONE * health_target_scale[i]
+		health_pips[i].pivot_offset = health_pips[i].size * 0.5
+		health_pips[i].scale = Vector2.ONE * health_target_scale[i]
 
 
 func _create_screen_overlays() -> void:
@@ -595,10 +596,34 @@ func _spawn_combo_burst() -> void:
 
 
 func _refresh_health_pips() -> void:
+	_sync_health_pip_count(_get_current_max_health())
 	for index in health_pips.size():
 		var fill := HEALTH_ON if index < GameState.health else HEALTH_OFF
 		var border := Color(1.0, 0.62, 0.45, 0.8) if index < GameState.health else Color(0.22, 0.33, 0.49, 0.7)
 		health_pips[index].add_theme_stylebox_override("panel", _make_panel_style(fill, border, 999, 1, 0))
+
+
+func _get_current_max_health() -> int:
+	return maxi(GameState.health, maxi(1, HEALTH_BASE_MAX + int(GameState.run_modifiers.get("health_bonus", 0))))
+
+
+func _sync_health_pip_count(max_health: int) -> void:
+	var target_count := maxi(1, max_health)
+	if displayed_max_health == target_count and health_pips.size() == target_count:
+		return
+	health_pips.clear()
+	health_target_scale.clear()
+	for child in health_pip_row.get_children():
+		health_pip_row.remove_child(child)
+		child.queue_free()
+	for index in target_count:
+		var pip := PanelContainer.new()
+		pip.name = "Pip%d" % (index + 1)
+		pip.custom_minimum_size = HEALTH_PIP_SIZE
+		health_pip_row.add_child(pip)
+		health_pips.append(pip)
+		health_target_scale.append(1.0)
+	displayed_max_health = target_count
 
 
 func _update_pulses(delta: float) -> void:
