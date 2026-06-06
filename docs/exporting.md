@@ -9,11 +9,12 @@
 - 已有 `Android` export preset（见 `export_presets.cfg`）
 - 本机已安装 Godot Android export templates（`android_debug.apk` / `android_release.apk` 模板存在）
 - Godot headless 加载校验已通过，命令行要使用 Winget 安装的 console exe 完整路径
-- 2026-06-06 已重新成功导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,345,491` bytes，签名验证通过 v2/v3
+- 2026-06-06 18:01 因敌人生命闭环修复重新导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,345,491` bytes，签名验证通过 v2/v3
 - 已完成 Android 35 模拟器安装与启动验证：`adb install -r` 成功，应用可拉起并保持前台进程
 - Android 侧当前结论：`renderer/rendering_method.mobile` 需要使用 `mobile`；此前的 `gl_compatibility` 在模拟器 SwiftShader 上会触发 `GL_MAX_FRAGMENT_UNIFORM_VECTORS` 着色器报错
 - 2026-06-01 12:21 重新导出最新 APK 后，再次完成模拟器安装验证；最新一次 `logcat` 仍显示 `usesVulkan(): true`、`renderingDevice: vulkan`、`renderer: mobile`
 - 2026-06-06 17:12 重新导出最新 APK 后，再次完成 `NightRunner35` Android 35 模拟器安装和启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程，`dumpsys window` 显示 Godot launcher activity 获得焦点
+- 2026-06-06 18:01 本轮重导出后完成 `apksigner` 和 `apkanalyzer` 校验；随后启动 `NightRunner35` 复验，`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `6044`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
 - Godot 当前使用 Android SDK：`C:/Users/24560/Desktop/study/Englishdemo/.android-sdk`
 - `apkanalyzer` / `aapt` 已确认当前 APK 的关键信息：
   - 包名 `com.nousresearch.nightrunner`
@@ -23,7 +24,7 @@
   - `targetSdkVersion 35`
   - `screenOrientation=0xb`，即传感器横屏
   - `supports-screens` 覆盖 `small/normal/large/xlarge`
-- 当前机器上的 `adb`、模拟器和 AVD 已可用；真机画面级验证仍待后续设备测试
+- 当前机器上的 `adb`、模拟器和 AVD 已验证可用；如果 `adb devices` 无在线设备，需先启动 `NightRunner35` 或连接真机，再做安装启动验证
 
 重新导出 APK 的步骤：
 

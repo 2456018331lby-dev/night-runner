@@ -44,6 +44,8 @@ var afterimages: Array[Polygon2D] = []
 
 func _ready() -> void:
 	add_to_group("enemy")
+	current_hp = max_hp
+	_setup_hp_bar()
 	_setup_warning_visuals()
 
 
@@ -160,8 +162,13 @@ func _physics_process(delta: float) -> void:
 
 
 func receive_hit(force: Vector2) -> void:
+	current_hp -= 1
 	knocked_velocity = force * 1.1
 	hit_flash_timer = 0.2
+	_refresh_hp_bar()
+	_spawn_hit_number()
+	if current_hp <= 0:
+		_defeat(true, false)
 	windup_timer = 0.0
 	dive_timer = 0.0
 	dive_cooldown_timer = maxf(dive_cooldown_timer, 0.55)
@@ -324,6 +331,7 @@ func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 		if is_instance_valid(image):
 			image.queue_free()
 	afterimages.clear()
+	_spawn_defeat_number()
 	if award_points:
 		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
 		defeated.emit(pts)

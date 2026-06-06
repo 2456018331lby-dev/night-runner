@@ -2,6 +2,16 @@
 
 ## 2026-06-06
 
+### 已完成（敌人生命闭环修复）
+
+- 修复 `EnemySuppressor`、`EnemyBastion`、`EnemyPhantom` 的命中生命闭环：`receive_hit()` 现在会实际扣减 `current_hp`，避免玩家打到敌人但敌人无法被击败
+- 给这三类敌人在 `_ready()` 中重新接上 `current_hp = max_hp` 和 `_setup_hp_bar()`，避免首次命中时血条节点为空导致运行时报错
+- 给 `EnemySuppressor`、`EnemyBastion`、`EnemyPhantom` 的击败流程补回本地 `+points` 漂字反馈，使它们与 `EnemyRunner` / `EnemyStalker` 的击败读感一致
+- 重新执行 Godot headless 项目加载校验，并单独加载 `enemy_suppressor.tscn`、`enemy_bastion.tscn`、`enemy_phantom.tscn`，全部通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,345,491` bytes，`apksigner verify --verbose --print-certs` 确认 v2 / v3 签名通过
+- 用 `apkanalyzer` 确认最新 APK 包名 `com.nousresearch.nightrunner`、版本 `0.1.0`、`minSdk 24`、`targetSdk 35`
+- 重新启动 `NightRunner35` Android 35 模拟器并完成安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `6044`，`dumpsys activity activities` 显示 `com.godot.game.GodotAppLauncher` 为 resumed activity
+
 ### 已完成（Stalker 伏击读感）
 
 - 给 `EnemyStalker` 补专门落点预警：进入 warning 时用 physics ray 预测下方平台 / 地面，并在世界坐标固定显示坠落线和椭圆危险圈，玩家能提前判断冲击区
@@ -18,7 +28,7 @@
 ### 当前问题
 
 - Stalker 的落点预警、残影和玩家受击闪白已补齐第一版，但仍缺真机画面检查、命中停顿手感调参和更完整的混音层
-- 多敌人混编仍需要继续验证，尤其是远程压制者与 Stalker 同屏时是否会形成无解站位
+- 多敌人混编仍需要继续验证，尤其是远程压制者与 Stalker 同屏时是否会形成无解站位；远程压制者本轮已修复可击杀性，不再应出现“打中但不掉血”的基础缺陷
 - Android 模拟器可安装启动的证据已更新到 2026-06-06 最新 APK，但仍缺真机触屏 / 刘海屏 / 震动强度验证
 
 ### 下一步建议
