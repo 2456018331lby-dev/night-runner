@@ -98,6 +98,10 @@ func _expect_mobile_nav_pressure(hud: CanvasLayer) -> void:
 		failures.append("mobile navigation card lost the route vector label")
 	if not nav_status.text.contains("Relay Bloom"):
 		failures.append("mobile navigation card lost route pressure text while phase card is hidden")
+	if not nav_status.text.contains("BREACH Relay Bloom"):
+		failures.append("mobile navigation card should use compact phase plus pressure copy")
+	if nav_status.text.contains("Suppressor geometry is live"):
+		failures.append("mobile navigation card should not carry full route pressure coaching text")
 	if not nav_status.text.contains("OPT "):
 		failures.append("mobile navigation card should carry optional objective status while secondary card is hidden")
 	if not nav_status.text.contains("00:16 LEFT"):

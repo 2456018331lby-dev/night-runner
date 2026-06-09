@@ -711,13 +711,28 @@ func _refresh_navigation() -> void:
 
 func _get_mobile_navigation_context_line() -> String:
 	var fragments: Array[String] = []
-	var pressure_line := GameState.get_route_pressure_text()
+	var pressure_line := _get_mobile_route_pressure_text()
 	if not pressure_line.is_empty():
 		fragments.append(pressure_line)
 	var optional_status := _get_mobile_optional_status_text()
 	if not optional_status.is_empty():
 		fragments.append(optional_status)
 	return " // ".join(fragments)
+
+
+func _get_mobile_route_pressure_text() -> String:
+	var pressure_line := GameState.get_route_pressure_text()
+	if pressure_line.is_empty():
+		return ""
+	var primary_clause := pressure_line.split(".")[0].strip_edges()
+	if primary_clause.is_empty():
+		primary_clause = pressure_line.split(" // ")[0].strip_edges()
+	if primary_clause.length() > 34:
+		primary_clause = primary_clause.substr(0, 31).strip_edges() + "..."
+	var phase_text := GameState.get_route_phase_text().to_upper()
+	if phase_text.is_empty():
+		return primary_clause
+	return "%s %s" % [phase_text, primary_clause]
 
 
 func _get_mobile_optional_status_text() -> String:
