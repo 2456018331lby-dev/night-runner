@@ -188,6 +188,7 @@ func _handle_bound_button_input(event: InputEvent, button: Button, input_kind: S
 func _claim_touch_index(index: int, button: Button, input_kind: String, move_axis_value: float, action_name: String) -> void:
 	if active_touch_bindings.has(index):
 		_release_touch_index(index, true, Vector2.INF)
+	_release_existing_button_claims(button)
 	active_touch_bindings[index] = {
 		"button": button,
 		"kind": input_kind,
@@ -235,6 +236,16 @@ func _has_active_binding_for_button(button: Button) -> bool:
 		if binding.get("button") == button:
 			return true
 	return false
+
+
+func _release_existing_button_claims(button: Button) -> void:
+	var claimed_indices: Array[int] = []
+	for binding_index in active_touch_bindings.keys():
+		var binding: Dictionary = active_touch_bindings[binding_index]
+		if binding.get("button") == button:
+			claimed_indices.append(int(binding_index))
+	for binding_index in claimed_indices:
+		_release_touch_index(binding_index, true, Vector2.INF)
 
 
 func _make_panel_style(fill: Color, border: Color, radius: int) -> StyleBoxFlat:

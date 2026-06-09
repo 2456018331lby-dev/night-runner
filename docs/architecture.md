@@ -46,7 +46,7 @@
 - 把触屏输入和物理输入统一成同一接口
 - 避免 `Player` 直接依赖具体按钮节点
 - 当前触屏移动不是单个瞬时轴值，而是记录左右按钮各自按住状态；多指同时按住时以后按下方向为准，松开后恢复仍按住的另一方向
-- 当前动作输入区分 pending 和 held：跳跃 / 冲刺通过 pending 保持一次性消费，攻击可读 held 状态来支持触屏长按续攻；拖出按钮仍应取消 pending
+- 当前动作输入区分 pending 和 held：跳跃 / 冲刺通过 pending 保持一次性消费，攻击可读 held 状态来支持触屏长按续攻；触控按钮由 touch index 归属，拖出按钮应取消对应 pending，同一按钮被新触摸接管时旧触摸释放不能取消新输入
 - 后续能接手柄、重绑定和 Steam Input
 
 ### `FrontendBridge`
@@ -169,7 +169,7 @@
 - `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标、cashout 状态和移动端低打断提示
 - `HUD` 的生命 pips 必须根据 `GameState.health` 与 `run_modifiers.health_bonus` 动态生成，不要再假设固定 3 格生命；改行动基础生命或 directive 生命修正后先跑 `verify_dynamic_health_hud.tscn`
 - `TouchControls` 负责移动端虚拟移动 / 跳跃 / 攻击 / 冲刺 / 暂停入口；运行中暂停必须先清空 `InputRouter` 的 held / pending 输入，再经 `FrontendBridge.toggle_pause()`，不要让触控层直接改 `SceneTree.paused`
-- `TouchControls` 的移动 / 动作 / 暂停按钮必须保持移动端触控目标尺寸，且左右操作区、右侧动作区和暂停按钮不能互相重叠；改触控布局后先跑 `verify_touch_controls_layout.tscn`
+- `TouchControls` 的移动 / 动作 / 暂停按钮必须保持移动端触控目标尺寸，且左右操作区、右侧动作区和暂停按钮不能互相重叠；改触控布局、touch-index 归属或拖出取消后先跑 `verify_touch_controls_layout.tscn`
 - 这两层都只读 `FrontendBridge` 和 `GameState` 暴露出来的展示数据，不直接驱动玩法判定，便于后续完全重做前端
 - 暂停页设置只通过 `GameState.set_master_volume()` / `GameState.set_haptics_enabled()` 改持久化设置；`PlatformProfile` 是震动是否执行的唯一平台门禁
 - 移动端暂停页的 `VOLUME`、`HAPTICS`、`RESUME`、`HUB` 控件必须保持 56px 级最小触控高度；改暂停页布局后先跑 `verify_pause_settings.tscn`

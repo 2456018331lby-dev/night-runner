@@ -61,8 +61,22 @@ func _ready() -> void:
 	attack.gui_input.emit(attack_touch)
 	_expect(InputRouter.is_action_held("attack"), "touch-index attack press starts held attack")
 
+	var replacement_attack_touch := InputEventScreenTouch.new()
+	replacement_attack_touch.index = 3
+	replacement_attack_touch.position = attack.get_global_rect().get_center()
+	replacement_attack_touch.pressed = true
+	attack.gui_input.emit(replacement_attack_touch)
+	_expect(InputRouter.is_action_held("attack"), "new touch can reclaim the same attack button")
+
+	var old_attack_release := InputEventScreenTouch.new()
+	old_attack_release.index = 2
+	old_attack_release.position = attack.get_global_rect().get_center()
+	old_attack_release.pressed = false
+	controls.call("_input", old_attack_release)
+	_expect(InputRouter.is_action_held("attack"), "releasing the old attack touch does not cancel the replacement touch")
+
 	var attack_drag := InputEventScreenDrag.new()
-	attack_drag.index = 2
+	attack_drag.index = 3
 	attack_drag.position = Vector2.ZERO
 	controls.call("_input", attack_drag)
 	_expect(not InputRouter.is_action_held("attack"), "dragging attack touch outside cancels held attack")
