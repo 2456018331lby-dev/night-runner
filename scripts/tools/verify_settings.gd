@@ -9,6 +9,8 @@ func _ready() -> void:
 	var original_is_mobile := PlatformProfile.is_mobile
 	var original_is_desktop := PlatformProfile.is_desktop
 	var original_safe_area := PlatformProfile.safe_area_margin
+	var original_light_haptic_msec := int(PlatformProfile.get("last_light_haptic_msec"))
+	var original_warn_haptic_msec := int(PlatformProfile.get("last_warn_haptic_msec"))
 
 	var migrated: Dictionary = GameState.call("_merge_meta_progress", {
 		"ux_flags": {
@@ -58,6 +60,8 @@ func _ready() -> void:
 	PlatformProfile.is_mobile = original_is_mobile
 	PlatformProfile.is_desktop = original_is_desktop
 	PlatformProfile.safe_area_margin = original_safe_area
+	PlatformProfile.set("last_light_haptic_msec", original_light_haptic_msec)
+	PlatformProfile.set("last_warn_haptic_msec", original_warn_haptic_msec)
 	if failures.is_empty():
 		print("Settings regression passed.")
 		get_tree().quit(0)
@@ -85,6 +89,7 @@ func _verify_platform_boundaries() -> void:
 	_expect(not PlatformProfile.haptics_enabled(), "disabled haptics setting gates platform haptics")
 	GameState.set_haptics_enabled(true, false)
 	_expect(PlatformProfile.haptics_enabled() == PlatformProfile.supports_haptics(), "enabled haptics setting still requires platform support")
+	_verify_haptic_cooldowns()
 
 	_expect(
 		_margin_matches(
@@ -114,6 +119,18 @@ func _verify_platform_boundaries() -> void:
 		),
 		"invalid screen size produces zero margins"
 	)
+
+
+func _verify_haptic_cooldowns() -> void:
+	PlatformProfile.set("last_light_haptic_msec", PlatformProfile.HAPTIC_INITIAL_MSEC)
+	PlatformProfile.set("last_warn_haptic_msec", PlatformProfile.HAPTIC_INITIAL_MSEC)
+	_expect(bool(PlatformProfile.call("_claim_light_haptic", 1000)), "first light haptic request is accepted")
+	_expect(not bool(PlatformProfile.call("_claim_light_haptic", 1030)), "light haptic requests are throttled")
+	_expect(bool(PlatformProfile.call("_claim_warn_haptic", 1040)), "warning haptic can pass through light cooldown")
+	_expect(not bool(PlatformProfile.call("_claim_light_haptic", 1060)), "recent warning haptic suppresses follow-up light buzz")
+	_expect(not bool(PlatformProfile.call("_claim_warn_haptic", 1120)), "warning haptic has its own cooldown")
+	_expect(bool(PlatformProfile.call("_claim_warn_haptic", 1190)), "warning haptic recovers after cooldown")
+	_expect(bool(PlatformProfile.call("_claim_light_haptic", 1270)), "light haptic recovers after warning cooldown")
 
 
 func _margin_matches(actual: Variant, expected: Vector4) -> bool:

@@ -1,8 +1,14 @@
 extends Node
 
+const LIGHT_HAPTIC_COOLDOWN_MSEC := 75
+const WARN_HAPTIC_COOLDOWN_MSEC := 140
+const HAPTIC_INITIAL_MSEC := -1000000
+
 var is_mobile: bool = false
 var is_desktop: bool = false
 var safe_area_margin: Vector4 = Vector4.ZERO
+var last_light_haptic_msec: int = HAPTIC_INITIAL_MSEC
+var last_warn_haptic_msec: int = HAPTIC_INITIAL_MSEC
 
 
 func _ready() -> void:
@@ -41,15 +47,34 @@ func haptics_enabled() -> bool:
 func vibrate_light() -> void:
 	if not haptics_enabled():
 		return
-	if Input.has_method("vibrate_handheld"):
-		Input.vibrate_handheld(30)
+	if not _claim_light_haptic(Time.get_ticks_msec()):
+		return
+	Input.vibrate_handheld(30)
 
 
 func vibrate_warn() -> void:
 	if not haptics_enabled():
 		return
-	if Input.has_method("vibrate_handheld"):
-		Input.vibrate_handheld(65)
+	if not _claim_warn_haptic(Time.get_ticks_msec()):
+		return
+	Input.vibrate_handheld(65)
+
+
+func _claim_light_haptic(now_msec: int) -> bool:
+	if now_msec - last_light_haptic_msec < LIGHT_HAPTIC_COOLDOWN_MSEC:
+		return false
+	if now_msec - last_warn_haptic_msec < LIGHT_HAPTIC_COOLDOWN_MSEC:
+		return false
+	last_light_haptic_msec = now_msec
+	return true
+
+
+func _claim_warn_haptic(now_msec: int) -> bool:
+	if now_msec - last_warn_haptic_msec < WARN_HAPTIC_COOLDOWN_MSEC:
+		return false
+	last_warn_haptic_msec = now_msec
+	last_light_haptic_msec = now_msec
+	return true
 
 
 func _refresh_safe_area_margin() -> void:
