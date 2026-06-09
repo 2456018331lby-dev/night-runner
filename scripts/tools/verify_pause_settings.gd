@@ -18,6 +18,13 @@ func _ready() -> void:
 	add_child(screen)
 	await get_tree().process_frame
 
+	var blitz := RunCatalogScript.get_operation("blitz_pursuit")
+	var knife_party := _find_directive(blitz, "knife_party")
+	var directive_detail := String(screen.call("_format_hub_directive_summary", knife_party, false))
+	_expect(directive_detail.contains("Longer combo window"), "directive detail should include the directive summary")
+	_expect(directive_detail.contains("COMBO +25%"), "directive detail should include combo modifier impact text")
+	_expect(directive_detail.contains("ATK +12%"), "directive detail should keep multi-modifier impact text")
+
 	screen.call("build_pause", RunCatalogScript.get_operation("blitz_pursuit"))
 	await get_tree().process_frame
 
@@ -68,6 +75,13 @@ func _find_first_child_of_type(root: Node, type_hint: Variant) -> Node:
 		if nested != null:
 			return nested
 	return null
+
+
+func _find_directive(operation: Dictionary, directive_id: String) -> Dictionary:
+	for directive in operation.get("directive_pool", []):
+		if String(directive.get("id", "")) == directive_id:
+			return directive
+	return {}
 
 
 func _expect(condition: bool, message: String) -> void:

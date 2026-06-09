@@ -174,13 +174,7 @@ func _refresh_focus(operation: Dictionary) -> void:
 	if current_phase == FrontendBridge.PHASE_HUB:
 		focus_mode.text = "FIRST PLAYABLE" if not GameState.has_ux_flag("first_run_brief_seen") and operation_id == "blitz_pursuit" else String(selected.get("mode_label", ""))
 		var selected_directive := FrontendBridge.get_selected_directive(operation_id)
-		directive_name.text = String(selected_directive.get("name", "Base Protocol"))
-		directive_summary.text = "Deploy directive\n%s" % String(selected_directive.get("summary", ""))
-		if first_deploy_focus:
-			directive_summary.text = "Deploy directive\nDefault first-clear loadout. Launch now and learn the lane before tuning modifiers."
-		var modifier_summary := GameState.describe_modifier_block(Dictionary(selected_directive.get("modifiers", {})))
-		if not modifier_summary.is_empty():
-			directive_summary.text += "\n" + modifier_summary
+		_set_hub_directive_detail(selected_directive, first_deploy_focus)
 		_populate_directive_list(selected)
 		directive_scroll.visible = not (PlatformProfile.is_mobile and first_deploy_focus)
 		primary_button.text = _get_launch_button_text(selected)
@@ -296,8 +290,24 @@ func _select_directive(operation_id: String, directive_id: String) -> void:
 		var btn: Button = directive_buttons[key]
 		var sel := String(key) == directive_id
 		btn.button_pressed = sel
-	directive_name.text = String(FrontendBridge.get_selected_directive(operation_id).get("name", ""))
-	directive_summary.text = String(FrontendBridge.get_selected_directive(operation_id).get("summary", ""))
+	_set_hub_directive_detail(FrontendBridge.get_selected_directive(operation_id), _is_first_deploy_focus(operation_id))
+
+
+func _set_hub_directive_detail(selected_directive: Dictionary, first_deploy_focus: bool) -> void:
+	directive_name.text = String(selected_directive.get("name", "Base Protocol"))
+	directive_summary.text = _format_hub_directive_summary(selected_directive, first_deploy_focus)
+
+
+func _format_hub_directive_summary(selected_directive: Dictionary, first_deploy_focus: bool) -> String:
+	var lines: Array[String] = ["Deploy directive"]
+	if first_deploy_focus:
+		lines.append("Default first-clear loadout. Launch now and learn the lane before tuning modifiers.")
+	else:
+		lines.append(String(selected_directive.get("summary", "")))
+	var modifier_summary := GameState.describe_modifier_block(Dictionary(selected_directive.get("modifiers", {})))
+	if not modifier_summary.is_empty():
+		lines.append(modifier_summary)
+	return "\n".join(lines)
 
 
 func _add_debrief_metrics(operation: Dictionary) -> void:
