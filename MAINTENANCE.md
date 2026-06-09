@@ -1,45 +1,44 @@
 # Maintenance Guide
 
-这个文件给以后继续接手 `Night Runner` 的人或 AI 直接看。
+这个文件给以后继续接手 `Night Runner` 的人或 AI 直接看。目标是少翻旧文档，直接知道边界、验证入口和下一步。
 
 ## 先看什么
-
-这个项目的文档现在收敛成 5 个入口，优先按这个顺序看，不要再到处翻旧说明：
 
 1. [README.md](/C:/Users/24560/Desktop/study/gametwo/README.md)
 2. [MAINTENANCE.md](/C:/Users/24560/Desktop/study/gametwo/MAINTENANCE.md)
 3. [docs/architecture.md](/C:/Users/24560/Desktop/study/gametwo/docs/architecture.md)
 4. [docs/progress.md](/C:/Users/24560/Desktop/study/gametwo/docs/progress.md)
 5. [docs/backlog.md](/C:/Users/24560/Desktop/study/gametwo/docs/backlog.md)
+6. [docs/exporting.md](/C:/Users/24560/Desktop/study/gametwo/docs/exporting.md)
 
-`docs/design.md` 已删除，设计意图已经并入本文件和 README，避免重复维护。
+旧设计流水账不要再新建一份；设计意图要么进 `README.md`，要么进 `docs/architecture.md` / `docs/backlog.md`。
 
 ## 当前工程判断
 
 - 引擎：Godot 4.6
 - 目标：Android APK 优先，后续扩到 PC / Steam
-- 当前阶段：已升级为有中枢壳层、行动目录和局外进度的竖切片骨架
-- 方向确认：后续所有系统都先保证 APK 可安装、触屏可玩，同时保留桌面输入、存档和平台服务边界，方便以后上架 Steam
+- 当前阶段：有中枢壳层、行动目录、局外进度、暂停设置和 Android 出包链路的竖切片
+- 当前缺口：真机安全区 / 震动 / 多指触控验证、release keystore / AAB、正式视觉资产、动效、音效和实玩数值调参
 
-## 这个游戏现在在干嘛
+## 当前游戏结构
 
-当前已经不再是单一固定跑图，而是 3 条行动线路：
+当前有 3 条行动线路：
 
-1. `Blitz Pursuit`
-2. `Ghost Circuit`
-3. `Overdrive Protocol`
+- `Blitz Pursuit`
+- `Ghost Circuit`
+- `Overdrive Protocol`
 
-每条行动都包含：
+每条行动都应保留：
 
-1. 局前中枢选行动
-2. 局前明确选择 `directive`
-3. 过程中抢核心、维持连击、处理阶段增援
-4. 同时追次级目标
-5. 达成全部核心后解锁撤离，并进入可继续贪分的兑现窗口
-6. 成功或失败后进入结果页
-7. 局外记录最佳分数、最佳评级、成功次数和解锁进度
+- 局前中枢选行动
+- 局前选择 directive
+- 过程中抢核心、维持连击、处理阶段增援
+- 次级目标
+- 撤离和可继续贪分的兑现窗口
+- 成功 / 失败结果页
+- 局外记录最佳分数、评级、成功次数和解锁进度
 
-如果以后 AI 接手时发现又变回“场上打怪但没有目标”，优先检查：
+如果以后又退回“场上打怪但没有目标”，优先检查：
 
 - `scripts/game/run_catalog.gd`
 - `scripts/autoload/frontend_bridge.gd`
@@ -51,104 +50,85 @@
 ## 关键边界
 
 - `GameState`：本局状态、局外进度、成绩记录、音量 / 震动设置和存档入口
-- `PlatformProfile`：平台差异入口；震动执行必须经过这里，并尊重 `GameState` 的 haptics 设置
-- `InputRouter`：触屏、键盘、未来手柄的统一输入层；触屏左右移动记录左右按钮按住状态，多指同时按住时以后按下方向为准，松开后恢复仍按住的另一方向
-- `FrontendBridge`：应用壳和玩法之间的前端桥接层
-- `AudioEngine`：程序化音效和播放器池；headless 自动化环境不创建播放器或 WAV，避免验证退出时产生 ObjectDB 泄漏
-- `RunCatalog`：行动目录、模式差异、directive 池、次级目标和兑现规则的数据源
+- `PlatformProfile`：平台差异入口；安全区、移动端 UI scale 和震动门禁都在这里收口
+- `InputRouter`：触屏、键盘、未来手柄的统一输入层
+- `FrontendBridge`：应用壳和玩法之间的流程桥接层
+- `AudioEngine`：程序化音效和播放器池；headless 自动化环境不创建播放器或 WAV
+- `RunCatalog`：行动目录、directive 池、次级目标和兑现规则的数据源
 - `World`：按行动定义装配关卡和本局事件
-- `RouteHazard`：路线机关执行器，现已支持多种行为 archetype，不要再把路线机关硬写回 `World`
-- `Presentation`：纯视觉氛围层，负责背景城市、雾、灯带和后续环境演出
-- `SessionScreen`：中枢 / 结果 / 暂停产品壳；暂停页承载轻量设置，不直接写存档文件
-- `TouchControls`：安卓运行中虚拟按键和暂停入口；暂停前必须清空 `InputRouter` 的 held / pending 输入，然后只调用 `FrontendBridge.toggle_pause()`，不要直接改 `SceneTree.paused`
-- `DataCore` / `ExtractionGate`：短局目标层，负责“为什么要继续跑”
-- `BoostPad`：地形节奏层，负责让推进更快更立体
-- `Player` / `EnemyRunner` / `EnemySuppressor`：只做角色行为，不管理全局状态
-- `EnemyBastion`：精英封锁敌人，负责近中距压线与 shockwave 区域压迫
-- `EnemyPhantom`：高速切入型精英，负责贴身追切、俯冲突脸和中近距节奏打断
-- `EnemyStalker`：垂直伏击型精英，负责平台上方蓄势坠击和落地冲击波区域压迫
-- `EnemyBolt`：远程敌人的轻量投射物，不接 UI 和分数
+- `RouteHazard`：路线机关执行器，不要把路线机关硬写回 `World`
+- `Presentation`：纯视觉氛围层
+- `SessionScreen`：中枢 / 结果 / 暂停产品壳
+- `HUD`：局内目标、路线阶段、directive、次级目标、cashout 和短提示展示
+- `TouchControls`：安卓虚拟按键和暂停入口；暂停前必须清空 `InputRouter` 的 held / pending 输入
+- `Player` / 敌人脚本：只做角色行为，不管理全局状态和 UI
 
-当前有两条已经踩过的手感结论，不要回退：
+不要回退的手感结论：
 
-- 攻击判定不能太窄，允许轻微贴脸和高度差，否则玩家会觉得“按了没用”
-- 撤离门和最后几个核心不能摆得太刁钻，否则玩家会把问题理解成“功能坏了”
-
-## 当前资产判断
-
-- 角色和关键目标物已有首批原创 SVG 资产
-- 背景氛围层已存在，但仍是程序化几何主导
-- 现在已有完整中枢 / 行动卡 / 结果页 / 暂停层壳体，但仍是逻辑优先版本
-- HUD 已升级为“行动卡 + 任务卡 + 路线阶段卡 + 指令卡 + 次级目标卡 + cashout 卡 + 短提示”
-- 还没有正式音效、命中特效、角色动画状态机、完整 UI 图标系统
-
-不要在后续迭代里重新回到“纯色方块 + 默认按钮”状态。
-
-## 继续开发的顺序
-
-1. 先继续加强三条行动的地形辨识度和事件差异
-2. 再做打击反馈、音效、屏幕特效和敌人预警
-3. 再继续补结果页、战斗回顾、设置和移动端适配
-4. 最后接更完整存档、Steam 抽象层和正式章节结构
+- 攻击判定不能太窄，需要允许轻微贴脸和高度差
+- 撤离门和最后几个核心不能摆得太刁钻
+- 触屏攻击支持长按续攻，跳跃 / 冲刺仍保持一次性消费
+- 触屏暂停前必须清空移动和动作输入，避免恢复后残留
 
 ## 修改规则
 
-- 改系统边界：先更 `docs/architecture.md`
-- 做功能：完工后更 `docs/progress.md`
-- 新想法：先进 `docs/backlog.md`
-- 改中枢 / 结果 / UI 壳时，优先经 `FrontendBridge`
-- 前端 / UI 层只改 `SessionScreen`、`HUD` 或它们的替身层，不直接改 `World`、角色脚本或存档写入
-- 前端只需要先保证“能看、能接、能替换”，高级美术、动效、品牌化视觉留给后续 AI 迭代
-- 避免把平台判断散写在玩法脚本里
-- 如果删文档，先确认内容已经并入现存入口，避免再长回重复说明
+- 改系统边界：更新 `docs/architecture.md`
+- 做功能：更新 `docs/progress.md`
+- 新想法或未完成项：更新 `docs/backlog.md`
+- 改导出 / APK / SDK：更新 `docs/exporting.md`
+- 改中枢 / 结果 / UI 壳：优先经 `FrontendBridge`
+- 平台判断只放 `PlatformProfile`
+- 不新增依赖，除非明确需要
+- 不把导出产物提交进 git
+- 文档只保留当前可维护信息；旧 APK 大小、旧进程号、旧流水账交给 git 历史
 
-## 在线与发布
+## 验证入口
 
-- GitHub 仓库：[night-runner](https://github.com/2456018331lby-dev/night-runner)
+常用 Godot console：
+
+```powershell
+& 'C:/Users/24560/AppData/Local/Microsoft/WinGet/Packages/GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe/Godot_v4.6.2-stable_win64_console.exe' --headless --path . --quit-after 3
+```
+
+按改动选择验证：
+
+- Android preset / SDK / 包名 / 图标 / APK 路径：`scenes/tools/verify_android_export_contract.tscn`
+- 设置、音量、haptics、`PlatformProfile` 安全区 / UI scale / 震动边界：`scenes/tools/verify_settings.tscn`
+- 暂停页设置触控高度：`scenes/tools/verify_pause_settings.tscn`
+- 运行中触控布局：`scenes/tools/verify_touch_controls_layout.tscn`
+- 触控暂停输入清理：`scenes/tools/verify_touch_pause.tscn`
+- 触控输入语义：`--script res://scripts/tools/verify_touch_input.gd`
+- 玩家攻击长按：`scenes/tools/verify_player_attack_hold.tscn`
+- 玩家跳跃窗口：`scenes/tools/verify_player_jump_windows.tscn`
+- 动态生命 HUD：`scenes/tools/verify_dynamic_health_hud.tscn`
+- Overdrive 贪分路线：`scenes/tools/verify_overdrive_greed_profile.tscn`
+- 遭遇压力：`scenes/tools/verify_encounter_pressure.tscn`
+- headless 音频生命周期：`scenes/tools/verify_audio_engine_shutdown.tscn`
+
+清理 / 重构前先跑相关验证；清理后至少跑受影响验证、项目加载和主场景加载。
+
+## Android 当前证据
+
+- `export_presets.cfg` 已有 Android preset
+- Debug APK 最近验证路径：`exports/android/NightRunner-debug.apk`
+- 最近验证 APK 大小：`28,416,550` bytes
+- `apksigner` v2 / v3 通过
+- `apkanalyzer` 确认包名 `com.nousresearch.nightrunner`、`minSdkVersion 24`、`targetSdkVersion 35`
+- `NightRunner35` Android 35 模拟器安装启动通过
+
+具体导出命令和清理规则见 [docs/exporting.md](/C:/Users/24560/Desktop/study/gametwo/docs/exporting.md)。
+
+## 清理规则
+
+- `exports/` 是生成目录，只保留当前 debug APK；旧截图、日志、web 导出、中间 `.pck/.idsig/.import` 可删
+- 源资源旁的 Godot `.import` 不要当作垃圾删；误删会让 SVG / PNG 场景资源在 headless 加载时报错，需运行 `--headless --editor --quit` 重新导入
+- 测试文件只保留未来会继续跑的护栏；单点平台断言优先合并进现有验证，不为每个小改动新增独立场景
+- 文档不要重复记录每次出包大小和模拟器进程号
+- 如果删验证文件，必须把仍有价值的断言合并进现有验证或确认已有覆盖
+
+## GitHub
+
+- 仓库：[night-runner](https://github.com/2456018331lby-dev/night-runner)
 - 在线版本：[GitHub Pages](https://2456018331lby-dev.github.io/night-runner/)
-- 网页导出入口：[export_web_to_docs.bat](/C:/Users/24560/Desktop/study/gametwo/export_web_to_docs.bat)
-- Android 导出预设：`export_presets.cfg` 中已预留 `Android` preset，目标包路径 `exports/android/NightRunner-debug.apk`
-- 当前环境判断：Godot Android export templates、SDK、JDK、build-tools、`adb` 和 Android 35 模拟器已可用；命令行出包、签名验证、模拟器安装启动已打通，当前缺口主要是真机画面、触控和震动强度验证
-- `scripts/tools/verify_audio_engine_shutdown.gd` 是 headless 音频生命周期护栏；改 `AudioEngine`、程序化 WAV、播放器池或自动化启动参数时先跑它，并用 verbose 主场景加载确认没有 ObjectDB leak
-- `scripts/tools/verify_android_export_contract.gd` 是 Android 出包契约护栏；改 `export_presets.cfg`、包名、版本、SDK、图标、横屏、移动渲染或 APK 输出路径时先跑它，避免导出配置和真实 APK 继续漂移
-- `scripts/tools/verify_player_jump_windows.gd` 是玩家跳跃手感护栏；改 jump buffer、coyote time、二段跳或落地重置逻辑时先跑它，避免触屏提前点跳被吞或离台后保留无限宽限
-- `scripts/tools/verify_player_attack_hold.gd` 是攻击长按容错护栏；改 `InputRouter` pending / held 语义、触屏动作按钮松开 / 拖出逻辑或 `Player` 攻击收集时先跑它，避免安卓端按住 `ATK` 又退回只能单次攻击
-- `scripts/tools/verify_encounter_pressure.gd` 是行动调表护栏；新增 Suppressor / Bastion / Stalker 刷怪时先跑它，避免同一波把远程锁线、shockwave 和坠击压到同一小区域
-- `scripts/tools/verify_overdrive_greed_profile.gd` 是 Overdrive 贪分路线护栏；改 score threshold、cashout 梯度、Panic Dividend 或 `extraction_bonus_multiplier` 时先跑它，避免 Overdrive 退回普通路线
-- `scripts/tools/verify_dynamic_health_hud.gd` 是生命 HUD 护栏；改行动基础生命、directive `health_bonus` 或 HUD 生命区时先跑它，避免实际生命和屏幕 pips 再次不一致
-- `scripts/tools/verify_settings.gd` / `scripts/tools/verify_pause_settings.gd` 是设置护栏；改 `GameState` 设置结构、暂停页设置控件、移动触控目标高度或 `PlatformProfile` 震动边界时先跑它们
-- `scripts/tools/verify_platform_profile.gd` 是平台适配护栏；改 `PlatformProfile` 安全区 margin、移动端 UI scale、平台检测或震动入口时先跑它，避免刘海屏避让和触感开关边界漂移
-- `scripts/tools/verify_touch_pause.gd` 是触控暂停护栏；改 `TouchControls` 暂停按钮、`FrontendBridge.toggle_pause()` 或运行中 UI 显隐时先跑它，避免暂停后残留移动 / 动作输入
-- `scripts/tools/verify_touch_controls_layout.gd` 是运行中触控布局护栏；改 `TouchControls` 布局、按钮尺寸、移动端 UI scale 或隐藏释放逻辑时先跑它，避免按钮变小、重叠或隐藏后残留输入
-
-后续如果要更新线上版本：
-
-1. 运行 `export_web_to_docs.bat`
-2. 确认 `docs/index.html`、`docs/index.js`、`docs/index.wasm` 已更新
-3. 提交并同步到 GitHub
-
-## 已验证
-
-- `C:\\Users\\24560\\AppData\\Local\\Microsoft\\WinGet\\Packages\\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\\Godot_v4.6.2-stable_win64_console.exe --headless --path C:\\Users\\24560\\Desktop\\study\\gametwo --quit-after 3`
-- 结果：项目可加载，脚本可解析
-- 2026-05-06：新增 `EnemySuppressor` / `EnemyBolt` 后再次执行同一命令，结果通过
-- 2026-05-06：新增 `DataCore` / `ExtractionGate` / 结算逻辑后再次执行同一命令，结果通过
-- 2026-05-10：新增 `RunCatalog` / `FrontendBridge` / `SessionScreen` / 存档与行动目录后再次执行同一命令，结果通过
-- 2026-05-10：新增 directive 预选、次级目标展示、cashout 风险收益和中枢/HUD 扩展后再次执行同一命令，结果通过
-- 2026-06-06：新增 `EnemyStalker` 落点预警、坠击残影和重击音效后，项目 headless 加载与 `enemy_stalker.tscn` 单场景加载均通过
-- 2026-06-06：重新导出 `exports/android/NightRunner-debug.apk`，`apksigner` v2 / v3 验证通过，`apkanalyzer` 确认包名 / minSdk / targetSdk，`NightRunner35` Android 35 模拟器安装启动通过
-- 2026-06-06：新增玩家受击白闪、受击残影、方向性碎片和来源级重击屏幕反馈后，项目 headless 加载通过
-- 2026-06-06：修复 `EnemySuppressor` / `EnemyBastion` / `EnemyPhantom` 命中不扣血和血条未初始化问题后，项目 headless 加载与三个敌人单场景加载均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` Android 35 模拟器安装启动通过，`pidof` 返回进程 `6044`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
-- 2026-06-06：新增移动端左右触控仲裁、运行中暂停按钮和暂停页继续响应输入后，`verify_touch_input.gd` 与 `verify_touch_pause.tscn` 均通过；项目 / 触控场景 / 主场景 headless 加载通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `6716`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
-- 2026-06-06：新增遭遇压力预算脚本后，三条行动的初始 / timeline / core / completion / cashout / setpiece 刷怪桶通过 Suppressor / Bastion / Stalker 同桶距离回归检查；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2938`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
-- 2026-06-06：新增可持久化音量 / 震动设置后，`verify_settings.tscn` 和 `verify_pause_settings.tscn` 均通过；设置会写入 `GameState.meta_progress.settings`，暂停页控件通过 `GameState` 更新运行时音量和震动开关，异常旧存档的非字典设置会回退到默认结构；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3396`，`dumpsys activity` 显示 `GodotAppLauncher` 为 resumed activity
-- 2026-06-06：修复 HUD 固定 3 格生命导致 `health_bonus` 路线 / directive 显示不准的问题后，新增 `verify_dynamic_health_hud.tscn`，覆盖正生命修正、负生命修正和最小 1 格兜底；动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3102`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-06：给 `Player` 增加短 jump buffer 和明确 coyote time 后，新增 `verify_player_jump_windows.tscn`，覆盖提前点跳缓存、缓存消耗、coyote 过期收束和 coyote jump 后仍保留一次空中跳；玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3139`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-09：修复主场景 headless 限时退出时的 `AudioStreamWAV` / `AudioStreamPlaybackWAV` ObjectDB 泄漏；`AudioEngine` 现在在 headless 下不创建 WAV / 播放器，非 headless 退出会停止并释放播放器池；新增 `verify_audio_engine_shutdown.tscn`，音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新安装损坏的 Android SDK `platform-tools`、补齐 `build-tools;35.0.0`、`emulator` 和 Android 35 Google APIs x86_64 system image 后，重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2818`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-09：强化 `Overdrive Protocol` 的贪分路线后，新增 `verify_overdrive_greed_profile.tscn`，锁定高 score threshold、Panic Dividend cashout 倍率、第三段 cashout 压力波和 `extraction_bonus_multiplier` 结算；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2851`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-09：放大移动端暂停页 `VOLUME` 滑杆、`HAPTICS` 开关和 `RESUME` / `HUB` 按钮触控目标后，暂停页设置回归新增 56px 级触控高度断言；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；项目和主场景 headless 加载通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3626`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-09：触控暂停按钮现在会在进入暂停前清空 `InputRouter` 的移动和动作输入，避免恢复时残留 held / pending 输入；`verify_touch_pause.tscn` 新增暂停前按住移动 / 动作、暂停后输入清空的断言；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3862`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-09：新增 Android 导出契约护栏，锁定 Android preset 的 APK 输出路径、包名、应用名、签名、arm64、minSdk 24、targetSdk 35、横屏、沉浸模式、启动图标、boot splash 和移动渲染配置；同步把 `export_presets.cfg` 的 `version/min_sdk` 从 23 对齐到真实 APK 的 24；Android export contract、Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `4213`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-09：移动端攻击输入现在区分 pending / held，`ATK` 按住会在攻击冷却结束后自动续攻，跳跃 / 冲刺仍保持一次性消费；新增 `verify_player_attack_hold.tscn` 并扩展 `verify_touch_input.gd` 锁定 pending / held 分离；Android export contract、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `4971`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-09：新增运行中触控布局护栏，锁定移动 / 动作 / 暂停按钮尺寸、标签、互不重叠和隐藏时输入清理；验证器复现并修复 `PauseButton` 缺明确最小尺寸的问题，现在暂停按钮至少保持 `64x56` 触控目标；Android export contract、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控布局、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `5132`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
-- 2026-06-09：新增 `PlatformProfile` 安全区 / 震动边界护栏，安全区 margin 计算现在可脚本验证，震动支持同时受移动端平台和 `Input.vibrate_handheld` API 门禁约束；`verify_platform_profile.tscn`、Android export contract、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控布局、触控暂停和触控输入回归均通过；重新导出 Android debug APK `28,416,550` bytes，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `5423`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+- 当前工作分支：`hermeswork`
+- GitHub MCP 当前可能返回 `Bad credentials`；可用 `git push` 和 `gh api` 作为确认路径
