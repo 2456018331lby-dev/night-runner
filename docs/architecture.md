@@ -53,6 +53,12 @@
 - 未来如果别的 AI 重做前端，优先接这一层，不直接改玩法节点
 - 约定：前端只调用桥接信号/方法，不直接操作 `World`、`Player`、敌人节点或 `GameState` 内部字段
 
+### `AudioEngine`
+
+- 负责程序化音效生成、缓存和 `AudioStreamPlayer` 池，不接玩法状态、分数或 UI
+- 非 headless 运行时才生成 WAV 和播放器；headless 自动化检查中音频保持 no-op，避免 Godot headless WAV playback 在退出清理阶段留下 ObjectDB 泄漏
+- 改程序化音效、播放器池或 headless 运行边界后先跑 `verify_audio_engine_shutdown.tscn`
+
 ## 玩法边界
 
 ### `World`

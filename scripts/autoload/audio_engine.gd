@@ -9,16 +9,46 @@ extends Node
 
 var _streams: Dictionary = {}
 var _players: Array[AudioStreamPlayer] = []
+var _shutdown_prepared := false
+var _audio_enabled := true
 const POOL_SIZE := 16
 
 
 func _ready() -> void:
+	_audio_enabled = DisplayServer.get_name() != "headless"
+	if not _audio_enabled:
+		return
 	_generate_all_sounds()
 	for i in POOL_SIZE:
 		var player := AudioStreamPlayer.new()
 		player.bus = "Master"
 		add_child(player)
 		_players.append(player)
+
+
+func _exit_tree() -> void:
+	prepare_for_shutdown()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		prepare_for_shutdown()
+
+
+func prepare_for_shutdown() -> void:
+	if _shutdown_prepared:
+		return
+	_shutdown_prepared = true
+	for player in _players:
+		if is_instance_valid(player):
+			player.stop()
+			player.stream = null
+			var parent := player.get_parent()
+			if parent != null:
+				parent.remove_child(player)
+			player.free()
+	_players.clear()
+	_streams.clear()
 
 
 func play_attack() -> void:
@@ -89,6 +119,8 @@ func play_success() -> void:
 
 
 func _play(sound_name: String) -> void:
+	if not _audio_enabled:
+		return
 	if not _streams.has(sound_name):
 		return
 	for player in _players:

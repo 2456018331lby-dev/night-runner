@@ -1,5 +1,18 @@
 # Progress Log
 
+## 2026-06-09
+
+### 已完成（headless 音频生命周期修复）
+
+- 复现并定位主场景 `--headless --quit-after 3` 退出时的 ObjectDB warning：泄漏对象是 `AudioStreamWAV` / `AudioStreamPlaybackWAV`，来源于 headless 环境里的短 WAV playback 后端，而不是玩法节点未释放
+- `AudioEngine` 现在只在非 headless 运行时生成程序化 WAV 和 `AudioStreamPlayer` 池；headless 自动化检查里音频播放保持 no-op，避免验证进程退出时留下播放后端引用
+- 非 headless 退出时，`AudioEngine.prepare_for_shutdown()` 会停止、断开并立即释放播放器池，同时清空程序化音效缓存
+- 新增 `scenes/tools/verify_audio_engine_shutdown.tscn` / `scripts/tools/verify_audio_engine_shutdown.gd`，覆盖 headless 禁音边界和 shutdown 清理契约
+- 重新安装损坏的 Android SDK `platform-tools`，补齐 `build-tools;35.0.0`、`emulator` 和 Android 35 Google APIs x86_64 system image；`adb` 恢复为 `37.0.0`
+- 已通过音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控暂停和触控输入回归；项目和主场景 headless 加载通过，主场景 verbose 限时退出未再出现 ObjectDB leak
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,385,599` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `2818`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ## 2026-06-06
 
 ### 已完成（跳跃输入容错）
@@ -82,7 +95,7 @@
 
 - Stalker 的落点预警、残影和玩家受击闪白已补齐第一版，但仍缺真机画面检查、命中停顿手感调参和更完整的混音层
 - 多敌人混编已有第一道脚本护栏，但仍需要继续实玩验证，尤其是移动中敌人 AI 追位后是否会再次形成无解站位；远程压制者本轮已修复可击杀性，不再应出现“打中但不掉血”的基础缺陷
-- Android 模拟器可安装启动的证据已更新到 2026-06-06 20:18 APK；触控输入、暂停页设置和动态生命 HUD 已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
+- Android 模拟器可安装启动的证据已更新到 2026-06-09 APK；触控输入、暂停页设置、动态生命 HUD、玩家跳跃窗口和音频生命周期已有脚本级回归验证，但仍缺真机触屏 / 刘海屏 / 震动强度验证
 
 ### 下一步建议
 
