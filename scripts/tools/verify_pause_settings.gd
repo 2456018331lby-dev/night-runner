@@ -24,6 +24,7 @@ func _ready() -> void:
 	_expect(directive_detail.contains("Longer combo window"), "directive detail should include the directive summary")
 	_expect(directive_detail.contains("COMBO +25%"), "directive detail should include combo modifier impact text")
 	_expect(directive_detail.contains("ATK +12%"), "directive detail should keep multi-modifier impact text")
+	_verify_directive_button_state(screen, blitz, knife_party)
 
 	screen.call("build_pause", RunCatalogScript.get_operation("blitz_pursuit"))
 	await get_tree().process_frame
@@ -82,6 +83,27 @@ func _find_directive(operation: Dictionary, directive_id: String) -> Dictionary:
 		if String(directive.get("id", "")) == directive_id:
 			return directive
 	return {}
+
+
+func _verify_directive_button_state(screen: Node, operation: Dictionary, next_directive: Dictionary) -> void:
+	var first_directive: Dictionary = operation.get("directive_pool", [])[0]
+	screen.call("_clear_directive_list")
+	screen.call("_add_directive_button", operation, first_directive, true)
+	screen.call("_add_directive_button", operation, next_directive, false)
+	var buttons: Dictionary = screen.get("directive_buttons")
+	var first_button := buttons.get(String(first_directive.get("id", ""))) as Button
+	var next_button := buttons.get(String(next_directive.get("id", ""))) as Button
+	_expect(first_button != null, "first directive button was not registered")
+	_expect(next_button != null, "next directive button was not registered")
+	if first_button == null or next_button == null:
+		return
+	_expect(first_button.text.begins_with("ACTIVE"), "initial directive button should show active state")
+	_expect(next_button.text.begins_with("OPTION"), "inactive directive button should show option state")
+	screen.call("_set_directive_button_state", first_button, first_directive, false)
+	screen.call("_set_directive_button_state", next_button, next_directive, true)
+	_expect(first_button.text.begins_with("OPTION"), "previous directive button should update to option state")
+	_expect(next_button.text.begins_with("ACTIVE"), "selected directive button should update to active state")
+	_expect(next_button.text.contains("COMBO +25%"), "selected directive button should keep modifier text")
 
 
 func _expect(condition: bool, message: String) -> void:

@@ -47,6 +47,7 @@ const TEXT_TEAL := Color("77ffe4")
 var current_phase: String = FrontendBridge.PHASE_HUB
 var operation_buttons: Dictionary = {}
 var directive_buttons: Dictionary = {}
+var directive_button_data: Dictionary = {}
 var ambient_pulse: float = 0.0
 var first_run_brief_panel: PanelContainer
 var first_run_brief_list: VBoxContainer
@@ -143,6 +144,7 @@ func _clear_route_list() -> void:
 
 func _clear_directive_list() -> void:
 	directive_buttons.clear()
+	directive_button_data.clear()
 	for child in directive_list.get_children():
 		child.queue_free()
 
@@ -249,28 +251,19 @@ func _add_route_button(operation: Dictionary, selected_id: String) -> void:
 
 func _add_directive_button(operation: Dictionary, directive: Dictionary, selected: bool) -> void:
 	var btn := Button.new()
-	var modifier_summary := GameState.describe_modifier_block(Dictionary(directive.get("modifiers", {})))
-	btn.text = "%s  %s" % [("ACTIVE" if selected else "OPTION"), String(directive.get("name", ""))]
-	if not PlatformProfile.is_mobile:
-		btn.text += "\n%s" % String(directive.get("summary", ""))
-	btn.text += "\n%s" % modifier_summary
 	btn.custom_minimum_size = Vector2(0, 72)
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.focus_mode = Control.FOCUS_NONE
-	btn.button_pressed = selected
 	var operation_id := String(operation.get("id", ""))
 	var directive_id := String(directive.get("id", ""))
 	btn.pressed.connect(func(): _select_directive(operation_id, directive_id))
-	var fill := Color(0.05, 0.06, 0.13, 0.9) if selected else Color(0.04, 0.06, 0.11, 0.7)
-	var line: Color = (PANEL_ACCENT if selected else Color(0.3, 0.45, 0.6, 0.3))
-	btn.add_theme_stylebox_override("normal", _make_style(fill, line, 8, 2 if selected else 1))
-	btn.add_theme_stylebox_override("hover", _make_style(fill.lightened(0.06), line.lightened(0.1), 8, 2))
-	btn.add_theme_stylebox_override("pressed", _make_style(fill.darkened(0.08), line, 8, 2))
 	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
 	btn.add_theme_color_override("font_disabled_color", TEXT_MUTED)
 	btn.add_theme_font_size_override("font_size", 14)
+	_set_directive_button_state(btn, directive, selected)
 	directive_list.add_child(btn)
 	directive_buttons[directive_id] = btn
+	directive_button_data[directive_id] = directive.duplicate(true)
 
 
 func _select_route(operation_id: String) -> void:
@@ -285,12 +278,27 @@ func _select_route(operation_id: String) -> void:
 
 func _select_directive(operation_id: String, directive_id: String) -> void:
 	FrontendBridge.select_directive(operation_id, directive_id)
-	var operation := FrontendBridge.get_operation(operation_id)
 	for key in directive_buttons.keys():
 		var btn: Button = directive_buttons[key]
 		var sel := String(key) == directive_id
-		btn.button_pressed = sel
+		var directive: Dictionary = directive_button_data.get(key, {})
+		_set_directive_button_state(btn, directive, sel)
 	_set_hub_directive_detail(FrontendBridge.get_selected_directive(operation_id), _is_first_deploy_focus(operation_id))
+
+
+func _set_directive_button_state(btn: Button, directive: Dictionary, selected: bool) -> void:
+	var modifier_summary := GameState.describe_modifier_block(Dictionary(directive.get("modifiers", {})))
+	btn.text = "%s  %s" % [("ACTIVE" if selected else "OPTION"), String(directive.get("name", ""))]
+	if not PlatformProfile.is_mobile:
+		btn.text += "\n%s" % String(directive.get("summary", ""))
+	if not modifier_summary.is_empty():
+		btn.text += "\n%s" % modifier_summary
+	btn.button_pressed = selected
+	var fill := Color(0.05, 0.06, 0.13, 0.9) if selected else Color(0.04, 0.06, 0.11, 0.7)
+	var line: Color = (PANEL_ACCENT if selected else Color(0.3, 0.45, 0.6, 0.3))
+	btn.add_theme_stylebox_override("normal", _make_style(fill, line, 8, 2 if selected else 1))
+	btn.add_theme_stylebox_override("hover", _make_style(fill.lightened(0.06), line.lightened(0.1), 8, 2))
+	btn.add_theme_stylebox_override("pressed", _make_style(fill.darkened(0.08), line, 8, 2))
 
 
 func _set_hub_directive_detail(selected_directive: Dictionary, first_deploy_focus: bool) -> void:
