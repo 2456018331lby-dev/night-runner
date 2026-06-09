@@ -406,6 +406,8 @@ func _get_pause_control_height() -> float:
 func _add_route_note(text: String, color: Color) -> void:
 	var label := Label.new()
 	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", color)
 	route_list.add_child(label)
@@ -414,6 +416,8 @@ func _add_route_note(text: String, color: Color) -> void:
 func _add_directive_note(text: String, color: Color) -> void:
 	var label := Label.new()
 	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_font_size_override("font_size", 14)
 	label.add_theme_color_override("font_color", color)
 	directive_list.add_child(label)

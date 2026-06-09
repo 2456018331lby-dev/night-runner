@@ -33,14 +33,20 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	var route_list: VBoxContainer = screen.get_node("Content/Root/Body/LeftPanel/LeftCol/RouteScroll/RouteList")
+	var directive_list: VBoxContainer = screen.get_node("Content/Root/Body/RightPanel/RightCol/DirectiveScroll/DirectiveList")
 	var primary_button: Button = screen.get_node("Content/Root/Footer/ActionRow/Primary")
 	var secondary_button: Button = screen.get_node("Content/Root/Footer/ActionRow/Secondary")
 	var volume_slider := _find_first_child_of_type(route_list, HSlider) as HSlider
 	var haptics_toggle := _find_first_child_of_type(route_list, CheckButton) as CheckButton
+	var optional_note := _find_label_starting_with(directive_list, "Optional:")
 	_expect(volume_slider != null, "pause settings did not create a volume slider")
 	_expect(haptics_toggle != null, "pause settings did not create a haptics toggle")
+	_expect(optional_note != null, "pause screen did not add optional objective note")
 	_expect(primary_button.custom_minimum_size.y >= 56.0, "pause resume button is below mobile touch target height")
 	_expect(secondary_button.custom_minimum_size.y >= 56.0, "pause hub button is below mobile touch target height")
+	if optional_note != null:
+		_expect(optional_note.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "pause optional objective note should wrap on mobile")
+		_expect(optional_note.size_flags_horizontal == Control.SIZE_EXPAND_FILL, "pause optional objective note should fill available width")
 
 	if volume_slider != null:
 		_expect(volume_slider.custom_minimum_size.y >= 56.0, "volume slider is below mobile touch target height")
@@ -57,6 +63,27 @@ func _ready() -> void:
 		haptics_toggle.button_pressed = false
 		await get_tree().process_frame
 		_expect(not GameState.are_haptics_enabled(), "haptics toggle did not update GameState haptics")
+
+	GameState.run_success = false
+	GameState.is_run_failed = true
+	GameState.score = 1260
+	GameState.final_rank = "FAIL"
+	GameState.health = 1
+	GameState.data_cores_collected = 2
+	GameState.data_cores_total = 5
+	GameState.extraction_unlocked = false
+	screen.call("build_results", blitz)
+	await get_tree().process_frame
+	var result_why_note := _find_label_starting_with(route_list, "Why:")
+	var result_try_note := _find_label_starting_with(route_list, "Try next:")
+	_expect(result_why_note != null, "result screen did not add why note")
+	_expect(result_try_note != null, "result screen did not add try-next note")
+	if result_why_note != null:
+		_expect(result_why_note.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "result why note should wrap on mobile")
+		_expect(result_why_note.size_flags_horizontal == Control.SIZE_EXPAND_FILL, "result why note should fill available width")
+	if result_try_note != null:
+		_expect(result_try_note.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "result try-next note should wrap on mobile")
+		_expect(result_try_note.size_flags_horizontal == Control.SIZE_EXPAND_FILL, "result try-next note should fill available width")
 
 	PlatformProfile.is_mobile = original_mobile
 	GameState.meta_progress["unlocked_operations"] = original_unlocked
@@ -78,6 +105,16 @@ func _find_first_child_of_type(root: Node, type_hint: Variant) -> Node:
 		if is_instance_of(child, type_hint):
 			return child
 		var nested := _find_first_child_of_type(child, type_hint)
+		if nested != null:
+			return nested
+	return null
+
+
+func _find_label_starting_with(root: Node, prefix: String) -> Label:
+	for child in root.get_children():
+		if child is Label and String((child as Label).text).begins_with(prefix):
+			return child as Label
+		var nested := _find_label_starting_with(child, prefix)
 		if nested != null:
 			return nested
 	return null
