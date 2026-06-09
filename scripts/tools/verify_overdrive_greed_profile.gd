@@ -59,6 +59,16 @@ func _ready() -> void:
 	_expect(GameState.get_next_extraction_bonus_value() == int(round(float(base_bounty) * 1.5 * float(base_modifiers.get("extraction_bonus_multiplier", 1.0)))), "cashout multiplier affects first bounty")
 	GameState.extraction_bonus_kills = 2
 	_expect(GameState.get_next_extraction_bonus_value() == int(round(float(base_bounty + step_bounty) * 1.5 * float(base_modifiers.get("extraction_bonus_multiplier", 1.0)))), "cashout multiplier affects step bounty")
+	GameState.extraction_unlocked = true
+	GameState.extraction_unlock_time = 11.0
+	GameState.elapsed_time = 19.0
+	GameState.pending_extraction_bonus = 0
+	var live_cashout_status := GameState.get_extraction_bonus_status_text()
+	_expect(live_cashout_status.contains("00:08"), "cashout status shows live overstay timer before banked bonus")
+	GameState.pending_extraction_bonus = 390
+	var banked_cashout_status := GameState.get_extraction_bonus_status_text()
+	_expect(banked_cashout_status.contains("00:08"), "banked cashout status keeps overstay timer")
+	_expect(banked_cashout_status.split(" // ")[0].contains("00:08"), "mobile cashout summary keeps the overstay timer before detail split")
 
 	if not blitz.is_empty():
 		GameState.start_run(blitz, {})

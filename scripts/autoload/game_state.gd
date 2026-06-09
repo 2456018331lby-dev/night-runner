@@ -536,8 +536,8 @@ func get_extraction_bonus_status_text() -> String:
 		return "No extraction bonus active."
 	var live_time := formatted_cashout_time()
 	if pending_extraction_bonus <= 0:
-		return "%s live. Extract now or defeat enemies for bonus." % get_extraction_bonus_label()
-	return "%s +%d banked // %d takedowns" % [get_extraction_bonus_label(), pending_extraction_bonus, extraction_bonus_kills]
+		return "%s %s live. Extract now or defeat enemies for bonus." % [get_extraction_bonus_label(), live_time]
+	return "%s %s +%d banked // %d takedowns" % [get_extraction_bonus_label(), live_time, pending_extraction_bonus, extraction_bonus_kills]
 
 
 func get_extraction_bonus_progress_ratio() -> float:
@@ -662,15 +662,16 @@ func get_run_rank_report_lines() -> Array[String]:
 		var optional_label := "Optional complete +%d." % secondary_bonus_awarded if secondary_objective_completed else "Optional missed // %s" % get_secondary_objective_name()
 		lines.append(optional_label)
 	if run_success and extraction_bonus_awarded > 0:
-		lines.append("%s cashed +%d from %d takedown(s)." % [
+		lines.append("%s cashed +%d from %d takedown(s) over %s." % [
 			get_extraction_bonus_label(),
 			extraction_bonus_awarded,
 			extraction_bonus_kills,
+			formatted_cashout_time(),
 		])
 	elif pending_extraction_bonus > 0:
-		lines.append("%s lost +%d // cash out sooner." % [get_extraction_bonus_label(), pending_extraction_bonus])
+		lines.append("%s lost +%d after %s // cash out sooner." % [get_extraction_bonus_label(), pending_extraction_bonus, formatted_cashout_time()])
 	elif extraction_bonus_active:
-		lines.append("%s unused // overstay after unlock for score." % get_extraction_bonus_label())
+		lines.append("%s unused at %s // overstay after unlock for score." % [get_extraction_bonus_label(), formatted_cashout_time()])
 	return lines
 
 
