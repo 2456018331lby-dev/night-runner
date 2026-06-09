@@ -31,7 +31,7 @@ func get_mobile_ui_scale() -> float:
 
 
 func supports_haptics() -> bool:
-	return is_mobile
+	return is_mobile and Input.has_method("vibrate_handheld")
 
 
 func haptics_enabled() -> bool:
@@ -55,10 +55,15 @@ func vibrate_warn() -> void:
 func _refresh_safe_area_margin() -> void:
 	var screen_size := DisplayServer.screen_get_size()
 	var safe_area := DisplayServer.get_display_safe_area()
+	safe_area_margin = _calculate_safe_area_margin(screen_size, safe_area)
+
+
+func _calculate_safe_area_margin(screen_size: Vector2i, safe_area: Rect2i) -> Vector4:
+	if screen_size.x <= 0 or screen_size.y <= 0:
+		return Vector4.ZERO
 	if safe_area.size.x <= 0 or safe_area.size.y <= 0:
-		safe_area_margin = Vector4.ZERO
-		return
-	safe_area_margin = Vector4(
+		return Vector4.ZERO
+	return Vector4(
 		maxf(0.0, float(safe_area.position.x)),
 		maxf(0.0, float(safe_area.position.y)),
 		maxf(0.0, float(screen_size.x - safe_area.end.x)),

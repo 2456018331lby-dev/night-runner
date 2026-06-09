@@ -2,6 +2,15 @@
 
 ## 2026-06-09
 
+### 已完成（PlatformProfile 安全区 / 震动边界护栏）
+
+- `PlatformProfile.supports_haptics()` 现在同时要求移动端平台和 `Input.vibrate_handheld` API 可用，暂停页设置仍控制用户意愿，执行震动前由平台门禁统一收口
+- 安全区 margin 计算抽成 `_calculate_safe_area_margin()`，刘海 / 手势区域左右上下避让、无效 safe area 和无效屏幕尺寸都有脚本级覆盖
+- 新增 `scenes/tools/verify_platform_profile.tscn` / `scripts/tools/verify_platform_profile.gd`，锁定桌面安全区归零、移动端 UI scale clamp、震动开关边界和安全区 margin 计算
+- 已通过 Android export contract、PlatformProfile、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控布局、触控暂停和触控输入回归；项目和主场景 headless 加载通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,416,550` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `5423`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（触控布局护栏）
 
 - 新增 `scenes/tools/verify_touch_controls_layout.tscn` / `scripts/tools/verify_touch_controls_layout.gd`，锁定移动端触控层必须显示、移动 / 动作 / 暂停按钮保持足够触控尺寸、按钮标签保持紧凑、左右操作区和暂停按钮不互相重叠

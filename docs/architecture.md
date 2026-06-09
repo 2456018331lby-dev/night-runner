@@ -37,6 +37,7 @@
 - 统一判断当前平台
 - 暴露 `is_mobile`、`is_desktop`
 - 暴露 UI 安全区、移动端缩放和轻量震动入口；移动端反馈优先经这里，不要把平台分支散回玩法脚本
+- 安全区 margin 计算和震动支持边界已有 `verify_platform_profile.tscn` 覆盖；改安全区、移动端 UI scale、平台判断或震动入口后先跑它
 - 未来可扩展画质、UI 安全区、震动、广告开关、Steam 检测
 - 当前 `SessionScreen`、`HUD`、`TouchControls` 都应经这里读安全区；新的移动端 UI 不要再写死边距
 

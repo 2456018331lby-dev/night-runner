@@ -117,6 +117,7 @@
 - `scripts/tools/verify_overdrive_greed_profile.gd` 是 Overdrive 贪分路线护栏；改 score threshold、cashout 梯度、Panic Dividend 或 `extraction_bonus_multiplier` 时先跑它，避免 Overdrive 退回普通路线
 - `scripts/tools/verify_dynamic_health_hud.gd` 是生命 HUD 护栏；改行动基础生命、directive `health_bonus` 或 HUD 生命区时先跑它，避免实际生命和屏幕 pips 再次不一致
 - `scripts/tools/verify_settings.gd` / `scripts/tools/verify_pause_settings.gd` 是设置护栏；改 `GameState` 设置结构、暂停页设置控件、移动触控目标高度或 `PlatformProfile` 震动边界时先跑它们
+- `scripts/tools/verify_platform_profile.gd` 是平台适配护栏；改 `PlatformProfile` 安全区 margin、移动端 UI scale、平台检测或震动入口时先跑它，避免刘海屏避让和触感开关边界漂移
 - `scripts/tools/verify_touch_pause.gd` 是触控暂停护栏；改 `TouchControls` 暂停按钮、`FrontendBridge.toggle_pause()` 或运行中 UI 显隐时先跑它，避免暂停后残留移动 / 动作输入
 - `scripts/tools/verify_touch_controls_layout.gd` 是运行中触控布局护栏；改 `TouchControls` 布局、按钮尺寸、移动端 UI scale 或隐藏释放逻辑时先跑它，避免按钮变小、重叠或隐藏后残留输入
 
@@ -150,3 +151,4 @@
 - 2026-06-09：新增 Android 导出契约护栏，锁定 Android preset 的 APK 输出路径、包名、应用名、签名、arm64、minSdk 24、targetSdk 35、横屏、沉浸模式、启动图标、boot splash 和移动渲染配置；同步把 `export_presets.cfg` 的 `version/min_sdk` 从 23 对齐到真实 APK 的 24；Android export contract、Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `4213`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09：移动端攻击输入现在区分 pending / held，`ATK` 按住会在攻击冷却结束后自动续攻，跳跃 / 冲刺仍保持一次性消费；新增 `verify_player_attack_hold.tscn` 并扩展 `verify_touch_input.gd` 锁定 pending / held 分离；Android export contract、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `4971`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09：新增运行中触控布局护栏，锁定移动 / 动作 / 暂停按钮尺寸、标签、互不重叠和隐藏时输入清理；验证器复现并修复 `PauseButton` 缺明确最小尺寸的问题，现在暂停按钮至少保持 `64x56` 触控目标；Android export contract、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控布局、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `5132`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+- 2026-06-09：新增 `PlatformProfile` 安全区 / 震动边界护栏，安全区 margin 计算现在可脚本验证，震动支持同时受移动端平台和 `Input.vibrate_handheld` API 门禁约束；`verify_platform_profile.tscn`、Android export contract、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控布局、触控暂停和触控输入回归均通过；重新导出 Android debug APK `28,416,550` bytes，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `5423`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
