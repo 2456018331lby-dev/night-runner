@@ -230,7 +230,7 @@ func _refresh() -> void:
 	if PlatformProfile.is_mobile:
 		directive_summary.text = ""
 		phase_status.text = GameState.get_route_pressure_text()
-		cashout_status.text = GameState.get_extraction_bonus_status_text().split(" // ")[0]
+		cashout_status.text = _get_mobile_cashout_status_text()
 		operation_card.visible = false
 		phase_card.visible = false
 		secondary_card.visible = false
@@ -761,6 +761,31 @@ func _format_mobile_time(time_value: float) -> String:
 	var minutes := total_seconds / 60
 	var seconds := total_seconds % 60
 	return "%02d:%02d" % [minutes, seconds]
+
+
+func _get_mobile_cashout_status_text() -> String:
+	var fragments: Array[String] = [GameState.get_extraction_bonus_status_text().split(" // ")[0]]
+	if operation_context.has("hazards") and Array(operation_context.get("hazards", [])).size() > 0:
+		var hazard_status := _get_mobile_hazard_status_text()
+		if not hazard_status.is_empty():
+			fragments.append(hazard_status)
+	return "\n".join(fragments)
+
+
+func _get_mobile_hazard_status_text() -> String:
+	var hazard_text := GameState.get_hazard_status_text()
+	if hazard_text.is_empty() or hazard_text.contains("dormant") or hazard_text.contains("offline"):
+		return ""
+	var parts := hazard_text.split(" // ")
+	var label := parts[0].strip_edges()
+	var detail := parts[1].strip_edges() if parts.size() > 1 else label
+	if detail.length() > 28:
+		detail = detail.substr(0, 25).strip_edges() + "..."
+	if label == "Hot zone":
+		return "HAZARD HOT %s" % detail
+	if label == "Priming":
+		return "HAZARD ARMING %s" % detail
+	return "HAZARD %s" % detail
 
 
 func _direction_to_arrow(direction: Vector2) -> String:

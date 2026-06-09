@@ -5,6 +5,7 @@ const PIP_ROW_PATH := NodePath("MarginContainer/RootColumn/TopRow/TelemetryCard/
 const PHASE_CARD_PATH := NodePath("MarginContainer/RootColumn/ObjectiveRow/PhaseCard")
 const NAV_CARD_PATH := NodePath("MarginContainer/RootColumn/CashoutRow/NavCard")
 const NAV_STATUS_PATH := NodePath("MarginContainer/RootColumn/CashoutRow/NavCard/Margin/VBox/NavStatus")
+const CASHOUT_STATUS_PATH := NodePath("MarginContainer/RootColumn/CashoutRow/CashoutCard/Margin/VBox/CashoutStatus")
 
 var failures: Array[String] = []
 
@@ -45,7 +46,8 @@ func _ready() -> void:
 		"target_time": 58.0,
 	}
 	GameState.elapsed_time = 42.0
-	GameState.set_live_route_status("BREACH", "Relay Bloom. Suppressor geometry is live.", "Hazard net dormant.")
+	GameState.set_live_route_status("BREACH", "Relay Bloom. Suppressor geometry is live.", "Hot zone // Relay trip beam")
+	hud.call("set_operation_context", {"hazards": [{"id": "relay_trip_beam"}]}, {})
 	hud.call("set_navigation_target", "data core", 180.0, Vector2(1.0, -0.2), true)
 	await get_tree().process_frame
 	_expect_mobile_nav_pressure(hud)
@@ -90,6 +92,7 @@ func _expect_mobile_nav_pressure(hud: CanvasLayer) -> void:
 	var phase_card := hud.get_node(PHASE_CARD_PATH) as PanelContainer
 	var nav_card := hud.get_node(NAV_CARD_PATH) as PanelContainer
 	var nav_status := hud.get_node(NAV_STATUS_PATH) as Label
+	var cashout_status := hud.get_node(CASHOUT_STATUS_PATH) as Label
 	if phase_card.visible:
 		failures.append("mobile HUD should keep the phase card hidden for density")
 	if not nav_card.visible:
@@ -108,3 +111,7 @@ func _expect_mobile_nav_pressure(hud: CanvasLayer) -> void:
 		failures.append("mobile navigation card lost compact optional objective remaining-time status")
 	if nav_status.text.contains("Extract before"):
 		failures.append("mobile navigation card should use compact optional objective copy")
+	if not cashout_status.text.contains("HAZARD HOT Relay trip beam"):
+		failures.append("mobile cashout card should keep compact live hazard status")
+	if cashout_status.text.contains("Hot zone //"):
+		failures.append("mobile cashout card should not use verbose hazard status separators")
