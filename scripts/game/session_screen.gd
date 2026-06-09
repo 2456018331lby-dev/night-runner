@@ -371,6 +371,16 @@ func _add_debrief_metrics(operation: Dictionary) -> void:
 func _add_pause_metrics() -> void:
 	_add_route_note("Time %s" % GameState.formatted_time(), TEXT_PRIMARY)
 	_add_route_note("Combo %d · HP %d" % [GameState.combo_count, GameState.health], TEXT_MUTED)
+	var route_pressure := _format_pause_route_pressure(GameState.get_route_pressure_text())
+	if route_pressure.is_empty():
+		_add_route_note("Route %s" % GameState.get_route_phase_text(), TEXT_TEAL)
+	else:
+		_add_route_note("Route %s · %s" % [GameState.get_route_phase_text(), route_pressure], TEXT_TEAL)
+	if GameState.extraction_unlocked or GameState.extraction_bonus_active:
+		_add_route_note("Cashout %s" % GameState.get_extraction_bonus_status_text().split(" // ")[0], TEXT_GOLD if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
+	var hazard_status := GameState.get_hazard_status_text()
+	if not hazard_status.is_empty() and hazard_status != "Hazard net dormant.":
+		_add_route_note("Hazard %s" % hazard_status.replace(" // ", " · "), TEXT_ALERT)
 
 
 func _add_pause_settings() -> void:
@@ -419,6 +429,13 @@ func _add_pause_settings() -> void:
 
 func _update_volume_label(label: Label, value: float) -> void:
 	label.text = "VOLUME %d%%" % int(round(clampf(value, 0.0, 1.0) * 100.0))
+
+
+func _format_pause_route_pressure(pressure_text: String) -> String:
+	var compact := pressure_text.strip_edges()
+	if compact.is_empty():
+		return ""
+	return compact.split(".")[0].strip_edges()
 
 
 func _get_pause_control_height() -> float:

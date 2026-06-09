@@ -12,6 +12,20 @@ func _ready() -> void:
 	var original_haptics := GameState.are_haptics_enabled()
 	var original_unlocked: Array = GameState.meta_progress.get("unlocked_operations", []).duplicate(true)
 	var original_records: Dictionary = GameState.meta_progress.get("operation_records", {}).duplicate(true)
+	var original_run_success := GameState.run_success
+	var original_run_failed := GameState.is_run_failed
+	var original_elapsed := GameState.elapsed_time
+	var original_combo := GameState.combo_count
+	var original_health := GameState.health
+	var original_extraction_unlocked := GameState.extraction_unlocked
+	var original_extraction_active := GameState.extraction_bonus_active
+	var original_extraction_label := GameState.extraction_bonus_label
+	var original_extraction_unlock_time := GameState.extraction_unlock_time
+	var original_pending_bonus := GameState.pending_extraction_bonus
+	var original_extraction_kills := GameState.extraction_bonus_kills
+	var original_route_phase := GameState.get_route_phase_text()
+	var original_route_pressure := GameState.get_route_pressure_text()
+	var original_hazard_status := GameState.get_hazard_status_text()
 	PlatformProfile.is_mobile = true
 	GameState.meta_progress["unlocked_operations"] = ["blitz_pursuit"]
 	GameState.meta_progress["operation_records"] = {
@@ -39,6 +53,18 @@ func _ready() -> void:
 	_verify_route_button_state(screen, blitz, RunCatalogScript.get_operation("ghost_circuit"))
 	_verify_directive_button_state(screen, blitz, knife_party)
 
+	GameState.run_success = false
+	GameState.is_run_failed = false
+	GameState.elapsed_time = 74.0
+	GameState.combo_count = 4
+	GameState.health = 2
+	GameState.extraction_unlocked = true
+	GameState.extraction_bonus_active = true
+	GameState.extraction_bonus_label = "Pursuit Bonus"
+	GameState.extraction_unlock_time = 62.0
+	GameState.pending_extraction_bonus = 180
+	GameState.extraction_bonus_kills = 2
+	GameState.set_live_route_status("CASHOUT", "Extraction open. Greed converts survival into payout.", "Hot zone // Convoy shear line")
 	screen.call("build_pause", RunCatalogScript.get_operation("blitz_pursuit"))
 	await get_tree().process_frame
 
@@ -49,14 +75,28 @@ func _ready() -> void:
 	var volume_slider := _find_first_child_of_type(route_list, HSlider) as HSlider
 	var haptics_toggle := _find_first_child_of_type(route_list, CheckButton) as CheckButton
 	var optional_note := _find_label_starting_with(directive_list, "Optional:")
+	var route_note := _find_label_starting_with(route_list, "Route ")
+	var cashout_note := _find_label_starting_with(route_list, "Cashout ")
+	var hazard_note := _find_label_starting_with(route_list, "Hazard ")
 	_expect(volume_slider != null, "pause settings did not create a volume slider")
 	_expect(haptics_toggle != null, "pause settings did not create a haptics toggle")
 	_expect(optional_note != null, "pause screen did not add optional objective note")
+	_expect(route_note != null, "pause screen did not add live route note")
+	_expect(cashout_note != null, "pause screen did not add live cashout note")
+	_expect(hazard_note != null, "pause screen did not add live hazard note")
 	_expect(primary_button.custom_minimum_size.y >= 56.0, "pause resume button is below mobile touch target height")
 	_expect(secondary_button.custom_minimum_size.y >= 56.0, "pause hub button is below mobile touch target height")
 	if optional_note != null:
 		_expect(optional_note.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "pause optional objective note should wrap on mobile")
 		_expect(optional_note.size_flags_horizontal == Control.SIZE_EXPAND_FILL, "pause optional objective note should fill available width")
+	if route_note != null:
+		_expect(route_note.text.contains("CASHOUT"), "pause route note should show live route phase")
+		_expect(route_note.text.contains("Extraction open"), "pause route note should show compact route pressure")
+		_expect(not route_note.text.contains("Greed converts"), "pause route note should avoid full route coaching copy")
+	if cashout_note != null:
+		_expect(cashout_note.text.contains("Pursuit Bonus 00:12 +180 banked"), "pause cashout note should show live timer and banked value")
+	if hazard_note != null:
+		_expect(hazard_note.text.contains("Hazard Hot zone · Convoy shear line"), "pause hazard note should compact hazard separators")
 
 	if volume_slider != null:
 		_expect(volume_slider.custom_minimum_size.y >= 56.0, "volume slider is below mobile touch target height")
@@ -98,6 +138,18 @@ func _ready() -> void:
 	PlatformProfile.is_mobile = original_mobile
 	GameState.meta_progress["unlocked_operations"] = original_unlocked
 	GameState.meta_progress["operation_records"] = original_records
+	GameState.run_success = original_run_success
+	GameState.is_run_failed = original_run_failed
+	GameState.elapsed_time = original_elapsed
+	GameState.combo_count = original_combo
+	GameState.health = original_health
+	GameState.extraction_unlocked = original_extraction_unlocked
+	GameState.extraction_bonus_active = original_extraction_active
+	GameState.extraction_bonus_label = original_extraction_label
+	GameState.extraction_unlock_time = original_extraction_unlock_time
+	GameState.pending_extraction_bonus = original_pending_bonus
+	GameState.extraction_bonus_kills = original_extraction_kills
+	GameState.set_live_route_status(original_route_phase, original_route_pressure, original_hazard_status)
 	GameState.set_master_volume(original_volume, false)
 	GameState.set_haptics_enabled(original_haptics, false)
 	screen.queue_free()

@@ -69,6 +69,7 @@
 - 撤离门和最后几个核心不能摆得太刁钻
 - Cashout 文案必须保留 overstay `00:xx` 计时；移动端压缩 HUD 也不能只显示 banked 分数
 - 移动端 route 卡必须保留 best time；没成功记录时显示 `TIME --`，不要把 00:00 当成成绩
+- 暂停页 live data 必须保留 route / cashout / hazard 摘要，不能只剩 Time、Combo、HP
 - 触屏攻击支持长按续攻，跳跃 / 冲刺仍保持一次性消费
 - 触屏暂停前必须清空移动和动作输入，避免恢复后残留
 
