@@ -22,18 +22,25 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	var route_list: VBoxContainer = screen.get_node("Content/Root/Body/LeftPanel/LeftCol/RouteScroll/RouteList")
+	var primary_button: Button = screen.get_node("Content/Root/Footer/ActionRow/Primary")
+	var secondary_button: Button = screen.get_node("Content/Root/Footer/ActionRow/Secondary")
 	var volume_slider := _find_first_child_of_type(route_list, HSlider) as HSlider
 	var haptics_toggle := _find_first_child_of_type(route_list, CheckButton) as CheckButton
 	_expect(volume_slider != null, "pause settings did not create a volume slider")
 	_expect(haptics_toggle != null, "pause settings did not create a haptics toggle")
+	_expect(primary_button.custom_minimum_size.y >= 56.0, "pause resume button is below mobile touch target height")
+	_expect(secondary_button.custom_minimum_size.y >= 56.0, "pause hub button is below mobile touch target height")
 
 	if volume_slider != null:
+		_expect(volume_slider.custom_minimum_size.y >= 56.0, "volume slider is below mobile touch target height")
 		_expect(is_equal_approx(volume_slider.value, 0.7), "volume slider did not mirror GameState volume")
 		volume_slider.value = 0.45
 		await get_tree().process_frame
 		_expect(is_equal_approx(GameState.get_master_volume(), 0.45), "volume slider did not update GameState volume")
 
 	if haptics_toggle != null:
+		_expect(haptics_toggle.custom_minimum_size.y >= 56.0, "haptics toggle is below mobile touch target height")
+		_expect(haptics_toggle.size_flags_horizontal == Control.SIZE_EXPAND_FILL, "haptics toggle should fill the pause settings column")
 		_expect(haptics_toggle.button_pressed, "haptics toggle did not mirror GameState haptics")
 		_expect(not haptics_toggle.disabled, "haptics toggle should be enabled on mobile profile")
 		haptics_toggle.button_pressed = false

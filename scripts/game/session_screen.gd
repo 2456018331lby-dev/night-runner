@@ -10,6 +10,7 @@ const FONT_DISPLAY_SIZE := 36
 const FONT_TITLE_SIZE := 20
 const FONT_BODY_SIZE := 14
 const FONT_CAPTION_SIZE := 11
+const MOBILE_TOUCH_TARGET_MIN := 56.0
 const PANEL_BG := Color("09121f")
 const PANEL_LINE := Color("4fdcff")
 const PANEL_ACCENT := Color("ff7b43")
@@ -332,7 +333,7 @@ func _add_pause_settings() -> void:
 	vol_slider.max_value = 1.0
 	vol_slider.step = 0.05
 	vol_slider.value = GameState.get_master_volume()
-	vol_slider.custom_minimum_size = Vector2(228, 32)
+	vol_slider.custom_minimum_size = Vector2(228, _get_pause_control_height())
 	vol_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_update_volume_label(vol_label, vol_slider.value)
 	vol_slider.value_changed.connect(func(val: float) -> void:
@@ -346,6 +347,8 @@ func _add_pause_settings() -> void:
 	haptics_toggle.button_pressed = GameState.are_haptics_enabled()
 	haptics_toggle.disabled = not PlatformProfile.supports_haptics()
 	haptics_toggle.focus_mode = Control.FOCUS_NONE
+	haptics_toggle.custom_minimum_size = Vector2(0, _get_pause_control_height())
+	haptics_toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	haptics_toggle.add_theme_font_size_override("font_size", int(13 * PlatformProfile.get_mobile_ui_scale()))
 	haptics_toggle.add_theme_color_override("font_color", TEXT_PRIMARY)
 	haptics_toggle.add_theme_color_override("font_disabled_color", TEXT_MUTED)
@@ -359,6 +362,12 @@ func _add_pause_settings() -> void:
 
 func _update_volume_label(label: Label, value: float) -> void:
 	label.text = "VOLUME %d%%" % int(round(clampf(value, 0.0, 1.0) * 100.0))
+
+
+func _get_pause_control_height() -> float:
+	if PlatformProfile.is_mobile:
+		return maxf(MOBILE_TOUCH_TARGET_MIN, MOBILE_TOUCH_TARGET_MIN * PlatformProfile.get_mobile_ui_scale())
+	return 40.0
 
 
 func _add_route_note(text: String, color: Color) -> void:
@@ -643,6 +652,9 @@ func _apply_theme() -> void:
 	$Content/Root/Body/LeftPanel.custom_minimum_size = Vector2(272 if PlatformProfile.is_mobile else 300, 0)
 	$Content/Root/Body/RightPanel/RightCol.add_theme_constant_override("separation", 14 if not PlatformProfile.is_mobile else 10)
 	$Content/Root/Body/LeftPanel/LeftCol.add_theme_constant_override("separation", 12 if not PlatformProfile.is_mobile else 10)
+	var footer_button_height := _get_pause_control_height() if PlatformProfile.is_mobile else 50.0
+	primary_button.custom_minimum_size = Vector2(180, footer_button_height)
+	secondary_button.custom_minimum_size = Vector2(150, footer_button_height)
 	_style_button(primary_button, Color("173554"), Color("4fdcff"), TEXT_PRIMARY)
 	_style_button(secondary_button, Color("2b2238"), Color("ff7b43"), TEXT_PRIMARY)
 	_refresh_first_run_brief()

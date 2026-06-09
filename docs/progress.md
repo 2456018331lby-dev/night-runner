@@ -2,6 +2,15 @@
 
 ## 2026-06-09
 
+### 已完成（暂停页移动触控命中）
+
+- 把 `SessionScreen` 暂停页的 `VOLUME` 滑杆、`HAPTICS` 开关和底部 `RESUME` / `HUB` 按钮提升到移动端 56px 级触控目标，减少安卓横屏下细滑杆和小开关难以命中的问题
+- 暂停页设置控件现在复用同一个移动触控高度边界，避免以后只放大按钮、漏掉滑杆或开关
+- 扩展 `verify_pause_settings.tscn` / `scripts/tools/verify_pause_settings.gd`：除了验证设置能写回 `GameState`，现在还锁定音量滑杆、震动开关和暂停页底部按钮的移动端最小触控高度
+- 已通过 Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控暂停和触控输入回归；项目和主场景 headless 加载通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,394,258` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `3626`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（Overdrive 贪分路线强化）
 
 - 给 `GameState` 增加 `extraction_bonus_multiplier` 通道，cashout 每次击杀奖励现在能被行动基础 modifier 和 directive 真正放大；`GameState.describe_modifier_block()` 也会在中枢 / HUD 摘要里显示 `CASHOUT` 变化
