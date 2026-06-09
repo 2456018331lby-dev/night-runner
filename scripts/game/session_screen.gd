@@ -192,6 +192,7 @@ func _refresh_focus(operation: Dictionary) -> void:
 			_add_result_card("WHY YOU WON" if GameState.run_success else "WHY YOU LOST", [GameState.get_result_outcome_summary()], TEXT_SUCCESS if GameState.run_success else TEXT_ALERT)
 			_add_result_card("TRY NEXT", [GameState.get_result_next_hint()], TEXT_TEAL)
 			_add_result_card("RUN VERDICT", [GameState.get_run_verdict_text()], TEXT_GOLD)
+			_add_result_card("RANK REPORT", GameState.get_run_rank_report_lines(), TEXT_TEAL)
 			_add_result_card("SCORE BREAKDOWN", GameState.get_run_score_breakdown_lines(), PANEL_LINE)
 			if not GameState.run_success and int(GameState.meta_progress.get("career_failures", 0)) == 1:
 				_add_result_card("QUICK REMINDER", GameState.get_quick_reminder_lines(), TEXT_ALERT)

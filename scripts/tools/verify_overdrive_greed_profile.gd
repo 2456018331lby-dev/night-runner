@@ -49,6 +49,37 @@ func _ready() -> void:
 	GameState.extraction_bonus_kills = 2
 	_expect(GameState.get_next_extraction_bonus_value() == int(round(float(base_bounty + step_bounty) * 1.5 * float(base_modifiers.get("extraction_bonus_multiplier", 1.0)))), "cashout multiplier affects step bounty")
 
+	_expect(GameState.calculate_rank_for_score(2400) == "S", "rank thresholds produce S at the top target")
+	_expect(GameState.calculate_rank_for_score(2399) == "A", "rank thresholds keep near-S clears at A")
+	_expect(GameState.calculate_rank_for_score(949) == "D", "rank thresholds keep sub-C clears at D")
+
+	GameState.run_success = true
+	GameState.score = 2200
+	GameState.final_rank = GameState.calculate_rank_for_score(GameState.score)
+	GameState.elapsed_time = 42.0
+	GameState.finish_bonus_awarded = 420
+	GameState.secondary_objective_completed = true
+	GameState.secondary_bonus_awarded = int(objective.get("reward_score", 0))
+	GameState.extraction_bonus_awarded = 0
+	GameState.pending_extraction_bonus = 0
+	GameState.extraction_bonus_active = true
+	GameState.extraction_bonus_kills = 0
+	GameState.hits_taken = 1
+	GameState.hazard_hits_taken = 1
+	var success_report := GameState.get_run_rank_report_lines()
+	_expect(success_report.size() >= 5, "rank report includes enough result coaching detail")
+	_expect(success_report[0].contains("200 score to S"), "rank report explains near-S score gap")
+	_expect(_has_line(success_report, "Pace 00:42"), "rank report includes pace and exit package")
+	_expect(_has_line(success_report, "Damage 1 hit"), "rank report includes damage pressure")
+	_expect(_has_line(success_report, "Optional complete +640"), "rank report includes optional objective payout")
+
+	GameState.run_success = false
+	GameState.final_rank = "FAIL"
+	GameState.pending_extraction_bonus = 390
+	var failure_report := GameState.get_run_rank_report_lines()
+	_expect(failure_report[0].contains("Extraction failed"), "failed rank report prioritizes extraction over score chasing")
+	_expect(_has_line(failure_report, "lost +390"), "failed rank report calls out lost cashout value")
+
 	_finish()
 
 
@@ -65,6 +96,13 @@ func _count_control_enemies(spawn_list: Array) -> int:
 		]:
 			count += 1
 	return count
+
+
+func _has_line(lines: Array[String], needle: String) -> bool:
+	for line in lines:
+		if line.contains(needle):
+			return true
+	return false
 
 
 func _finish() -> void:

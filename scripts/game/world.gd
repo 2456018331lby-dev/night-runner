@@ -782,15 +782,7 @@ func _build_hazard_status_text() -> String:
 
 
 func _calculate_rank() -> String:
-	if GameState.score >= 2400:
-		return "S"
-	if GameState.score >= 1850:
-		return "A"
-	if GameState.score >= 1400:
-		return "B"
-	if GameState.score >= 950:
-		return "C"
-	return "D"
+	return GameState.calculate_rank_for_score(GameState.score)
 
 
 func _on_state_changed() -> void:

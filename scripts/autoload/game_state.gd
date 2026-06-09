@@ -8,6 +8,13 @@ signal progress_changed
 
 const SAVE_PATH := "user://night_runner_save.json"
 const DEFAULT_COMBO_WINDOW := 4.8
+const RANK_THRESHOLDS := [
+	{"rank": "S", "score": 2400},
+	{"rank": "A", "score": 1850},
+	{"rank": "B", "score": 1400},
+	{"rank": "C", "score": 950},
+	{"rank": "D", "score": 0},
+]
 const DEFAULT_META_PROGRESS := {
 	"highest_score": 0,
 	"selected_operation_id": "blitz_pursuit",
@@ -233,6 +240,13 @@ func set_result(rank: String, summary: String) -> void:
 	final_rank = rank
 	result_summary = summary
 	state_changed.emit()
+
+
+func calculate_rank_for_score(score_value: int) -> String:
+	for rank_data in RANK_THRESHOLDS:
+		if score_value >= int(rank_data.get("score", 0)):
+			return String(rank_data.get("rank", "D"))
+	return "D"
 
 
 func formatted_time() -> String:
@@ -619,6 +633,38 @@ func get_run_score_breakdown_lines() -> Array[String]:
 	return lines
 
 
+func get_run_rank_report_lines() -> Array[String]:
+	var lines: Array[String] = []
+	if run_success:
+		var next_rank := _get_next_rank_target()
+		if next_rank.is_empty():
+			lines.append("Rank S secured // Score target cleared.")
+		else:
+			lines.append("Rank %s // %d score to %s." % [
+				final_rank,
+				maxi(0, int(next_rank.get("score", 0)) - score),
+				String(next_rank.get("rank", "S")),
+			])
+	else:
+		lines.append("Extraction failed // secure the gate before chasing rank.")
+	lines.append("Pace %s // Exit package +%d." % [formatted_time(), finish_bonus_awarded])
+	lines.append("Damage %d hit(s) // Hazard hits %d." % [hits_taken, hazard_hits_taken])
+	if not current_secondary_objective.is_empty():
+		var optional_label := "Optional complete +%d." % secondary_bonus_awarded if secondary_objective_completed else "Optional missed // %s" % get_secondary_objective_name()
+		lines.append(optional_label)
+	if run_success and extraction_bonus_awarded > 0:
+		lines.append("%s cashed +%d from %d takedown(s)." % [
+			get_extraction_bonus_label(),
+			extraction_bonus_awarded,
+			extraction_bonus_kills,
+		])
+	elif pending_extraction_bonus > 0:
+		lines.append("%s lost +%d // cash out sooner." % [get_extraction_bonus_label(), pending_extraction_bonus])
+	elif extraction_bonus_active:
+		lines.append("%s unused // overstay after unlock for score." % get_extraction_bonus_label())
+	return lines
+
+
 func get_run_verdict_text() -> String:
 	var hazard_clause := "Hazard net avoided cleanly." if hazard_hits_taken <= 0 else "Hazard net connected %d time(s)." % hazard_hits_taken
 	var combo_clause := "Max combo x%d." % max_combo_reached if max_combo_reached > 0 else "No combo chain established."
@@ -808,6 +854,15 @@ func _pick_best_rank(existing_rank: String, next_rank: String) -> String:
 	if order.find(existing_rank) == -1:
 		return next_rank
 	return next_rank if order.find(next_rank) < order.find(existing_rank) else existing_rank
+
+
+func _get_next_rank_target() -> Dictionary:
+	var next_target: Dictionary = {}
+	for rank_data in RANK_THRESHOLDS:
+		var target_score := int(rank_data.get("score", 0))
+		if score < target_score:
+			next_target = Dictionary(rank_data)
+	return next_target
 
 
 func _format_modifier_line(key: String, value: Variant) -> String:
