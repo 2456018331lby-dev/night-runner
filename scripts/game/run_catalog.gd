@@ -214,7 +214,7 @@ const OPERATIONS := [
 			"id": "shock_exit",
 			"name": "Shock Exit",
 			"type": "time_limit",
-			"description": "Extract within 00:45 to cash the pursuit bonus.",
+			"description": "Extract within 00:58 to cash the pursuit bonus.",
 			"target_time": 58.0,
 			"reward_score": 360,
 		},

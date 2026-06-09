@@ -463,11 +463,20 @@ func get_secondary_objective_status_text() -> String:
 	match objective_type:
 		"time_limit":
 			var target_time := float(current_secondary_objective.get("target_time", 0.0))
-			return "Extract before %s" % _format_raw_time(target_time)
+			var delta_time := target_time - elapsed_time
+			if delta_time >= 0.0:
+				return "Extract before %s // %s left" % [_format_raw_time(target_time), _format_raw_time(delta_time)]
+			return "Time bonus missed // %s over" % _format_raw_time(absf(delta_time))
 		"no_hit":
-			return "No hits taken: %s" % ("BROKEN" if hits_taken > 0 else "INTACT")
+			if hits_taken > 0:
+				return "No hits taken: BROKEN // %d hit(s)" % hits_taken
+			return "No hits taken: INTACT"
 		"score_threshold":
-			return "Reach %d score (%d current)" % [int(current_secondary_objective.get("target_score", 0)), score]
+			var target_score := int(current_secondary_objective.get("target_score", 0))
+			var score_gap := maxi(0, target_score - score)
+			if score_gap <= 0:
+				return "Score target armed // %d current" % score
+			return "Reach %d score // %d left" % [target_score, score_gap]
 		_:
 			return get_secondary_objective_description()
 

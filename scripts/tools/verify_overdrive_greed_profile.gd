@@ -6,6 +6,13 @@ var failures: Array[String] = []
 
 
 func _ready() -> void:
+	var blitz := RunCatalogScript.get_operation("blitz_pursuit")
+	_expect(not blitz.is_empty(), "Blitz Pursuit exists")
+	if not blitz.is_empty():
+		var blitz_objective: Dictionary = blitz.get("secondary_objective", {})
+		_expect(float(blitz_objective.get("target_time", 0.0)) == 58.0, "Blitz time-limit target remains 00:58")
+		_expect(String(blitz_objective.get("description", "")).contains("00:58"), "Blitz time-limit description matches its target")
+
 	var overdrive := RunCatalogScript.get_operation("overdrive_protocol")
 	_expect(not overdrive.is_empty(), "Overdrive Protocol exists")
 	if overdrive.is_empty():
@@ -44,10 +51,33 @@ func _ready() -> void:
 		_expect(_count_control_enemies(final_event.get("spawn", [])) >= 3, "final Overdrive cashout wave uses cross-lane control pressure")
 
 	GameState.start_run(overdrive, {"modifiers": {"extraction_bonus_multiplier": 1.5}})
+	GameState.score = 2200
+	_expect(GameState.get_secondary_objective_status_text().contains("1000 left"), "score-threshold optional objective shows remaining score")
+	GameState.score = 3300
+	_expect(GameState.get_secondary_objective_status_text().contains("Score target armed"), "score-threshold optional objective confirms when armed")
 	GameState.activate_extraction_bonus()
 	_expect(GameState.get_next_extraction_bonus_value() == int(round(float(base_bounty) * 1.5 * float(base_modifiers.get("extraction_bonus_multiplier", 1.0)))), "cashout multiplier affects first bounty")
 	GameState.extraction_bonus_kills = 2
 	_expect(GameState.get_next_extraction_bonus_value() == int(round(float(base_bounty + step_bounty) * 1.5 * float(base_modifiers.get("extraction_bonus_multiplier", 1.0)))), "cashout multiplier affects step bounty")
+
+	if not blitz.is_empty():
+		GameState.start_run(blitz, {})
+		GameState.elapsed_time = 42.0
+		var blitz_live_status := GameState.get_secondary_objective_status_text()
+		_expect(blitz_live_status.contains("00:16 left"), "time-limit optional objective shows remaining time")
+		GameState.elapsed_time = 65.0
+		var blitz_missed_status := GameState.get_secondary_objective_status_text()
+		_expect(blitz_missed_status.contains("Time bonus missed"), "time-limit optional objective marks missed bonus")
+		_expect(blitz_missed_status.contains("00:07 over"), "time-limit optional objective shows over-time")
+
+	var ghost := RunCatalogScript.get_operation("ghost_circuit")
+	_expect(not ghost.is_empty(), "Ghost Circuit exists")
+	if not ghost.is_empty():
+		GameState.start_run(ghost, {})
+		GameState.hits_taken = 1
+		var ghost_status := GameState.get_secondary_objective_status_text()
+		_expect(ghost_status.contains("BROKEN"), "no-hit optional objective marks broken status")
+		_expect(ghost_status.contains("1 hit"), "no-hit optional objective shows hit count")
 
 	_expect(GameState.calculate_rank_for_score(2400) == "S", "rank thresholds produce S at the top target")
 	_expect(GameState.calculate_rank_for_score(2399) == "A", "rank thresholds keep near-S clears at A")
