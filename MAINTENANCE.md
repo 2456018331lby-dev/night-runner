@@ -96,8 +96,7 @@
 - 设置、音量、haptics、`PlatformProfile` 安全区 / UI scale / 震动边界：`scenes/tools/verify_settings.tscn`
 - 暂停页设置触控高度：`scenes/tools/verify_pause_settings.tscn`
 - 运行中触控布局：`scenes/tools/verify_touch_controls_layout.tscn`
-- 触控暂停输入清理：`scenes/tools/verify_touch_pause.tscn`
-- 触控输入语义：`--script res://scripts/tools/verify_touch_input.gd`
+- 触控暂停输入清理和 `InputRouter` 触控语义：`scenes/tools/verify_touch_pause.tscn`
 - 玩家攻击长按：`scenes/tools/verify_player_attack_hold.tscn`
 - 玩家跳跃窗口：`scenes/tools/verify_player_jump_windows.tscn`
 - 动态生命 HUD：`scenes/tools/verify_dynamic_health_hud.tscn`
@@ -122,7 +121,7 @@
 
 - `exports/` 是生成目录，只保留当前 debug APK；旧截图、日志、web 导出、中间 `.pck/.idsig/.import` 可删
 - 源资源旁的 Godot `.import` 不要当作垃圾删；误删会让 SVG / PNG 场景资源在 headless 加载时报错，需运行 `--headless --editor --quit` 重新导入
-- 测试文件只保留未来会继续跑的护栏；单点平台断言优先合并进现有验证，不为每个小改动新增独立场景
+- 测试文件只保留未来会继续跑的护栏；单点断言优先合并进现有验证，不为每个小改动新增独立场景或孤立 `--script` 文件
 - 文档不要重复记录每次出包大小和模拟器进程号
 - 如果删验证文件，必须把仍有价值的断言合并进现有验证或确认已有覆盖
 

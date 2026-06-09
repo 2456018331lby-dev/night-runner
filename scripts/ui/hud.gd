@@ -714,11 +714,38 @@ func _get_mobile_navigation_context_line() -> String:
 	var pressure_line := GameState.get_route_pressure_text()
 	if not pressure_line.is_empty():
 		fragments.append(pressure_line)
-	if not GameState.current_secondary_objective.is_empty():
-		var status := GameState.get_secondary_objective_status_text().replace(" // ", " · ")
-		if not status.is_empty():
-			fragments.append("OPT: %s" % status)
+	var optional_status := _get_mobile_optional_status_text()
+	if not optional_status.is_empty():
+		fragments.append(optional_status)
 	return " // ".join(fragments)
+
+
+func _get_mobile_optional_status_text() -> String:
+	if GameState.current_secondary_objective.is_empty():
+		return ""
+	var objective_type := String(GameState.current_secondary_objective.get("type", ""))
+	match objective_type:
+		"time_limit":
+			var target_time := float(GameState.current_secondary_objective.get("target_time", 0.0))
+			var delta_time := target_time - GameState.elapsed_time
+			if delta_time >= 0.0:
+				return "OPT %s LEFT" % _format_mobile_time(delta_time)
+			return "OPT %s OVER" % _format_mobile_time(absf(delta_time))
+		"no_hit":
+			return "OPT CLEAN" if GameState.hits_taken <= 0 else "OPT BROKEN %dH" % GameState.hits_taken
+		"score_threshold":
+			var target_score := int(GameState.current_secondary_objective.get("target_score", 0))
+			var score_gap := maxi(0, target_score - GameState.score)
+			return "OPT ARMED" if score_gap <= 0 else "OPT %d SCORE LEFT" % score_gap
+		_:
+			return "OPT %s" % GameState.get_secondary_objective_name().to_upper()
+
+
+func _format_mobile_time(time_value: float) -> String:
+	var total_seconds := maxi(0, int(time_value))
+	var minutes := total_seconds / 60
+	var seconds := total_seconds % 60
+	return "%02d:%02d" % [minutes, seconds]
 
 
 func _direction_to_arrow(direction: Vector2) -> String:
