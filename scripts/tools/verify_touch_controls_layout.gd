@@ -51,6 +51,10 @@ func _ready() -> void:
 	InputRouter.press_action("jump")
 	InputRouter.press_action("attack")
 	InputRouter.press_action("dash")
+	attack.button_pressed = true
+	attack.scale = Vector2.ONE * 0.94
+	dash.button_pressed = true
+	dash.scale = Vector2.ONE * 0.94
 	controls.call("configure", false)
 	await get_tree().process_frame
 
@@ -60,6 +64,10 @@ func _ready() -> void:
 	_expect(not InputRouter.consume_attack(), "hiding touch controls clears pending attack")
 	_expect(not InputRouter.consume_dash(), "hiding touch controls clears pending dash")
 	_expect(not InputRouter.is_action_held("attack"), "hiding touch controls clears held attack")
+	_expect(not attack.button_pressed, "hiding touch controls clears stale attack button pressed state")
+	_expect(not dash.button_pressed, "hiding touch controls clears stale dash button pressed state")
+	_expect(_vector_approx(attack.scale, Vector2.ONE), "hiding touch controls restores attack button visual scale")
+	_expect(_vector_approx(dash.scale, Vector2.ONE), "hiding touch controls restores dash button visual scale")
 
 	InputRouter.release_action("jump")
 	InputRouter.release_action("attack")
@@ -84,6 +92,10 @@ func _expect_button_minimum(button: Button, minimum_size: Vector2, label: String
 
 func _rects_overlap(a: Rect2, b: Rect2) -> bool:
 	return a.intersects(b, true)
+
+
+func _vector_approx(a: Vector2, b: Vector2) -> bool:
+	return is_equal_approx(a.x, b.x) and is_equal_approx(a.y, b.y)
 
 
 func _expect(condition: bool, message: String) -> void:

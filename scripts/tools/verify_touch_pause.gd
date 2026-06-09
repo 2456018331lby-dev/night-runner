@@ -21,6 +21,8 @@ func _ready() -> void:
 	InputRouter.press_action("dash")
 
 	var pause_button: Button = controls.get_node("Controls/PauseButton")
+	pause_button.button_pressed = true
+	pause_button.scale = Vector2.ONE * 0.94
 	pause_button.pressed.emit()
 	await get_tree().process_frame
 
@@ -33,9 +35,19 @@ func _ready() -> void:
 	if InputRouter.consume_jump() or InputRouter.consume_attack() or InputRouter.consume_dash():
 		_fail("Pause button did not clear pending action inputs.")
 		return
+	if pause_button.button_pressed:
+		_fail("Pause button left stale pressed state after routing pause.")
+		return
+	if not _vector_approx(pause_button.scale, Vector2.ONE):
+		_fail("Pause button visual scale did not reset after routing pause.")
+		return
 
 	print("Touch pause regression passed.")
 	get_tree().quit(0)
+
+
+func _vector_approx(a: Vector2, b: Vector2) -> bool:
+	return is_equal_approx(a.x, b.x) and is_equal_approx(a.y, b.y)
 
 
 func _fail(message: String) -> void:

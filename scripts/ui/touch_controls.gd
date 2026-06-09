@@ -75,7 +75,7 @@ func _release_all_inputs() -> void:
 	InputRouter.release_action("attack")
 	InputRouter.release_action("dash")
 	for button in [left_button, right_button, jump_button, attack_button, dash_button, pause_button]:
-		_set_button_visual(button, false)
+		_release_touch_button(button)
 
 
 func _apply_theme() -> void:
@@ -127,8 +127,8 @@ func _wire_pause_button() -> void:
 			return
 		_release_all_inputs()
 		PlatformProfile.vibrate_light()
-		_set_button_visual(pause_button, true)
 		FrontendBridge.toggle_pause()
+		_release_touch_button(pause_button)
 	)
 
 
@@ -153,6 +153,12 @@ func _finalize_button_pivots() -> void:
 func _set_button_visual(button: Button, pressed: bool) -> void:
 	button.scale = Vector2.ONE * (0.94 if pressed else 1.0)
 	button.modulate = Color(1.0, 0.92, 0.78, 1.0) if pressed else Color(1.0, 1.0, 1.0, 0.94)
+
+
+func _release_touch_button(button: Button) -> void:
+	button.button_pressed = false
+	button.release_focus()
+	_set_button_visual(button, false)
 
 
 func _make_panel_style(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
