@@ -272,12 +272,15 @@ func _set_route_button_state(btn: Button, operation: Dictionary, selected: bool)
 	if unlocked:
 		state_label = "ACTIVE" if selected else "READY"
 	if PlatformProfile.is_mobile:
-		btn.text = "%s  %s\n%s" % [state_label, title, mode]
+		btn.text = "%s  %s\n%s\n%s" % [state_label, title, mode, _format_mobile_route_record(operation_id)]
 	else:
 		btn.text = "%s  %s\n%s\n%s" % [state_label, title, mode, subtitle]
 	if not unlocked and not lock_text.is_empty():
 		btn.text += "\n%s" % lock_text
-	btn.custom_minimum_size = Vector2(0, 90 if unlocked else 104)
+	if PlatformProfile.is_mobile:
+		btn.custom_minimum_size = Vector2(0, 106 if unlocked else 122)
+	else:
+		btn.custom_minimum_size = Vector2(0, 90 if unlocked else 104)
 	btn.disabled = not unlocked
 	btn.button_pressed = selected
 	var theme: Dictionary = operation.get("theme", {})
@@ -288,6 +291,15 @@ func _set_route_button_state(btn: Button, operation: Dictionary, selected: bool)
 	btn.add_theme_stylebox_override("normal", _make_style(fill, line, 10, 2 if selected else 1, 12))
 	btn.add_theme_stylebox_override("hover", _make_style(fill.lightened(0.08), secondary.lightened(0.06), 10, 2, 14))
 	btn.add_theme_stylebox_override("pressed", _make_style(fill.darkened(0.08), secondary, 10, 2, 8))
+
+
+func _format_mobile_route_record(operation_id: String) -> String:
+	var record := GameState.get_operation_record(operation_id)
+	return "BEST %04d // RANK %s // RUNS %d" % [
+		int(record.get("best_score", 0)),
+		String(record.get("best_rank", "--")),
+		int(record.get("runs", 0)),
+	]
 
 
 func _select_directive(operation_id: String, directive_id: String) -> void:

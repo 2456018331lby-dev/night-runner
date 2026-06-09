@@ -11,8 +11,17 @@ func _ready() -> void:
 	var original_volume := GameState.get_master_volume()
 	var original_haptics := GameState.are_haptics_enabled()
 	var original_unlocked: Array = GameState.meta_progress.get("unlocked_operations", []).duplicate(true)
+	var original_records: Dictionary = GameState.meta_progress.get("operation_records", {}).duplicate(true)
 	PlatformProfile.is_mobile = true
 	GameState.meta_progress["unlocked_operations"] = ["blitz_pursuit"]
+	GameState.meta_progress["operation_records"] = {
+		"blitz_pursuit": {
+			"runs": 3,
+			"successes": 2,
+			"best_score": 1780,
+			"best_rank": "A",
+		},
+	}
 	GameState.set_master_volume(0.7, false)
 	GameState.set_haptics_enabled(true, false)
 
@@ -87,6 +96,7 @@ func _ready() -> void:
 
 	PlatformProfile.is_mobile = original_mobile
 	GameState.meta_progress["unlocked_operations"] = original_unlocked
+	GameState.meta_progress["operation_records"] = original_records
 	GameState.set_master_volume(original_volume, false)
 	GameState.set_haptics_enabled(original_haptics, false)
 	screen.queue_free()
@@ -157,8 +167,10 @@ func _verify_route_button_state(screen: Node, active_operation: Dictionary, lock
 	screen.call("_set_route_button_state", locked_button, locked_operation, false)
 	_expect(active_button.text.begins_with("ACTIVE"), "selected route button should show active state")
 	_expect(active_button.button_pressed, "selected route button should be pressed")
+	_expect(active_button.text.contains("BEST 1780 // RANK A // RUNS 3"), "mobile selected route button should show compact record summary")
 	_expect(ready_button.text.begins_with("READY"), "available unselected route button should show ready state")
 	_expect(not ready_button.button_pressed, "available unselected route button should not be pressed")
+	_expect(ready_button.text.contains("BEST 1780 // RANK A // RUNS 3"), "mobile ready route button should keep compact record summary")
 	_expect(locked_button.text.begins_with("LOCKED"), "locked route button should show locked state")
 	_expect(locked_button.disabled, "locked route button should be disabled")
 	active_button.queue_free()
