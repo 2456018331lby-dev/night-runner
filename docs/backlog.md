@@ -9,7 +9,7 @@
 
 ## P1 安卓体验
 
-- 真机验证触屏拖出取消、长按容错和多指输入边界；当前已有脚本级 jump buffer / coyote time 护栏，但仍缺真机手感确认
+- 真机验证触屏拖出取消、长按容错和多指输入边界；当前已有脚本级 jump buffer / coyote time 护栏，触控暂停也会清空 held / pending 输入，但仍缺真机手感确认
 - 真机验证振动反馈、18:9 / 刘海屏安全区和当前触控区域布局；暂停页 `VOLUME` / `HAPTICS` 已有 56px 级移动触控目标与脚本护栏，后续重点是真机手感确认
 - 接真正 Android export preset、签名和 APK / AAB 发布流
 

@@ -120,6 +120,7 @@ func _wire_pause_button() -> void:
 	pause_button.pressed.connect(func() -> void:
 		if FrontendBridge.app_phase != FrontendBridge.PHASE_RUN:
 			return
+		_release_all_inputs()
 		PlatformProfile.vibrate_light()
 		_set_button_visual(pause_button, true)
 		FrontendBridge.toggle_pause()

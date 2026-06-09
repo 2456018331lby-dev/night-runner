@@ -2,6 +2,14 @@
 
 ## 2026-06-09
 
+### 已完成（触控暂停输入清理）
+
+- `TouchControls` 的暂停按钮现在会在进入暂停前先释放移动方向、跳跃、攻击和冲刺输入，避免安卓玩家按住方向 / 动作时点暂停后，恢复游戏时出现残留移动或动作
+- 扩展 `verify_touch_pause.tscn` / `scripts/tools/verify_touch_pause.gd`：现在不仅验证暂停按钮必须经 `FrontendBridge.toggle_pause()`，还会模拟暂停前的移动和动作输入，并确认暂停后 `InputRouter` 已清空
+- 已通过 Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控暂停和触控输入回归；项目和主场景 headless 加载通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,394,258` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `3862`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（暂停页移动触控命中）
 
 - 把 `SessionScreen` 暂停页的 `VOLUME` 滑杆、`HAPTICS` 开关和底部 `RESUME` / `HUB` 按钮提升到移动端 56px 级触控目标，减少安卓横屏下细滑杆和小开关难以命中的问题

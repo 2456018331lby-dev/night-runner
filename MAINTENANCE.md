@@ -60,7 +60,7 @@
 - `RouteHazard`：路线机关执行器，现已支持多种行为 archetype，不要再把路线机关硬写回 `World`
 - `Presentation`：纯视觉氛围层，负责背景城市、雾、灯带和后续环境演出
 - `SessionScreen`：中枢 / 结果 / 暂停产品壳；暂停页承载轻量设置，不直接写存档文件
-- `TouchControls`：安卓运行中虚拟按键和暂停入口；暂停只调用 `FrontendBridge.toggle_pause()`，不要直接改 `SceneTree.paused`
+- `TouchControls`：安卓运行中虚拟按键和暂停入口；暂停前必须清空 `InputRouter` 的 held / pending 输入，然后只调用 `FrontendBridge.toggle_pause()`，不要直接改 `SceneTree.paused`
 - `DataCore` / `ExtractionGate`：短局目标层，负责“为什么要继续跑”
 - `BoostPad`：地形节奏层，负责让推进更快更立体
 - `Player` / `EnemyRunner` / `EnemySuppressor`：只做角色行为，不管理全局状态
@@ -115,6 +115,7 @@
 - `scripts/tools/verify_overdrive_greed_profile.gd` 是 Overdrive 贪分路线护栏；改 score threshold、cashout 梯度、Panic Dividend 或 `extraction_bonus_multiplier` 时先跑它，避免 Overdrive 退回普通路线
 - `scripts/tools/verify_dynamic_health_hud.gd` 是生命 HUD 护栏；改行动基础生命、directive `health_bonus` 或 HUD 生命区时先跑它，避免实际生命和屏幕 pips 再次不一致
 - `scripts/tools/verify_settings.gd` / `scripts/tools/verify_pause_settings.gd` 是设置护栏；改 `GameState` 设置结构、暂停页设置控件、移动触控目标高度或 `PlatformProfile` 震动边界时先跑它们
+- `scripts/tools/verify_touch_pause.gd` 是触控暂停护栏；改 `TouchControls` 暂停按钮、`FrontendBridge.toggle_pause()` 或运行中 UI 显隐时先跑它，避免暂停后残留移动 / 动作输入
 
 后续如果要更新线上版本：
 
@@ -142,3 +143,4 @@
 - 2026-06-09：修复主场景 headless 限时退出时的 `AudioStreamWAV` / `AudioStreamPlaybackWAV` ObjectDB 泄漏；`AudioEngine` 现在在 headless 下不创建 WAV / 播放器，非 headless 退出会停止并释放播放器池；新增 `verify_audio_engine_shutdown.tscn`，音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新安装损坏的 Android SDK `platform-tools`、补齐 `build-tools;35.0.0`、`emulator` 和 Android 35 Google APIs x86_64 system image 后，重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2818`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09：强化 `Overdrive Protocol` 的贪分路线后，新增 `verify_overdrive_greed_profile.tscn`，锁定高 score threshold、Panic Dividend cashout 倍率、第三段 cashout 压力波和 `extraction_bonus_multiplier` 结算；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2851`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09：放大移动端暂停页 `VOLUME` 滑杆、`HAPTICS` 开关和 `RESUME` / `HUB` 按钮触控目标后，暂停页设置回归新增 56px 级触控高度断言；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；项目和主场景 headless 加载通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3626`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+- 2026-06-09：触控暂停按钮现在会在进入暂停前清空 `InputRouter` 的移动和动作输入，避免恢复时残留 held / pending 输入；`verify_touch_pause.tscn` 新增暂停前按住移动 / 动作、暂停后输入清空的断言；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3862`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
