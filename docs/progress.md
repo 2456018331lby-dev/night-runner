@@ -17,6 +17,7 @@
 - 清理文档里的旧 APK 大小、旧模拟器进程号和重复出包历史；这些历史证据保留在 git commit 中，当前文档只保留可继续维护的信息。
 - 清理 `exports/` 下的旧截图、日志、web 导出、中间 `.pck/.idsig/.import` 文件，只保留当前 debug APK 作为本机可安装包；源码资产 `.import` 误删后已通过 Godot headless editor 重新导入恢复。
 - 收敛 `SessionScreen` 的 route / directive 卡片状态格式，复用已有 `verify_pause_settings.tscn` 覆盖局前 modifier 文本、route `ACTIVE` / `READY` / `LOCKED` 和 directive `ACTIVE` / `OPTION` 切换，避免再新增单点测试文件。
+- 删除根目录旧流水账 `progress.md`、`findings.md`、`task_plan.md`；当前进度、导出证据和后续计划只维护在 `docs/` 与 `MAINTENANCE.md`。
 
 ## Verification Entry Points
 
