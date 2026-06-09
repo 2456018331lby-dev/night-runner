@@ -118,13 +118,13 @@ const OPERATIONS := [
 			},
 			{
 				"time": 31.0,
-			"toast": "Convoy counter-rush. Front guards are doubling back through the upper lane.",
-			"spawn": [
-				{"scene": RUNNER_SCENE, "position": Vector2(1960, 126)},
-				{"scene": RUNNER_SCENE, "position": Vector2(2146, 126)},
-				{"scene": PHANTOM_SCENE, "position": Vector2(1688, 124)},
-				{"scene": STALKER_SCENE, "position": Vector2(1458, 202)},
-			],
+				"toast": "Convoy counter-rush. Front guards are doubling back through the upper lane.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1960, 126)},
+					{"scene": RUNNER_SCENE, "position": Vector2(2146, 126)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1688, 124)},
+					{"scene": STALKER_SCENE, "position": Vector2(1458, 202)},
+				],
 			},
 		],
 		"core_events": [
@@ -159,6 +159,16 @@ const OPERATIONS := [
 			"Once extraction unlocks, staying alive turns pursuit pressure into a score ladder.",
 			"This lane is about controlled greed: fast clear first, then decide how long to overstay.",
 		],
+		"phase_setpiece": {
+			"trigger": "core_4",
+			"label": "Convoy Split",
+			"toast": "Convoy Split. The upper sprint line fractures and the exit lane starts feeding pursuit pressure.",
+			"pressure_text": "Convoy Split. The high route is faster, but every overstay pulls escorts into the cashout lane.",
+			"spawn": [
+				{"scene": RUNNER_SCENE, "position": Vector2(1868, 124)},
+				{"scene": PHANTOM_SCENE, "position": Vector2(1668, 124)},
+			],
+		},
 		"base_modifiers": {
 			"health_bonus": 1,
 			"speed_multiplier": 1.08,
@@ -346,13 +356,13 @@ const OPERATIONS := [
 			},
 			{
 				"time": 34.0,
-			"toast": "Relay flood. The ghost window is breaking and a hunter is dropping into the upper lane.",
-			"spawn": [
-				{"scene": RUNNER_SCENE, "position": Vector2(1240, 202)},
-				{"scene": RUNNER_SCENE, "position": Vector2(1860, 76)},
-				{"scene": PHANTOM_SCENE, "position": Vector2(1600, 124)},
-				{"scene": STALKER_SCENE, "position": Vector2(1640, 118)},
-			],
+				"toast": "Relay flood. The ghost window is breaking and a hunter is dropping into the upper lane.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1240, 202)},
+					{"scene": RUNNER_SCENE, "position": Vector2(1860, 76)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1600, 124)},
+					{"scene": STALKER_SCENE, "position": Vector2(1640, 118)},
+				],
 			},
 		],
 		"core_events": [
@@ -393,6 +403,16 @@ const OPERATIONS := [
 			"Route-reading mission. High ground safety is temporary because suppressor angles mutate.",
 			"Ghost windows reward clean clears, but overstay turns the route into a sniper puzzle.",
 		],
+		"phase_setpiece": {
+			"trigger": "core_4",
+			"label": "Relay Bloom",
+			"toast": "Relay Bloom. Mirror angles are rewriting the upper route; stay clean or break line of sight.",
+			"pressure_text": "Relay Bloom. Suppressor geometry is live; clean movement matters more than raw brawling.",
+			"spawn": [
+				{"scene": RUNNER_SCENE, "position": Vector2(1502, 126)},
+				{"scene": PHANTOM_SCENE, "position": Vector2(1820, 76)},
+			],
+		},
 		"base_modifiers": {
 			"health_bonus": -1,
 			"speed_multiplier": 1.0,
@@ -572,13 +592,13 @@ const OPERATIONS := [
 		"timeline_events": [
 			{
 				"time": 14.0,
-			"toast": "Adaptive hunters have a live trace. The sector is rebalancing against you.",
-			"spawn": [
-				{"scene": RUNNER_SCENE, "position": Vector2(1328, 250)},
-				{"scene": SUPPRESSOR_SCENE, "position": Vector2(1828, 152)},
-				{"scene": BASTION_SCENE, "position": Vector2(1228, 250)},
-				{"scene": STALKER_SCENE, "position": Vector2(1460, 164)},
-			],
+				"toast": "Adaptive hunters have a live trace. The sector is rebalancing against you.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1328, 250)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1828, 152)},
+					{"scene": BASTION_SCENE, "position": Vector2(1228, 250)},
+					{"scene": STALKER_SCENE, "position": Vector2(1460, 164)},
+				],
 			},
 			{
 				"time": 28.0,

@@ -25,6 +25,7 @@ var failures: Array[String] = []
 func _ready() -> void:
 	for operation in RunCatalogScript.get_operations():
 		var operation_id := String(operation.get("id", "unknown_operation"))
+		_verify_operation_phase_profile(operation_id, operation)
 		_scan_bucket(operation_id, "initial encounters", operation.get("encounters", []))
 		_scan_event_array(operation_id, "timeline", operation.get("timeline_events", []))
 		_scan_event_array(operation_id, "core", operation.get("core_events", []))
@@ -47,6 +48,22 @@ func _scan_event_array(operation_id: String, label: String, events: Array) -> vo
 	for index in events.size():
 		var event: Dictionary = events[index]
 		_scan_bucket(operation_id, "%s_%d" % [label, index], event.get("spawn", []))
+
+
+func _verify_operation_phase_profile(operation_id: String, operation: Dictionary) -> void:
+	_expect(Array(operation.get("lane_signals", [])).size() >= 2, "%s keeps at least two route identity signals" % operation_id)
+	_expect(Array(operation.get("timeline_events", [])).size() >= 2, "%s keeps multiple time-based phase events" % operation_id)
+	_expect(Array(operation.get("core_events", [])).size() >= 2, "%s keeps multiple core-triggered phase events" % operation_id)
+	_expect(Array(operation.get("cashout_events", [])).size() >= 2, "%s keeps multiple cashout escalation events" % operation_id)
+	var setpiece: Dictionary = operation.get("phase_setpiece", {})
+	_expect(not setpiece.is_empty(), "%s has a named phase setpiece" % operation_id)
+	if setpiece.is_empty():
+		return
+	_expect(not String(setpiece.get("trigger", "")).is_empty(), "%s phase setpiece has a trigger" % operation_id)
+	_expect(not String(setpiece.get("label", "")).is_empty(), "%s phase setpiece has a label" % operation_id)
+	_expect(not String(setpiece.get("toast", "")).is_empty(), "%s phase setpiece has a player-facing toast" % operation_id)
+	_expect(not String(setpiece.get("pressure_text", "")).is_empty(), "%s phase setpiece updates route pressure text" % operation_id)
+	_expect(Array(setpiece.get("spawn", [])).size() >= 2, "%s phase setpiece has enough encounter texture" % operation_id)
 
 
 func _scan_bucket(operation_id: String, label: String, spawn_list: Array) -> void:
@@ -137,3 +154,8 @@ func _check_compressed_controls(operation_id: String, label: String, entries: Ar
 
 func _format_position(position: Vector2) -> String:
 	return "(%d,%d)" % [int(position.x), int(position.y)]
+
+
+func _expect(condition: bool, message: String) -> void:
+	if not condition:
+		failures.append(message)

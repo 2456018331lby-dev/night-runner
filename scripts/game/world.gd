@@ -714,8 +714,8 @@ func _refresh_live_route_status() -> void:
 	var pressure_text := ""
 	if GameState.extraction_unlocked:
 		var operation_id := String(active_operation.get("id", ""))
-		if not active_setpiece_label.is_empty() and operation_id == "overdrive_protocol":
-			pressure_text = String(active_operation.get("phase_setpiece", {}).get("pressure_text", "Extraction open. The sector is feeding greed back into score pressure."))
+		if not active_setpiece_label.is_empty():
+			pressure_text = _get_setpiece_pressure_text("Extraction open. The route is feeding greed back into score pressure.")
 		else:
 			match operation_id:
 				"blitz_pursuit":
@@ -726,6 +726,8 @@ func _refresh_live_route_status() -> void:
 					pressure_text = "Extraction open. The sector is feeding greed back into score pressure."
 				_:
 					pressure_text = "Extraction open. Greed converts survival into payout."
+	elif not active_setpiece_label.is_empty():
+		pressure_text = _get_setpiece_pressure_text("Phase event live. Read the route shift before committing.")
 	elif GameState.data_cores_collected >= max(1, GameState.data_cores_total - 1) and GameState.data_cores_total > 0:
 		pressure_text = "Final vault pressure. Finish the sweep and choose your exit."
 	else:
@@ -735,6 +737,12 @@ func _refresh_live_route_status() -> void:
 		return
 	last_hazard_status_text = hazard_text
 	GameState.set_live_route_status(phase_text, pressure_text, hazard_text)
+
+
+func _get_setpiece_pressure_text(fallback: String) -> String:
+	var setpiece: Dictionary = active_operation.get("phase_setpiece", {})
+	var pressure_text := String(setpiece.get("pressure_text", ""))
+	return pressure_text if not pressure_text.is_empty() else fallback
 
 
 func _refresh_navigation_target() -> void:
