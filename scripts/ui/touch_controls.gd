@@ -5,6 +5,9 @@ const PAD_BORDER := Color(0.23, 0.75, 1.0, 0.36)
 const LABEL_COLOR := Color(0.95, 0.98, 1.0)
 const PAUSE_BUTTON_BASE_SIZE := Vector2(82.0, 58.0)
 const PAUSE_BUTTON_MIN_SIZE := Vector2(64.0, 56.0)
+const MOUSE_POINTER_INDEX := -1
+
+var active_touch_bindings: Dictionary = {}
 
 @onready var controls_root: Control = $Controls
 @onready var left_pad: PanelContainer = $Controls/LeftPad
@@ -70,6 +73,7 @@ func _release_move(expected: float) -> void:
 
 
 func _release_all_inputs() -> void:
+	active_touch_bindings.clear()
 	InputRouter.clear_move_buttons()
 	InputRouter.release_action("jump")
 	InputRouter.release_action("attack")
@@ -90,34 +94,14 @@ func _apply_theme() -> void:
 
 
 func _wire_move_button(button: Button, axis: float) -> void:
-	button.button_down.connect(func() -> void:
-		InputRouter.set_move_button(axis, true)
-		PlatformProfile.vibrate_light()
-		_set_button_visual(button, true)
-	)
-	button.button_up.connect(func() -> void:
-		_release_move(axis)
-		_set_button_visual(button, false)
-	)
-	button.mouse_exited.connect(func() -> void:
-		_release_move(axis)
-		_set_button_visual(button, false)
+	button.gui_input.connect(func(event: InputEvent) -> void:
+		_handle_bound_button_input(event, button, "move", axis, "")
 	)
 
 
 func _wire_action_button(button: Button, action_name: String) -> void:
-	button.button_down.connect(func() -> void:
-		InputRouter.press_action(action_name)
-		PlatformProfile.vibrate_light()
-		_set_button_visual(button, true)
-	)
-	button.button_up.connect(func() -> void:
-		InputRouter.release_held_action(action_name)
-		_set_button_visual(button, false)
-	)
-	button.mouse_exited.connect(func() -> void:
-		InputRouter.release_action(action_name)
-		_set_button_visual(button, false)
+	button.gui_input.connect(func(event: InputEvent) -> void:
+		_handle_bound_button_input(event, button, "action", 0.0, action_name)
 	)
 
 
@@ -159,6 +143,98 @@ func _release_touch_button(button: Button) -> void:
 	button.button_pressed = false
 	button.release_focus()
 	_set_button_visual(button, false)
+
+
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event is InputEventScreenDrag:
+		var drag_event := event as InputEventScreenDrag
+		if _should_cancel_touch_index(drag_event.index, drag_event.position):
+			_release_touch_index(drag_event.index, true, drag_event.position)
+	elif event is InputEventScreenTouch:
+		var touch_event := event as InputEventScreenTouch
+		if not touch_event.pressed:
+			_release_touch_index(touch_event.index, _should_cancel_touch_index(touch_event.index, touch_event.position), touch_event.position)
+	elif event is InputEventMouseMotion:
+		var mouse_event := event as InputEventMouseMotion
+		if active_touch_bindings.has(MOUSE_POINTER_INDEX) and _should_cancel_touch_index(MOUSE_POINTER_INDEX, mouse_event.position):
+			_release_touch_index(MOUSE_POINTER_INDEX, true, mouse_event.position)
+	elif event is InputEventMouseButton:
+		var mouse_button := event as InputEventMouseButton
+		if mouse_button.button_index == MOUSE_BUTTON_LEFT and not mouse_button.pressed:
+			_release_touch_index(MOUSE_POINTER_INDEX, _should_cancel_touch_index(MOUSE_POINTER_INDEX, mouse_button.position), mouse_button.position)
+
+
+func _handle_bound_button_input(event: InputEvent, button: Button, input_kind: String, move_axis_value: float, action_name: String) -> void:
+	if event is InputEventScreenTouch:
+		var touch_event := event as InputEventScreenTouch
+		if touch_event.pressed:
+			_claim_touch_index(touch_event.index, button, input_kind, move_axis_value, action_name)
+		else:
+			_release_touch_index(touch_event.index, false, touch_event.position)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.button_index != MOUSE_BUTTON_LEFT:
+			return
+		if mouse_event.pressed:
+			_claim_touch_index(MOUSE_POINTER_INDEX, button, input_kind, move_axis_value, action_name)
+		else:
+			_release_touch_index(MOUSE_POINTER_INDEX, false, mouse_event.position)
+		get_viewport().set_input_as_handled()
+
+
+func _claim_touch_index(index: int, button: Button, input_kind: String, move_axis_value: float, action_name: String) -> void:
+	if active_touch_bindings.has(index):
+		_release_touch_index(index, true, Vector2.INF)
+	active_touch_bindings[index] = {
+		"button": button,
+		"kind": input_kind,
+		"axis": move_axis_value,
+		"action": action_name,
+	}
+	if input_kind == "move":
+		InputRouter.set_move_button(move_axis_value, true)
+	else:
+		InputRouter.press_action(action_name)
+	PlatformProfile.vibrate_light()
+	_set_button_visual(button, true)
+
+
+func _release_touch_index(index: int, cancel_pending: bool, pointer_position: Vector2) -> void:
+	if not active_touch_bindings.has(index):
+		return
+	var binding: Dictionary = active_touch_bindings[index]
+	active_touch_bindings.erase(index)
+	var input_kind := String(binding.get("kind", ""))
+	if input_kind == "move":
+		_release_move(float(binding.get("axis", 0.0)))
+	elif input_kind == "action":
+		var action_name := String(binding.get("action", ""))
+		if cancel_pending:
+			InputRouter.release_action(action_name)
+		else:
+			InputRouter.release_held_action(action_name)
+	var button := binding.get("button") as Button
+	if button != null and not _has_active_binding_for_button(button):
+		_set_button_visual(button, false)
+
+
+func _should_cancel_touch_index(index: int, pointer_position: Vector2) -> bool:
+	if not active_touch_bindings.has(index):
+		return false
+	var binding: Dictionary = active_touch_bindings[index]
+	var button := binding.get("button") as Button
+	return button != null and not button.get_global_rect().has_point(pointer_position)
+
+
+func _has_active_binding_for_button(button: Button) -> bool:
+	for binding_value in active_touch_bindings.values():
+		var binding: Dictionary = binding_value
+		if binding.get("button") == button:
+			return true
+	return false
 
 
 func _make_panel_style(fill: Color, border: Color, radius: int) -> StyleBoxFlat:

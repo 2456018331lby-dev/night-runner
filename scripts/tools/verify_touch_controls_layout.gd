@@ -47,6 +47,36 @@ func _ready() -> void:
 	_expect(not _rects_overlap(pause.get_global_rect(), action_pad.get_global_rect()), "pause button should not overlap action pad")
 	_expect(not _rects_overlap(pause.get_global_rect(), left_pad.get_global_rect()), "pause button should not overlap movement pad")
 
+	var left_touch := InputEventScreenTouch.new()
+	left_touch.index = 1
+	left_touch.position = move_left.get_global_rect().get_center()
+	left_touch.pressed = true
+	move_left.gui_input.emit(left_touch)
+	_expect(is_equal_approx(InputRouter.move_axis, -1.0), "touch-index left press drives movement")
+
+	var attack_touch := InputEventScreenTouch.new()
+	attack_touch.index = 2
+	attack_touch.position = attack.get_global_rect().get_center()
+	attack_touch.pressed = true
+	attack.gui_input.emit(attack_touch)
+	_expect(InputRouter.is_action_held("attack"), "touch-index attack press starts held attack")
+
+	var attack_drag := InputEventScreenDrag.new()
+	attack_drag.index = 2
+	attack_drag.position = Vector2.ZERO
+	controls.call("_input", attack_drag)
+	_expect(not InputRouter.is_action_held("attack"), "dragging attack touch outside cancels held attack")
+	_expect(not InputRouter.consume_attack(), "dragging attack touch outside cancels pending attack")
+	_expect(is_equal_approx(InputRouter.move_axis, -1.0), "dragging attack touch outside does not cancel separate movement touch")
+	_expect(_vector_approx(attack.scale, Vector2.ONE), "dragging attack touch outside restores attack visual scale")
+
+	var left_release := InputEventScreenTouch.new()
+	left_release.index = 1
+	left_release.position = move_left.get_global_rect().get_center()
+	left_release.pressed = false
+	controls.call("_input", left_release)
+	_expect(is_equal_approx(InputRouter.move_axis, 0.0), "releasing movement touch clears movement")
+
 	InputRouter.set_move_button(-1.0, true)
 	InputRouter.press_action("jump")
 	InputRouter.press_action("attack")
