@@ -102,6 +102,7 @@
 - 负责“当前有哪些可玩行动”和“每个行动如何装配”的数据来源
 - 当前每条行动还定义基础 modifiers、directive 池、次级目标、路线机关和撤离兑现规则
 - 调整敌人编组时先跑 `scripts/tools/verify_encounter_pressure.gd`，避免 Suppressor / Bastion / Stalker 这类控场精英在同一刷怪桶里过近重叠
+- 每条行动的 `cashout_events` 必须保留 24 秒后的 late escalation，且 late 波次至少包含一个控制型敌人；否则长时间贪分会失去压力曲线
 - `Overdrive Protocol` 是最高贪分路线，必须保留高 score-threshold、后段 cashout 波次和 `extraction_bonus_multiplier` 收益通道；改 Overdrive 目标分、cashout 梯度或 Panic Dividend 后先跑 `verify_overdrive_greed_profile.tscn`
 - 不直接持有运行期节点
 

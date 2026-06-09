@@ -242,6 +242,15 @@ const OPERATIONS := [
 					{"scene": RUNNER_SCENE, "position": Vector2(2020, 126)},
 				],
 			},
+			{
+				"elapsed": 25.0,
+				"toast": "Pursuit ceiling. Bastion is sealing the exit tier while riders flood the low lane.",
+				"spawn": [
+					{"scene": RUNNER_SCENE, "position": Vector2(1548, 188)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1836, 88)},
+					{"scene": BASTION_SCENE, "position": Vector2(2142, 126)},
+				],
+			},
 		],
 	},
 	{
@@ -481,6 +490,15 @@ const OPERATIONS := [
 					{"scene": RUNNER_SCENE, "position": Vector2(1290, 202)},
 					{"scene": RUNNER_SCENE, "position": Vector2(1534, 126)},
 					{"scene": PHANTOM_SCENE, "position": Vector2(1820, 76)},
+				],
+			},
+			{
+				"elapsed": 28.0,
+				"toast": "Relay lock. The ghost window is gone and the exit tier is under cross-angle control.",
+				"spawn": [
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1588, 126)},
+					{"scene": RUNNER_SCENE, "position": Vector2(1908, 76)},
+					{"scene": STALKER_SCENE, "position": Vector2(2218, 74)},
 				],
 			},
 		],

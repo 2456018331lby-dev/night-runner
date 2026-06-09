@@ -18,6 +18,7 @@ const PAIR_LIMITS := {
 }
 const COMPRESSED_CONTROL_COUNT := 3
 const COMPRESSED_CONTROL_SPAN := Vector2(540.0, 220.0)
+const LATE_CASHOUT_TIME := 24.0
 
 var failures: Array[String] = []
 
@@ -55,6 +56,7 @@ func _verify_operation_phase_profile(operation_id: String, operation: Dictionary
 	_expect(Array(operation.get("timeline_events", [])).size() >= 2, "%s keeps multiple time-based phase events" % operation_id)
 	_expect(Array(operation.get("core_events", [])).size() >= 2, "%s keeps multiple core-triggered phase events" % operation_id)
 	_expect(Array(operation.get("cashout_events", [])).size() >= 2, "%s keeps multiple cashout escalation events" % operation_id)
+	_verify_late_cashout_profile(operation_id, operation.get("cashout_events", []))
 	var setpiece: Dictionary = operation.get("phase_setpiece", {})
 	_expect(not setpiece.is_empty(), "%s has a named phase setpiece" % operation_id)
 	if setpiece.is_empty():
@@ -64,6 +66,23 @@ func _verify_operation_phase_profile(operation_id: String, operation: Dictionary
 	_expect(not String(setpiece.get("toast", "")).is_empty(), "%s phase setpiece has a player-facing toast" % operation_id)
 	_expect(not String(setpiece.get("pressure_text", "")).is_empty(), "%s phase setpiece updates route pressure text" % operation_id)
 	_expect(Array(setpiece.get("spawn", [])).size() >= 2, "%s phase setpiece has enough encounter texture" % operation_id)
+
+
+func _verify_late_cashout_profile(operation_id: String, events: Array) -> void:
+	var late_event_found := false
+	for event in events:
+		if float(event.get("elapsed", 0.0)) < LATE_CASHOUT_TIME:
+			continue
+		late_event_found = true
+		_expect(
+			_count_control_enemies(event.get("spawn", [])) >= 1,
+			"%s late cashout wave keeps at least one control enemy" % operation_id
+		)
+		_expect(
+			not String(event.get("toast", "")).is_empty(),
+			"%s late cashout wave has player-facing pressure copy" % operation_id
+		)
+	_expect(late_event_found, "%s has a late cashout escalation wave" % operation_id)
 
 
 func _scan_bucket(operation_id: String, label: String, spawn_list: Array) -> void:
@@ -94,6 +113,17 @@ func _build_spawn_entry(spawn_data: Dictionary) -> Dictionary:
 		"position": Vector2(spawn_data.get("position", Vector2.ZERO)),
 		"scene_path": scene.resource_path,
 	}
+
+
+func _count_control_enemies(spawn_list: Array) -> int:
+	var count := 0
+	for spawn_data in spawn_list:
+		var entry := _build_spawn_entry(spawn_data)
+		if entry.is_empty():
+			continue
+		if CONTROL_KINDS.has(String(entry["kind"])):
+			count += 1
+	return count
 
 
 func _check_pair(operation_id: String, label: String, left: Dictionary, right: Dictionary) -> void:

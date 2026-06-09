@@ -5,7 +5,7 @@
 - 继续真机调攻击命中、受击、音效和屏幕反馈强度；当前已有玩家受击白闪、残影、碎片和来源级屏幕冲击第一版
 - 继续调多敌人混编节奏；当前已新增遭遇压力回归脚本，防止远程压制者 / Bastion / Stalker 在同一刷怪桶中过近重叠
 - 继续实玩 3 个行动的独立地形记忆点和阶段事件强度；当前三条行动都有 `phase_setpiece` 阶段横幅 / 压力文案护栏
-- 继续实玩 `Overdrive Protocol` 的高分阈值和后段混编压迫；当前已有更高 dividend score threshold、第三段 cashout 波次、cashout 倍率通道和脚本护栏，后续重点是真机/实玩调参
+- 继续实玩三条路线的后段 cashout 压迫；当前 Blitz / Ghost / Overdrive 都已有 24 秒后 late cashout 波次，Overdrive 另有更高 dividend score threshold、cashout 倍率通道和脚本护栏，后续重点是真机/实玩调参
 
 ## P1 安卓体验
 

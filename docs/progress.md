@@ -9,7 +9,7 @@
 - 局前行动 / 构筑面板会持续展示 route 与 directive 的真实状态；route 卡片使用 `ACTIVE` / `READY` / `LOCKED`，directive 卡片使用 `ACTIVE` / `OPTION`，选择切换时文本、选中态和边框会同步更新。
 - 移动端暂停 / 结算面板的长说明会自动换行；`Why:`、`Try next:` 和可选目标说明不会在窄屏上横向挤出左侧栏。
 - 平台边界已收口在 `PlatformProfile`：安全区 margin、移动端 UI scale、震动支持、用户 haptics 设置和轻震/警告震动节流都通过同一入口，不再把平台判断散到玩法或 UI 脚本。
-- 玩法竖切片已有 3 条行动：`Blitz Pursuit`、`Ghost Circuit`、`Overdrive Protocol`。三条行动都有独立 `phase_setpiece` 阶段横幅 / 压力文案，Overdrive 另有高分阈值、后段 cashout 压力波和倍率结算护栏。
+- 玩法竖切片已有 3 条行动：`Blitz Pursuit`、`Ghost Circuit`、`Overdrive Protocol`。三条行动都有独立 `phase_setpiece` 阶段横幅 / 压力文案和 24 秒后的 late cashout 压力波，Overdrive 另有高分阈值和倍率结算护栏。
 - 可选目标状态会直接显示剩余 / 超时时间、剩余分数和 no-hit 破损 hit 数；Blitz 的 `Shock Exit` 文案与 00:58 目标时间保持一致。
 - 结果页现在会展示 `RANK REPORT`：结算时直接说明距下一等级的分差、速度/受击/危险区命中、可选目标和 cashout 得失，评分阈值由 `GameState` 统一计算。
 - 当前缺口仍是真机体验：刘海屏 / 18:9 安全区、震动强度、触屏多指边界、release keystore / AAB 发布流，以及更强的视觉资产、动效、音效和实玩数值调参。
