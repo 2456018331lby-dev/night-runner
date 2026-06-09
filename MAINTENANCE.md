@@ -110,6 +110,7 @@
 - Android 导出预设：`export_presets.cfg` 中已预留 `Android` preset，目标包路径 `exports/android/NightRunner-debug.apk`
 - 当前环境判断：Godot Android export templates、SDK、JDK、build-tools、`adb` 和 Android 35 模拟器已可用；命令行出包、签名验证、模拟器安装启动已打通，当前缺口主要是真机画面、触控和震动强度验证
 - `scripts/tools/verify_audio_engine_shutdown.gd` 是 headless 音频生命周期护栏；改 `AudioEngine`、程序化 WAV、播放器池或自动化启动参数时先跑它，并用 verbose 主场景加载确认没有 ObjectDB leak
+- `scripts/tools/verify_android_export_contract.gd` 是 Android 出包契约护栏；改 `export_presets.cfg`、包名、版本、SDK、图标、横屏、移动渲染或 APK 输出路径时先跑它，避免导出配置和真实 APK 继续漂移
 - `scripts/tools/verify_player_jump_windows.gd` 是玩家跳跃手感护栏；改 jump buffer、coyote time、二段跳或落地重置逻辑时先跑它，避免触屏提前点跳被吞或离台后保留无限宽限
 - `scripts/tools/verify_encounter_pressure.gd` 是行动调表护栏；新增 Suppressor / Bastion / Stalker 刷怪时先跑它，避免同一波把远程锁线、shockwave 和坠击压到同一小区域
 - `scripts/tools/verify_overdrive_greed_profile.gd` 是 Overdrive 贪分路线护栏；改 score threshold、cashout 梯度、Panic Dividend 或 `extraction_bonus_multiplier` 时先跑它，避免 Overdrive 退回普通路线
@@ -144,3 +145,4 @@
 - 2026-06-09：强化 `Overdrive Protocol` 的贪分路线后，新增 `verify_overdrive_greed_profile.tscn`，锁定高 score threshold、Panic Dividend cashout 倍率、第三段 cashout 压力波和 `extraction_bonus_multiplier` 结算；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2851`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09：放大移动端暂停页 `VOLUME` 滑杆、`HAPTICS` 开关和 `RESUME` / `HUB` 按钮触控目标后，暂停页设置回归新增 56px 级触控高度断言；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；项目和主场景 headless 加载通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3626`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09：触控暂停按钮现在会在进入暂停前清空 `InputRouter` 的移动和动作输入，避免恢复时残留 held / pending 输入；`verify_touch_pause.tscn` 新增暂停前按住移动 / 动作、暂停后输入清空的断言；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3862`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+- 2026-06-09：新增 Android 导出契约护栏，锁定 Android preset 的 APK 输出路径、包名、应用名、签名、arm64、minSdk 24、targetSdk 35、横屏、沉浸模式、启动图标、boot splash 和移动渲染配置；同步把 `export_presets.cfg` 的 `version/min_sdk` 从 23 对齐到真实 APK 的 24；Android export contract、Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `4213`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity

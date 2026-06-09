@@ -2,6 +2,15 @@
 
 ## 2026-06-09
 
+### 已完成（Android 导出契约护栏）
+
+- 新增 `scenes/tools/verify_android_export_contract.tscn` / `scripts/tools/verify_android_export_contract.gd`，用脚本锁定 Android export preset 的 APK 输出路径、包名、应用名、签名、arm64、minSdk、targetSdk、横屏、沉浸模式、启动图标和 boot splash
+- 把 `export_presets.cfg` 的 `version/min_sdk` 从 `23` 对齐到当前真实 APK / Godot 4.6 Android 运行时验证结果里的 `24`，避免文档、预设和 `apkanalyzer` 证据互相矛盾
+- Android 契约脚本也会检查项目移动端渲染保持 `renderer/rendering_method.mobile=\"mobile\"`，避免回退到此前会在模拟器 SwiftShader 上触发 shader uniform 报错的兼容渲染路径
+- 已通过 Android export contract、Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控暂停和触控输入回归；项目和主场景 headless 加载通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,398,821` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过，`minSdkVersion` 与 preset 一致为 `24`
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `4213`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（触控暂停输入清理）
 
 - `TouchControls` 的暂停按钮现在会在进入暂停前先释放移动方向、跳跃、攻击和冲刺输入，避免安卓玩家按住方向 / 动作时点暂停后，恢复游戏时出现残留移动或动作

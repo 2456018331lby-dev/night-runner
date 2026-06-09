@@ -11,6 +11,7 @@
 ## 顶层结构
 
 - `project.godot`: 项目配置、输入映射、全局单例
+- `export_presets.cfg`: Android / Web 导出契约；改 Android 包名、SDK、图标、APK 路径或移动渲染配置后先跑 `verify_android_export_contract.tscn`
 - `scenes/app`: 应用入口
 - `scenes/game`: 战斗和关卡容器
 - `scenes/actors`: 玩家、敌人、后续 Boss / NPC
