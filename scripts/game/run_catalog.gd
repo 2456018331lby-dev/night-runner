@@ -653,6 +653,7 @@ const OPERATIONS := [
 			"score_multiplier": 1.12,
 			"combo_window_multiplier": 1.0,
 			"finish_bonus_multiplier": 1.12,
+			"extraction_bonus_multiplier": 1.08,
 			"silent_bonus": 0,
 		},
 		"directive_pool": [
@@ -688,7 +689,8 @@ const OPERATIONS := [
 				"name": "Panic Dividend",
 				"summary": "Extraction bonus surges if you survive the late game.",
 				"modifiers": {
-					"finish_bonus_multiplier": 1.22,
+					"finish_bonus_multiplier": 1.06,
+					"extraction_bonus_multiplier": 1.35,
 				},
 			},
 			{
@@ -706,14 +708,14 @@ const OPERATIONS := [
 			"id": "dividend_hunter",
 			"name": "Dividend Hunter",
 			"type": "score_threshold",
-			"description": "Reach 2600 score before extraction to trigger the dividend payout.",
-			"target_score": 2600,
-			"reward_score": 460,
+			"description": "Reach 3200 score before extraction to trigger the dividend payout.",
+			"target_score": 3200,
+			"reward_score": 640,
 		},
 		"extraction_bonus": {
 			"label": "Dividend Chain",
-			"base_bounty": 110,
-			"step_bounty": 45,
+			"base_bounty": 130,
+			"step_bounty": 70,
 		},
 		"cashout_events": [
 			{
@@ -733,6 +735,16 @@ const OPERATIONS := [
 					{"scene": RUNNER_SCENE, "position": Vector2(1948, 152)},
 					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1498, 170)},
 					{"scene": BASTION_SCENE, "position": Vector2(2142, 90)},
+				],
+			},
+			{
+				"elapsed": 24.0,
+				"toast": "Dividend lock. The big payout is live, but extraction is now under cross-lane hunter control.",
+				"spawn": [
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1052, 250)},
+					{"scene": BASTION_SCENE, "position": Vector2(1460, 170)},
+					{"scene": RUNNER_SCENE, "position": Vector2(1940, 152)},
+					{"scene": STALKER_SCENE, "position": Vector2(2186, 90)},
 				],
 			},
 		],

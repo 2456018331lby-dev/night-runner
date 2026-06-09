@@ -498,7 +498,8 @@ func get_next_extraction_bonus_value() -> int:
 		return 0
 	var base_value := int(extraction_bonus_config.get("base_bounty", 0))
 	var step_value := int(extraction_bonus_config.get("step_bounty", 0))
-	return base_value + max(0, extraction_bonus_kills - 1) * step_value
+	var raw_value: int = base_value + max(0, extraction_bonus_kills - 1) * step_value
+	return int(round(float(raw_value) * float(run_modifiers.get("extraction_bonus_multiplier", 1.0))))
 
 
 func get_extraction_bonus_label() -> String:
@@ -705,6 +706,7 @@ func describe_modifier_block(modifiers: Dictionary) -> String:
 		"combo_window_multiplier",
 		"score_multiplier",
 		"finish_bonus_multiplier",
+		"extraction_bonus_multiplier",
 		"health_bonus",
 		"silent_bonus",
 	]
@@ -727,6 +729,7 @@ func _build_run_modifiers(operation: Dictionary, directive: Dictionary) -> Dicti
 		"score_multiplier": 1.0,
 		"combo_window_multiplier": 1.0,
 		"finish_bonus_multiplier": 1.0,
+		"extraction_bonus_multiplier": 1.0,
 		"silent_bonus": 0,
 		"attack_force_multiplier": 1.0,
 	}
@@ -825,6 +828,8 @@ func _format_modifier_line(key: String, value: Variant) -> String:
 			return _format_percent_shift("SCORE", float(value))
 		"finish_bonus_multiplier":
 			return _format_percent_shift("EXIT", float(value))
+		"extraction_bonus_multiplier":
+			return _format_percent_shift("CASHOUT", float(value))
 		"health_bonus":
 			var health_delta := int(round(float(value)))
 			return "HP %+d" % health_delta if health_delta != 0 else ""

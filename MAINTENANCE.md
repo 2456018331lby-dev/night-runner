@@ -112,6 +112,7 @@
 - `scripts/tools/verify_audio_engine_shutdown.gd` 是 headless 音频生命周期护栏；改 `AudioEngine`、程序化 WAV、播放器池或自动化启动参数时先跑它，并用 verbose 主场景加载确认没有 ObjectDB leak
 - `scripts/tools/verify_player_jump_windows.gd` 是玩家跳跃手感护栏；改 jump buffer、coyote time、二段跳或落地重置逻辑时先跑它，避免触屏提前点跳被吞或离台后保留无限宽限
 - `scripts/tools/verify_encounter_pressure.gd` 是行动调表护栏；新增 Suppressor / Bastion / Stalker 刷怪时先跑它，避免同一波把远程锁线、shockwave 和坠击压到同一小区域
+- `scripts/tools/verify_overdrive_greed_profile.gd` 是 Overdrive 贪分路线护栏；改 score threshold、cashout 梯度、Panic Dividend 或 `extraction_bonus_multiplier` 时先跑它，避免 Overdrive 退回普通路线
 - `scripts/tools/verify_dynamic_health_hud.gd` 是生命 HUD 护栏；改行动基础生命、directive `health_bonus` 或 HUD 生命区时先跑它，避免实际生命和屏幕 pips 再次不一致
 - `scripts/tools/verify_settings.gd` / `scripts/tools/verify_pause_settings.gd` 是设置护栏；改 `GameState` 设置结构、暂停页设置控件或 `PlatformProfile` 震动边界时先跑它们
 
@@ -139,3 +140,4 @@
 - 2026-06-06：修复 HUD 固定 3 格生命导致 `health_bonus` 路线 / directive 显示不准的问题后，新增 `verify_dynamic_health_hud.tscn`，覆盖正生命修正、负生命修正和最小 1 格兜底；动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3102`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-06：给 `Player` 增加短 jump buffer 和明确 coyote time 后，新增 `verify_player_jump_windows.tscn`，覆盖提前点跳缓存、缓存消耗、coyote 过期收束和 coyote jump 后仍保留一次空中跳；玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `3139`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09：修复主场景 headless 限时退出时的 `AudioStreamWAV` / `AudioStreamPlaybackWAV` ObjectDB 泄漏；`AudioEngine` 现在在 headless 下不创建 WAV / 播放器，非 headless 退出会停止并释放播放器池；新增 `verify_audio_engine_shutdown.tscn`，音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新安装损坏的 Android SDK `platform-tools`、补齐 `build-tools;35.0.0`、`emulator` 和 Android 35 Google APIs x86_64 system image 后，重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2818`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+- 2026-06-09：强化 `Overdrive Protocol` 的贪分路线后，新增 `verify_overdrive_greed_profile.tscn`，锁定高 score threshold、Panic Dividend cashout 倍率、第三段 cashout 压力波和 `extraction_bonus_multiplier` 结算；Overdrive 贪分路线、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停设置、遭遇压力、触控暂停和触控输入回归均通过；重新导出 Android debug APK，v2 / v3 签名和 `apkanalyzer` 包信息校验通过；`NightRunner35` 模拟器安装启动通过，`pidof` 返回进程 `2851`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity

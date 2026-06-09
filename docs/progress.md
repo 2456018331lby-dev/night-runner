@@ -2,6 +2,17 @@
 
 ## 2026-06-09
 
+### 已完成（Overdrive 贪分路线强化）
+
+- 给 `GameState` 增加 `extraction_bonus_multiplier` 通道，cashout 每次击杀奖励现在能被行动基础 modifier 和 directive 真正放大；`GameState.describe_modifier_block()` 也会在中枢 / HUD 摘要里显示 `CASHOUT` 变化
+- 调整 `Overdrive Protocol`：`Dividend Hunter` 从 `2600` 提升到 `3200` 分门槛，奖励从 `460` 提升到 `640`，迫使玩家通过击杀、连击和核心路线来主动冲分，而不是自然通关顺手完成
+- 提高 `Dividend Chain` 的基础 / 阶梯 cashout 奖励，并让 `Panic Dividend` 真正提升 cashout 奖励倍率，而不只是泛化提高撤离奖励
+- 给 Overdrive cashout 增加 `24s` 的第三段后期混编压力波：Suppressor / Bastion / Stalker 横跨上下线布控，让“继续贪分”变成明确风险选择
+- 新增 `scenes/tools/verify_overdrive_greed_profile.tscn` / `scripts/tools/verify_overdrive_greed_profile.gd`，锁定 Overdrive 必须保留高分门槛、高 cashout 梯度、Panic Dividend cashout 倍率和第三段后期压力波
+- 已通过 Overdrive 贪分路线护栏、音频生命周期、玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控暂停和触控输入回归；项目和主场景 headless 加载通过，主场景 verbose 限时退出未出现 ObjectDB leak
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,390,162` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `2851`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（headless 音频生命周期修复）
 
 - 复现并定位主场景 `--headless --quit-after 3` 退出时的 ObjectDB warning：泄漏对象是 `AudioStreamWAV` / `AudioStreamPlaybackWAV`，来源于 headless 环境里的短 WAV playback 后端，而不是玩法节点未释放
