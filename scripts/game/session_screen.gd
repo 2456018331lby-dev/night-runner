@@ -11,6 +11,8 @@ const FONT_TITLE_SIZE := 20
 const FONT_BODY_SIZE := 14
 const FONT_CAPTION_SIZE := 11
 const MOBILE_TOUCH_TARGET_MIN := 56.0
+const MOBILE_ROUTE_BUTTON_HEIGHT := 124.0
+const MOBILE_LOCKED_ROUTE_BUTTON_HEIGHT := 146.0
 const PANEL_BG := Color("09121f")
 const PANEL_LINE := Color("4fdcff")
 const PANEL_ACCENT := Color("ff7b43")
@@ -278,7 +280,7 @@ func _set_route_button_state(btn: Button, operation: Dictionary, selected: bool)
 	if not unlocked and not lock_text.is_empty():
 		btn.text += "\n%s" % lock_text
 	if PlatformProfile.is_mobile:
-		btn.custom_minimum_size = Vector2(0, 106 if unlocked else 122)
+		btn.custom_minimum_size = Vector2(0, MOBILE_ROUTE_BUTTON_HEIGHT if unlocked else MOBILE_LOCKED_ROUTE_BUTTON_HEIGHT)
 	else:
 		btn.custom_minimum_size = Vector2(0, 90 if unlocked else 104)
 	btn.disabled = not unlocked
@@ -295,11 +297,21 @@ func _set_route_button_state(btn: Button, operation: Dictionary, selected: bool)
 
 func _format_mobile_route_record(operation_id: String) -> String:
 	var record := GameState.get_operation_record(operation_id)
-	return "BEST %04d // RANK %s // RUNS %d" % [
+	return "BEST %04d // RANK %s\nTIME %s // RUNS %d" % [
 		int(record.get("best_score", 0)),
 		String(record.get("best_rank", "--")),
+		_format_record_time(float(record.get("best_time", 0.0))),
 		int(record.get("runs", 0)),
 	]
+
+
+func _format_record_time(time_value: float) -> String:
+	if time_value <= 0.0:
+		return "--"
+	var total_seconds := int(time_value)
+	var minutes := total_seconds / 60
+	var seconds := total_seconds % 60
+	return "%02d:%02d" % [minutes, seconds]
 
 
 func _select_directive(operation_id: String, directive_id: String) -> void:

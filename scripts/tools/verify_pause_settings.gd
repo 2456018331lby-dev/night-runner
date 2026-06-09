@@ -20,6 +20,7 @@ func _ready() -> void:
 			"successes": 2,
 			"best_score": 1780,
 			"best_rank": "A",
+			"best_time": 72.0,
 		},
 	}
 	GameState.set_master_volume(0.7, false)
@@ -167,12 +168,17 @@ func _verify_route_button_state(screen: Node, active_operation: Dictionary, lock
 	screen.call("_set_route_button_state", locked_button, locked_operation, false)
 	_expect(active_button.text.begins_with("ACTIVE"), "selected route button should show active state")
 	_expect(active_button.button_pressed, "selected route button should be pressed")
-	_expect(active_button.text.contains("BEST 1780 // RANK A // RUNS 3"), "mobile selected route button should show compact record summary")
+	_expect(active_button.text.contains("BEST 1780 // RANK A"), "mobile selected route button should show compact score and rank record")
+	_expect(active_button.text.contains("TIME 01:12 // RUNS 3"), "mobile selected route button should show best clear time and run count")
+	_expect(active_button.custom_minimum_size.y >= 124.0, "mobile selected route button should reserve height for two-line records")
 	_expect(ready_button.text.begins_with("READY"), "available unselected route button should show ready state")
 	_expect(not ready_button.button_pressed, "available unselected route button should not be pressed")
-	_expect(ready_button.text.contains("BEST 1780 // RANK A // RUNS 3"), "mobile ready route button should keep compact record summary")
+	_expect(ready_button.text.contains("BEST 1780 // RANK A"), "mobile ready route button should keep compact score and rank record")
+	_expect(ready_button.text.contains("TIME 01:12 // RUNS 3"), "mobile ready route button should keep best clear time and run count")
 	_expect(locked_button.text.begins_with("LOCKED"), "locked route button should show locked state")
 	_expect(locked_button.disabled, "locked route button should be disabled")
+	_expect(locked_button.text.contains("TIME -- // RUNS 0"), "locked route button should not fake a best clear time")
+	_expect(locked_button.custom_minimum_size.y >= 146.0, "mobile locked route button should reserve height for records plus lock copy")
 	active_button.queue_free()
 	ready_button.queue_free()
 	locked_button.queue_free()

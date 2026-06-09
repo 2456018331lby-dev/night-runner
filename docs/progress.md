@@ -6,7 +6,7 @@
 - 当前可安装包路径：`exports/android/NightRunner-debug.apk`。最近一次验证包大小为 `28,416,550` bytes，`apksigner` v2 / v3、`apkanalyzer` 包信息、模拟器安装启动均通过。
 - 移动端输入已有核心护栏：触屏左右移动仲裁、触摸 index 级拖出取消和同按钮接管、暂停/隐藏触控层时清空 held / pending 输入和按钮 pressed 状态、跳跃 buffer / coyote time、攻击长按续攻、触控按钮布局和暂停页触控高度。
 - 移动端 HUD 会把阶段压力摘要和可选目标短状态压缩进导航卡第二行，cashout 卡会保留 overstay `00:xx` 计时和 live hazard 短状态；即使隐藏桌面版 `PhaseCard` / `SecondaryCard`，阶段事件、cashout 压力、hazard 状态和 optional 目标进度也不会在安卓布局里丢失。
-- 局前行动 / 构筑面板会持续展示 route 与 directive 的真实状态；route 卡片使用 `ACTIVE` / `READY` / `LOCKED`，移动端还显示 `BEST` / `RANK` / `RUNS` 短记录，directive 卡片使用 `ACTIVE` / `OPTION`，选择切换时文本、选中态和边框会同步更新。
+- 局前行动 / 构筑面板会持续展示 route 与 directive 的真实状态；route 卡片使用 `ACTIVE` / `READY` / `LOCKED`，移动端还显示 `BEST` / `RANK` / `TIME` / `RUNS` 短记录，directive 卡片使用 `ACTIVE` / `OPTION`，选择切换时文本、选中态和边框会同步更新。
 - 移动端暂停 / 结算面板的长说明会自动换行；`Why:`、`Try next:` 和可选目标说明不会在窄屏上横向挤出左侧栏。
 - 平台边界已收口在 `PlatformProfile`：安全区 margin、移动端 UI scale、震动支持、用户 haptics 设置和轻震/警告震动节流都通过同一入口，不再把平台判断散到玩法或 UI 脚本。
 - 玩法竖切片已有 3 条行动：`Blitz Pursuit`、`Ghost Circuit`、`Overdrive Protocol`。三条行动都有独立 `phase_setpiece` 阶段横幅 / 压力文案和 24 秒后的 late cashout 压力波，Overdrive 另有高分阈值和倍率结算护栏。
