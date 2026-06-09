@@ -2,6 +2,9 @@ extends Node
 
 const HUD_SCENE := preload("res://scenes/ui/hud.tscn")
 const PIP_ROW_PATH := NodePath("MarginContainer/RootColumn/TopRow/TelemetryCard/Margin/VBox/HealthRow/PipRow")
+const PHASE_CARD_PATH := NodePath("MarginContainer/RootColumn/ObjectiveRow/PhaseCard")
+const NAV_CARD_PATH := NodePath("MarginContainer/RootColumn/CashoutRow/NavCard")
+const NAV_STATUS_PATH := NodePath("MarginContainer/RootColumn/CashoutRow/NavCard/Margin/VBox/NavStatus")
 
 var failures: Array[String] = []
 
@@ -9,6 +12,12 @@ var failures: Array[String] = []
 func _ready() -> void:
 	var original_health := GameState.health
 	var original_modifiers := GameState.run_modifiers.duplicate(true)
+	var original_mobile := PlatformProfile.is_mobile
+	var original_run_success := GameState.run_success
+	var original_run_failed := GameState.is_run_failed
+	var original_phase := GameState.get_route_phase_text()
+	var original_pressure := GameState.get_route_pressure_text()
+	var original_hazard := GameState.get_hazard_status_text()
 	var hud := HUD_SCENE.instantiate()
 	add_child(hud)
 	await get_tree().process_frame
@@ -25,8 +34,20 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_expect_pip_count(hud, 1, "health display keeps at least one pip")
 
+	PlatformProfile.is_mobile = true
+	GameState.run_success = false
+	GameState.is_run_failed = false
+	GameState.set_live_route_status("BREACH", "Relay Bloom. Suppressor geometry is live.", "Hazard net dormant.")
+	hud.call("set_navigation_target", "data core", 180.0, Vector2(1.0, -0.2), true)
+	await get_tree().process_frame
+	_expect_mobile_nav_pressure(hud)
+
 	GameState.health = original_health
 	GameState.run_modifiers = original_modifiers
+	GameState.run_success = original_run_success
+	GameState.is_run_failed = original_run_failed
+	GameState.set_live_route_status(original_phase, original_pressure, original_hazard)
+	PlatformProfile.is_mobile = original_mobile
 	GameState.state_changed.emit()
 	hud.queue_free()
 
@@ -53,3 +74,17 @@ func _expect_pip_count(hud: CanvasLayer, expected: int, label: String) -> void:
 		failures.append("%s: expected %d pip nodes, got %d" % [label, expected, actual])
 	if internal_pips.size() != expected:
 		failures.append("%s: expected %d tracked pips, got %d" % [label, expected, internal_pips.size()])
+
+
+func _expect_mobile_nav_pressure(hud: CanvasLayer) -> void:
+	var phase_card := hud.get_node(PHASE_CARD_PATH) as PanelContainer
+	var nav_card := hud.get_node(NAV_CARD_PATH) as PanelContainer
+	var nav_status := hud.get_node(NAV_STATUS_PATH) as Label
+	if phase_card.visible:
+		failures.append("mobile HUD should keep the phase card hidden for density")
+	if not nav_card.visible:
+		failures.append("mobile HUD should keep navigation card visible while tracking")
+	if not nav_status.text.contains("DATA CORE"):
+		failures.append("mobile navigation card lost the route vector label")
+	if not nav_status.text.contains("Relay Bloom"):
+		failures.append("mobile navigation card lost route pressure text while phase card is hidden")

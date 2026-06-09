@@ -5,6 +5,7 @@
 - Android debug APK 出包链路已打通：`export_presets.cfg`、Godot Android export templates、SDK / JDK / build-tools / `adb`、`NightRunner35` 模拟器均可用。
 - 当前可安装包路径：`exports/android/NightRunner-debug.apk`。最近一次验证包大小为 `28,416,550` bytes，`apksigner` v2 / v3、`apkanalyzer` 包信息、模拟器安装启动均通过。
 - 移动端输入已有核心护栏：触屏左右移动仲裁、暂停/隐藏触控层时清空 held / pending 输入和按钮 pressed 状态、跳跃 buffer / coyote time、攻击长按续攻、触控按钮布局和暂停页触控高度。
+- 移动端 HUD 会把路线压力压缩进导航卡第二行；即使隐藏桌面版 `PhaseCard`，阶段事件和 cashout 压力也不会在安卓布局里丢失。
 - 局前行动 / 构筑面板会持续展示 route 与 directive 的真实状态；route 卡片使用 `ACTIVE` / `READY` / `LOCKED`，directive 卡片使用 `ACTIVE` / `OPTION`，选择切换时文本、选中态和边框会同步更新。
 - 平台边界已收口在 `PlatformProfile`：安全区 margin、移动端 UI scale、震动支持和用户 haptics 设置都通过同一入口，不再把平台判断散到玩法或 UI 脚本。
 - 玩法竖切片已有 3 条行动：`Blitz Pursuit`、`Ghost Circuit`、`Overdrive Protocol`。三条行动都有独立 `phase_setpiece` 阶段横幅 / 压力文案，Overdrive 另有高分阈值、后段 cashout 压力波和倍率结算护栏。
