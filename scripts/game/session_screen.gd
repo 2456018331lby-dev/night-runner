@@ -362,6 +362,12 @@ func _add_debrief_metrics(operation: Dictionary) -> void:
 	var metrics := GameState.get_run_metrics()
 	_add_route_note("Rank %s · %04d" % [GameState.final_rank, GameState.score], TEXT_GOLD)
 	_add_route_note("Career best %04d" % int(GameState.meta_progress.get("highest_score", 0)), TEXT_MUTED)
+	_add_route_note("Route best %04d · Rank %s · Time %s · Runs %d" % [
+		int(record.get("best_score", 0)),
+		String(record.get("best_rank", "--")),
+		_format_record_time(float(record.get("best_time", 0.0))),
+		int(record.get("runs", 0)),
+	], TEXT_MUTED)
 	_add_route_note("Combat +%d · Cores +%d" % [int(metrics.get("combat_score", 0)), int(metrics.get("core_score", 0))], TEXT_TEAL)
 	_add_route_note("Exit +%d · Cashout +%d" % [int(metrics.get("exit_bonus", 0)), int(metrics.get("cashout_bonus", 0))], TEXT_PRIMARY)
 	_add_route_note("Why: %s" % GameState.get_result_outcome_summary(), TEXT_PRIMARY)

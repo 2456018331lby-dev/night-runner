@@ -124,10 +124,19 @@ func _ready() -> void:
 	GameState.extraction_unlocked = false
 	screen.call("build_results", blitz)
 	await get_tree().process_frame
+	var result_route_best_note := _find_label_starting_with(route_list, "Route best")
 	var result_why_note := _find_label_starting_with(route_list, "Why:")
 	var result_try_note := _find_label_starting_with(route_list, "Try next:")
+	_expect(result_route_best_note != null, "result screen did not add route best note")
 	_expect(result_why_note != null, "result screen did not add why note")
 	_expect(result_try_note != null, "result screen did not add try-next note")
+	if result_route_best_note != null:
+		_expect(result_route_best_note.text.contains("1780"), "result route best note should show operation best score")
+		_expect(result_route_best_note.text.contains("Rank A"), "result route best note should show operation best rank")
+		_expect(result_route_best_note.text.contains("Time 01:12"), "result route best note should show operation best clear time")
+		_expect(result_route_best_note.text.contains("Runs 3"), "result route best note should show operation run count")
+		_expect(result_route_best_note.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "result route best note should wrap on mobile")
+		_expect(result_route_best_note.size_flags_horizontal == Control.SIZE_EXPAND_FILL, "result route best note should fill available width")
 	if result_why_note != null:
 		_expect(result_why_note.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "result why note should wrap on mobile")
 		_expect(result_why_note.size_flags_horizontal == Control.SIZE_EXPAND_FILL, "result why note should fill available width")

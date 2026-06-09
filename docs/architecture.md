@@ -170,6 +170,7 @@
 - `SessionScreen` 当前还负责移动端安全区避让、route 卡短记录、结果页 debrief 卡片、首开一键快开入口和暂停页轻量设置
 - 移动端 route 卡短记录必须保留 best score、rank、best clear time 和 runs；无成功记录时 best clear time 显示 `--`，不要显示伪时间
 - 暂停页的 live data 必须保留 route phase / compact pressure、cashout timer + banked value 和 live hazard 摘要，便于 Android 玩家暂停后判断继续路线
+- 结果页 `RUN METRICS` 必须同时展示 career best 和当前 route best / rank / best time / runs，避免复盘时丢失路线级进步反馈
 - `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标、cashout 状态和移动端低打断提示
 - `HUD` 的生命 pips 必须根据 `GameState.health` 与 `run_modifiers.health_bonus` 动态生成，不要再假设固定 3 格生命；改行动基础生命或 directive 生命修正后先跑 `verify_dynamic_health_hud.tscn`
 - 移动端 `HUD` 会隐藏桌面版 `PhaseCard` / `SecondaryCard`，但导航卡必须保留压缩后的阶段压力和可选目标短状态；改移动端 HUD 密度或导航文案后先跑 `verify_dynamic_health_hud.tscn`
