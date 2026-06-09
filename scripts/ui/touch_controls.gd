@@ -3,6 +3,8 @@ extends CanvasLayer
 const PAD_BG := Color(0.04, 0.07, 0.13, 0.72)
 const PAD_BORDER := Color(0.23, 0.75, 1.0, 0.36)
 const LABEL_COLOR := Color(0.95, 0.98, 1.0)
+const PAUSE_BUTTON_BASE_SIZE := Vector2(82.0, 58.0)
+const PAUSE_BUTTON_MIN_SIZE := Vector2(64.0, 56.0)
 
 @onready var controls_root: Control = $Controls
 @onready var left_pad: PanelContainer = $Controls/LeftPad
@@ -54,11 +56,13 @@ func _apply_mobile_layout() -> void:
 	action_pad.offset_top = -302.0 * ui_scale
 	action_pad.offset_right = -8.0
 	action_pad.offset_bottom = -8.0
-	pause_button.scale = Vector2.ONE * ui_scale
-	pause_button.offset_left = -82.0 * ui_scale
+	var pause_size := Vector2(maxf(PAUSE_BUTTON_MIN_SIZE.x, PAUSE_BUTTON_BASE_SIZE.x * ui_scale), maxf(PAUSE_BUTTON_MIN_SIZE.y, PAUSE_BUTTON_BASE_SIZE.y * ui_scale))
+	pause_button.scale = Vector2.ONE
+	pause_button.custom_minimum_size = pause_size
+	pause_button.offset_left = -pause_size.x
 	pause_button.offset_top = 0.0
 	pause_button.offset_right = 0.0
-	pause_button.offset_bottom = 58.0 * ui_scale
+	pause_button.offset_bottom = pause_size.y
 
 
 func _release_move(expected: float) -> void:

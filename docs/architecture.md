@@ -168,6 +168,7 @@
 - `HUD` 负责局内主目标、路线阶段、环境压力、directive、次级目标、cashout 状态和移动端低打断提示
 - `HUD` 的生命 pips 必须根据 `GameState.health` 与 `run_modifiers.health_bonus` 动态生成，不要再假设固定 3 格生命；改行动基础生命或 directive 生命修正后先跑 `verify_dynamic_health_hud.tscn`
 - `TouchControls` 负责移动端虚拟移动 / 跳跃 / 攻击 / 冲刺 / 暂停入口；运行中暂停必须先清空 `InputRouter` 的 held / pending 输入，再经 `FrontendBridge.toggle_pause()`，不要让触控层直接改 `SceneTree.paused`
+- `TouchControls` 的移动 / 动作 / 暂停按钮必须保持移动端触控目标尺寸，且左右操作区、右侧动作区和暂停按钮不能互相重叠；改触控布局后先跑 `verify_touch_controls_layout.tscn`
 - 这两层都只读 `FrontendBridge` 和 `GameState` 暴露出来的展示数据，不直接驱动玩法判定，便于后续完全重做前端
 - 暂停页设置只通过 `GameState.set_master_volume()` / `GameState.set_haptics_enabled()` 改持久化设置；`PlatformProfile` 是震动是否执行的唯一平台门禁
 - 移动端暂停页的 `VOLUME`、`HAPTICS`、`RESUME`、`HUB` 控件必须保持 56px 级最小触控高度；改暂停页布局后先跑 `verify_pause_settings.tscn`

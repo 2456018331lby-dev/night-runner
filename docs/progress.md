@@ -2,6 +2,15 @@
 
 ## 2026-06-09
 
+### 已完成（触控布局护栏）
+
+- 新增 `scenes/tools/verify_touch_controls_layout.tscn` / `scripts/tools/verify_touch_controls_layout.gd`，锁定移动端触控层必须显示、移动 / 动作 / 暂停按钮保持足够触控尺寸、按钮标签保持紧凑、左右操作区和暂停按钮不互相重叠
+- 验证器复现出 `PauseButton` 只有 offset、没有明确最小触控尺寸的问题；现在暂停按钮在 `_apply_mobile_layout()` 中使用最小 `64x56` 的触控目标，不再随移动端 UI scale 缩到过小
+- 触控布局护栏还覆盖 `configure(false)` 必须隐藏触控层并清空移动、跳跃、攻击、冲刺 pending / held 输入，避免运行 UI 隐藏后留下输入状态
+- 已通过 Android export contract、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控布局、触控暂停和触控输入回归；项目和主场景 headless 加载通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,412,015` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `5132`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（移动端攻击长按容错）
 
 - `InputRouter` 现在区分 pending action 和 held action：跳跃 / 冲刺仍保持一次性消费，攻击则能在按钮持续按住时保留 held 状态

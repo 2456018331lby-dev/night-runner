@@ -22,6 +22,7 @@
 - 2026-06-09 因触控暂停输入清理护栏重新导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,394,258` bytes，签名验证通过 v2/v3
 - 2026-06-09 因 Android 导出契约护栏和 minSdk preset 对齐重新导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,398,821` bytes，签名验证通过 v2/v3，`apkanalyzer` 确认 `minSdkVersion 24`
 - 2026-06-09 因移动端攻击长按容错重新导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,403,364` bytes，签名验证通过 v2/v3
+- 2026-06-09 因触控布局护栏和暂停按钮最小触控目标修复重新导出 `exports/android/NightRunner-debug.apk`；当前 APK `28,412,015` bytes，签名验证通过 v2/v3
 - 已完成 Android 35 模拟器安装与启动验证：`adb install -r` 成功，应用可拉起并保持前台进程
 - Android 侧当前结论：`renderer/rendering_method.mobile` 需要使用 `mobile`；此前的 `gl_compatibility` 在模拟器 SwiftShader 上会触发 `GL_MAX_FRAGMENT_UNIFORM_VECTORS` 着色器报错
 - 2026-06-01 12:21 重新导出最新 APK 后，再次完成模拟器安装验证；最新一次 `logcat` 仍显示 `usesVulkan(): true`、`renderingDevice: vulkan`、`renderer: mobile`
@@ -37,6 +38,7 @@
 - 2026-06-09 触控暂停输入清理护栏后再次完成 `NightRunner35` 模拟器安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `3862`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09 Android 导出契约护栏后再次完成 `NightRunner35` 模拟器安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `4213`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09 移动端攻击长按容错后再次完成 `NightRunner35` 模拟器安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `4971`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+- 2026-06-09 触控布局护栏和暂停按钮最小触控目标修复后再次完成 `NightRunner35` 模拟器安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `5132`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09 10:29 本轮重导出后完成 `apksigner` 和 `apkanalyzer` 校验；随后启动 `NightRunner35` 复验，`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `2818`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - 2026-06-09 10:47 本轮重导出后完成 `apksigner` 和 `apkanalyzer` 校验；随后启动 `NightRunner35` 复验，`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回进程 `2851`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
 - Godot 当前使用 Android SDK：`C:/Users/24560/Desktop/study/Englishdemo/.android-sdk`
