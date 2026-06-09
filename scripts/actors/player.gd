@@ -112,7 +112,7 @@ func _collect_actions() -> void:
 		_queue_jump()
 	if Input.is_action_just_pressed("dash") or InputRouter.consume_dash():
 		_try_dash()
-	if Input.is_action_just_pressed("attack") or InputRouter.consume_attack():
+	if Input.is_action_just_pressed("attack") or Input.is_action_pressed("attack") or InputRouter.consume_attack() or InputRouter.is_action_held("attack"):
 		_try_attack()
 
 	if dash_timer <= 0.0:

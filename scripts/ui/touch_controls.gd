@@ -108,6 +108,7 @@ func _wire_action_button(button: Button, action_name: String) -> void:
 		_set_button_visual(button, true)
 	)
 	button.button_up.connect(func() -> void:
+		InputRouter.release_held_action(action_name)
 		_set_button_visual(button, false)
 	)
 	button.mouse_exited.connect(func() -> void:

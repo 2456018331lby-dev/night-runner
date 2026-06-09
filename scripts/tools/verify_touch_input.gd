@@ -31,6 +31,24 @@ func _init() -> void:
 	if router.consume_jump():
 		failures.append("jump press consumed more than once")
 
+	router.press_action("attack")
+	if not router.consume_attack():
+		failures.append("attack press was not consumable")
+	if router.consume_attack():
+		failures.append("attack press consumed more than once before repeat")
+	if not router.is_action_held("attack"):
+		failures.append("attack hold state did not survive one-shot consumption")
+	router.release_held_action("attack")
+	if router.is_action_held("attack"):
+		failures.append("release_held_action did not release attack hold")
+
+	router.press_action("dash")
+	router.release_action("dash")
+	if router.consume_dash():
+		failures.append("release_action should cancel pending dash")
+	if router.is_action_held("dash"):
+		failures.append("release_action should clear held dash")
+
 	if failures.is_empty():
 		print("Touch input regression passed.")
 		quit(0)

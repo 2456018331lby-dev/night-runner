@@ -4,6 +4,9 @@ var move_axis: float = 0.0
 var jump_pressed: bool = false
 var attack_pressed: bool = false
 var dash_pressed: bool = false
+var jump_held: bool = false
+var attack_held: bool = false
+var dash_held: bool = false
 var move_left_held: bool = false
 var move_right_held: bool = false
 var preferred_move_axis: float = 0.0
@@ -37,20 +40,47 @@ func press_action(action_name: String) -> void:
 	match action_name:
 		"jump":
 			jump_pressed = true
+			jump_held = true
 		"attack":
 			attack_pressed = true
+			attack_held = true
 		"dash":
 			dash_pressed = true
+			dash_held = true
 
 
 func release_action(action_name: String) -> void:
 	match action_name:
 		"jump":
 			jump_pressed = false
+			jump_held = false
 		"attack":
 			attack_pressed = false
+			attack_held = false
 		"dash":
 			dash_pressed = false
+			dash_held = false
+
+
+func release_held_action(action_name: String) -> void:
+	match action_name:
+		"jump":
+			jump_held = false
+		"attack":
+			attack_held = false
+		"dash":
+			dash_held = false
+
+
+func is_action_held(action_name: String) -> bool:
+	match action_name:
+		"jump":
+			return jump_held
+		"attack":
+			return attack_held
+		"dash":
+			return dash_held
+	return false
 
 
 func consume_jump() -> bool:

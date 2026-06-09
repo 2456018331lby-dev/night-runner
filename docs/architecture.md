@@ -45,6 +45,7 @@
 - 把触屏输入和物理输入统一成同一接口
 - 避免 `Player` 直接依赖具体按钮节点
 - 当前触屏移动不是单个瞬时轴值，而是记录左右按钮各自按住状态；多指同时按住时以后按下方向为准，松开后恢复仍按住的另一方向
+- 当前动作输入区分 pending 和 held：跳跃 / 冲刺通过 pending 保持一次性消费，攻击可读 held 状态来支持触屏长按续攻；拖出按钮仍应取消 pending
 - 后续能接手柄、重绑定和 Steam Input
 
 ### `FrontendBridge`
@@ -113,6 +114,7 @@
 - 只关心移动、跳跃、冲刺、攻击和受击
 - 不直接管理总分和 UI
 - 跳跃手感包含短 jump buffer 和 coyote time：触屏提前点跳不会被直接吞掉，刚离开平台也只有一个明确的宽限窗口；改跳跃窗口、二段跳或落地逻辑后先跑 `verify_player_jump_windows.tscn`
+- 攻击手感支持长按续攻：`InputRouter` 的 attack held 状态会在冷却结束后继续触发 `_try_attack()`；改攻击输入收集、攻击冷却或触屏 action held 语义后先跑 `verify_player_attack_hold.tscn`
 - 受击反馈在本脚本内完成：短冻结、方向性击退、角色白闪、受击残影和碎片；伤害来源记录仍通过 `GameState.register_damage_source`
 
 ### `EnemyRunner`

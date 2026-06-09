@@ -2,6 +2,17 @@
 
 ## 2026-06-09
 
+### 已完成（移动端攻击长按容错）
+
+- `InputRouter` 现在区分 pending action 和 held action：跳跃 / 冲刺仍保持一次性消费，攻击则能在按钮持续按住时保留 held 状态
+- `Player` 现在支持按住攻击键 / 触屏 `ATK` 按钮按冷却自动续攻，减少安卓端近战时必须连续点按的压力
+- `TouchControls` 的动作按钮松开时只释放 held 状态，拖出按钮才取消 pending 输入；这样快点快松不会吞掉本帧动作，拖出取消仍然成立
+- 新增 `scenes/tools/verify_player_attack_hold.tscn` / `scripts/tools/verify_player_attack_hold.gd`，覆盖首次触屏攻击、冷却后长按续攻、松开停止续攻和拖出取消 pending 攻击
+- 扩展 `verify_touch_input.gd`，锁定 action pending / held 分离语义，避免以后把长按容错和一次性动作消费重新混在一起
+- 已通过 Android export contract、Overdrive 贪分路线、音频生命周期、玩家攻击长按、玩家跳跃窗口、动态生命 HUD、设置、暂停页设置、遭遇压力、触控暂停和触控输入回归；项目和主场景 headless 加载通过
+- 重新导出 `exports/android/NightRunner-debug.apk` 成功；最新 APK `28,403,364` bytes，`apksigner` v2 / v3 签名和 `apkanalyzer` 包信息校验通过
+- 在 `NightRunner35` Android 35 模拟器完成新 APK 安装启动验证：`adb install -r` 成功，`monkey` 可拉起应用，`pidof` 返回应用进程 `4971`，`dumpsys activity` 显示 `GodotAppLauncher` 为 top resumed activity
+
 ### 已完成（Android 导出契约护栏）
 
 - 新增 `scenes/tools/verify_android_export_contract.tscn` / `scripts/tools/verify_android_export_contract.gd`，用脚本锁定 Android export preset 的 APK 输出路径、包名、应用名、签名、arm64、minSdk、targetSdk、横屏、沉浸模式、启动图标和 boot splash
