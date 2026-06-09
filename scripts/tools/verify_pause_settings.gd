@@ -10,7 +10,9 @@ func _ready() -> void:
 	var original_mobile := PlatformProfile.is_mobile
 	var original_volume := GameState.get_master_volume()
 	var original_haptics := GameState.are_haptics_enabled()
+	var original_unlocked: Array = GameState.meta_progress.get("unlocked_operations", []).duplicate(true)
 	PlatformProfile.is_mobile = true
+	GameState.meta_progress["unlocked_operations"] = ["blitz_pursuit"]
 	GameState.set_master_volume(0.7, false)
 	GameState.set_haptics_enabled(true, false)
 
@@ -24,6 +26,7 @@ func _ready() -> void:
 	_expect(directive_detail.contains("Longer combo window"), "directive detail should include the directive summary")
 	_expect(directive_detail.contains("COMBO +25%"), "directive detail should include combo modifier impact text")
 	_expect(directive_detail.contains("ATK +12%"), "directive detail should keep multi-modifier impact text")
+	_verify_route_button_state(screen, blitz, RunCatalogScript.get_operation("ghost_circuit"))
 	_verify_directive_button_state(screen, blitz, knife_party)
 
 	screen.call("build_pause", RunCatalogScript.get_operation("blitz_pursuit"))
@@ -56,8 +59,10 @@ func _ready() -> void:
 		_expect(not GameState.are_haptics_enabled(), "haptics toggle did not update GameState haptics")
 
 	PlatformProfile.is_mobile = original_mobile
+	GameState.meta_progress["unlocked_operations"] = original_unlocked
 	GameState.set_master_volume(original_volume, false)
 	GameState.set_haptics_enabled(original_haptics, false)
+	screen.queue_free()
 
 	if failures.is_empty():
 		print("Pause settings regression passed.")
@@ -104,6 +109,24 @@ func _verify_directive_button_state(screen: Node, operation: Dictionary, next_di
 	_expect(first_button.text.begins_with("OPTION"), "previous directive button should update to option state")
 	_expect(next_button.text.begins_with("ACTIVE"), "selected directive button should update to active state")
 	_expect(next_button.text.contains("COMBO +25%"), "selected directive button should keep modifier text")
+
+
+func _verify_route_button_state(screen: Node, active_operation: Dictionary, locked_operation: Dictionary) -> void:
+	var active_button := Button.new()
+	var ready_button := Button.new()
+	var locked_button := Button.new()
+	screen.call("_set_route_button_state", active_button, active_operation, true)
+	screen.call("_set_route_button_state", ready_button, active_operation, false)
+	screen.call("_set_route_button_state", locked_button, locked_operation, false)
+	_expect(active_button.text.begins_with("ACTIVE"), "selected route button should show active state")
+	_expect(active_button.button_pressed, "selected route button should be pressed")
+	_expect(ready_button.text.begins_with("READY"), "available unselected route button should show ready state")
+	_expect(not ready_button.button_pressed, "available unselected route button should not be pressed")
+	_expect(locked_button.text.begins_with("LOCKED"), "locked route button should show locked state")
+	_expect(locked_button.disabled, "locked route button should be disabled")
+	active_button.queue_free()
+	ready_button.queue_free()
+	locked_button.queue_free()
 
 
 func _expect(condition: bool, message: String) -> void:

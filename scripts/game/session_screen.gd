@@ -46,6 +46,7 @@ const TEXT_TEAL := Color("77ffe4")
 
 var current_phase: String = FrontendBridge.PHASE_HUB
 var operation_buttons: Dictionary = {}
+var operation_button_data: Dictionary = {}
 var directive_buttons: Dictionary = {}
 var directive_button_data: Dictionary = {}
 var ambient_pulse: float = 0.0
@@ -138,6 +139,7 @@ func hide_for_run() -> void:
 
 func _clear_route_list() -> void:
 	operation_buttons.clear()
+	operation_button_data.clear()
 	for child in route_list.get_children():
 		child.queue_free()
 
@@ -214,39 +216,18 @@ func _populate_directive_list(operation: Dictionary) -> void:
 func _add_route_button(operation: Dictionary, selected_id: String) -> void:
 	var btn := Button.new()
 	var operation_id := String(operation.get("id", ""))
-	var unlocked := GameState.is_operation_unlocked(operation_id)
-	var title := String(operation.get("title", ""))
-	var mode := String(operation.get("mode_label", ""))
-	var subtitle := String(operation.get("subtitle", ""))
-	var lock_text := String(operation.get("locked_text", ""))
 	var selected := operation_id == selected_id
-	if PlatformProfile.is_mobile:
-		btn.text = "%s  %s\n%s" % [("READY" if unlocked else "LOCKED"), title, mode]
-		if not unlocked and not lock_text.is_empty():
-			btn.text += "\n%s" % lock_text
-	else:
-		btn.text = "%s  %s\n%s\n%s" % [("READY" if unlocked else "LOCKED"), title, mode, subtitle]
-		if not unlocked and not lock_text.is_empty():
-			btn.text += "\n%s" % lock_text
-	btn.custom_minimum_size = Vector2(0, 90 if unlocked else 104)
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.focus_mode = Control.FOCUS_NONE
-	btn.disabled = not unlocked
-	btn.button_pressed = selected
+	btn.toggle_mode = true
 	btn.pressed.connect(func(): _select_route(operation_id))
-	var theme: Dictionary = operation.get("theme", {})
-	var primary: Color = theme.get("primary", PANEL_LINE)
-	var secondary: Color = theme.get("secondary", PANEL_ACCENT)
-	var fill := Color(primary.r * 0.09 + 0.03, primary.g * 0.08 + 0.04, primary.b * 0.1 + 0.07, 0.9) if selected else Color(primary.r * 0.05 + 0.02, primary.g * 0.05 + 0.03, primary.b * 0.08 + 0.07, 0.72)
-	var line: Color = secondary if selected else Color(primary.r, primary.g, primary.b, 0.34)
-	btn.add_theme_stylebox_override("normal", _make_style(fill, line, 10, 2 if selected else 1, 12))
-	btn.add_theme_stylebox_override("hover", _make_style(fill.lightened(0.08), secondary.lightened(0.06), 10, 2, 14))
-	btn.add_theme_stylebox_override("pressed", _make_style(fill.darkened(0.08), secondary, 10, 2, 8))
 	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
 	btn.add_theme_color_override("font_disabled_color", TEXT_MUTED)
 	btn.add_theme_font_size_override("font_size", 15 if PlatformProfile.is_mobile else 16)
+	_set_route_button_state(btn, operation, selected)
 	route_list.add_child(btn)
 	operation_buttons[operation_id] = btn
+	operation_button_data[operation_id] = operation.duplicate(true)
 
 
 func _add_directive_button(operation: Dictionary, directive: Dictionary, selected: bool) -> void:
@@ -254,6 +235,7 @@ func _add_directive_button(operation: Dictionary, directive: Dictionary, selecte
 	btn.custom_minimum_size = Vector2(0, 72)
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.focus_mode = Control.FOCUS_NONE
+	btn.toggle_mode = true
 	var operation_id := String(operation.get("id", ""))
 	var directive_id := String(directive.get("id", ""))
 	btn.pressed.connect(func(): _select_directive(operation_id, directive_id))
@@ -270,10 +252,41 @@ func _select_route(operation_id: String) -> void:
 	FrontendBridge.select_operation(operation_id)
 	for key in operation_buttons.keys():
 		var btn: Button = operation_buttons[key]
-		btn.button_pressed = key == operation_id
+		var operation: Dictionary = operation_button_data.get(key, {})
+		_set_route_button_state(btn, operation, key == operation_id)
 	primary_button.disabled = not GameState.is_operation_unlocked(operation_id)
 	_refresh_focus(FrontendBridge.get_operation(operation_id))
 	operation_chosen.emit(operation_id)
+
+
+func _set_route_button_state(btn: Button, operation: Dictionary, selected: bool) -> void:
+	btn.toggle_mode = true
+	var operation_id := String(operation.get("id", ""))
+	var unlocked := GameState.is_operation_unlocked(operation_id)
+	var title := String(operation.get("title", ""))
+	var mode := String(operation.get("mode_label", ""))
+	var subtitle := String(operation.get("subtitle", ""))
+	var lock_text := String(operation.get("locked_text", ""))
+	var state_label := "LOCKED"
+	if unlocked:
+		state_label = "ACTIVE" if selected else "READY"
+	if PlatformProfile.is_mobile:
+		btn.text = "%s  %s\n%s" % [state_label, title, mode]
+	else:
+		btn.text = "%s  %s\n%s\n%s" % [state_label, title, mode, subtitle]
+	if not unlocked and not lock_text.is_empty():
+		btn.text += "\n%s" % lock_text
+	btn.custom_minimum_size = Vector2(0, 90 if unlocked else 104)
+	btn.disabled = not unlocked
+	btn.button_pressed = selected
+	var theme: Dictionary = operation.get("theme", {})
+	var primary: Color = theme.get("primary", PANEL_LINE)
+	var secondary: Color = theme.get("secondary", PANEL_ACCENT)
+	var fill := Color(primary.r * 0.09 + 0.03, primary.g * 0.08 + 0.04, primary.b * 0.1 + 0.07, 0.9) if selected else Color(primary.r * 0.05 + 0.02, primary.g * 0.05 + 0.03, primary.b * 0.08 + 0.07, 0.72)
+	var line: Color = secondary if selected else Color(primary.r, primary.g, primary.b, 0.34)
+	btn.add_theme_stylebox_override("normal", _make_style(fill, line, 10, 2 if selected else 1, 12))
+	btn.add_theme_stylebox_override("hover", _make_style(fill.lightened(0.08), secondary.lightened(0.06), 10, 2, 14))
+	btn.add_theme_stylebox_override("pressed", _make_style(fill.darkened(0.08), secondary, 10, 2, 8))
 
 
 func _select_directive(operation_id: String, directive_id: String) -> void:
@@ -287,6 +300,7 @@ func _select_directive(operation_id: String, directive_id: String) -> void:
 
 
 func _set_directive_button_state(btn: Button, directive: Dictionary, selected: bool) -> void:
+	btn.toggle_mode = true
 	var modifier_summary := GameState.describe_modifier_block(Dictionary(directive.get("modifiers", {})))
 	btn.text = "%s  %s" % [("ACTIVE" if selected else "OPTION"), String(directive.get("name", ""))]
 	if not PlatformProfile.is_mobile:
