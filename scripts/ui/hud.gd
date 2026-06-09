@@ -699,14 +699,26 @@ func _refresh_navigation() -> void:
 	var distance_text := "%dm" % max(1, int(round(navigation_distance / 10.0)))
 	var vector_line := "%s  %s // %s" % [arrow, navigation_label.to_upper(), distance_text]
 	if PlatformProfile.is_mobile:
-		var pressure_line := GameState.get_route_pressure_text()
-		nav_status.text = "%s\n%s" % [vector_line, pressure_line] if not pressure_line.is_empty() else vector_line
+		var context_line := _get_mobile_navigation_context_line()
+		nav_status.text = "%s\n%s" % [vector_line, context_line] if not context_line.is_empty() else vector_line
 	else:
 		nav_status.text = vector_line
 	if navigation_label.to_lower().contains("extract"):
 		nav_status.add_theme_color_override("font_color", TEXT_ACCENT)
 	else:
 		nav_status.add_theme_color_override("font_color", TEXT_SOFT)
+
+
+func _get_mobile_navigation_context_line() -> String:
+	var fragments: Array[String] = []
+	var pressure_line := GameState.get_route_pressure_text()
+	if not pressure_line.is_empty():
+		fragments.append(pressure_line)
+	if not GameState.current_secondary_objective.is_empty():
+		var status := GameState.get_secondary_objective_status_text().replace(" // ", " · ")
+		if not status.is_empty():
+			fragments.append("OPT: %s" % status)
+	return " // ".join(fragments)
 
 
 func _direction_to_arrow(direction: Vector2) -> String:

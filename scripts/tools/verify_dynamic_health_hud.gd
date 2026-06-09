@@ -15,6 +15,8 @@ func _ready() -> void:
 	var original_mobile := PlatformProfile.is_mobile
 	var original_run_success := GameState.run_success
 	var original_run_failed := GameState.is_run_failed
+	var original_secondary := GameState.current_secondary_objective.duplicate(true)
+	var original_elapsed := GameState.elapsed_time
 	var original_phase := GameState.get_route_phase_text()
 	var original_pressure := GameState.get_route_pressure_text()
 	var original_hazard := GameState.get_hazard_status_text()
@@ -37,6 +39,12 @@ func _ready() -> void:
 	PlatformProfile.is_mobile = true
 	GameState.run_success = false
 	GameState.is_run_failed = false
+	GameState.current_secondary_objective = {
+		"name": "Shock Exit",
+		"type": "time_limit",
+		"target_time": 58.0,
+	}
+	GameState.elapsed_time = 42.0
 	GameState.set_live_route_status("BREACH", "Relay Bloom. Suppressor geometry is live.", "Hazard net dormant.")
 	hud.call("set_navigation_target", "data core", 180.0, Vector2(1.0, -0.2), true)
 	await get_tree().process_frame
@@ -46,6 +54,8 @@ func _ready() -> void:
 	GameState.run_modifiers = original_modifiers
 	GameState.run_success = original_run_success
 	GameState.is_run_failed = original_run_failed
+	GameState.current_secondary_objective = original_secondary
+	GameState.elapsed_time = original_elapsed
 	GameState.set_live_route_status(original_phase, original_pressure, original_hazard)
 	PlatformProfile.is_mobile = original_mobile
 	GameState.state_changed.emit()
@@ -88,3 +98,7 @@ func _expect_mobile_nav_pressure(hud: CanvasLayer) -> void:
 		failures.append("mobile navigation card lost the route vector label")
 	if not nav_status.text.contains("Relay Bloom"):
 		failures.append("mobile navigation card lost route pressure text while phase card is hidden")
+	if not nav_status.text.contains("OPT:"):
+		failures.append("mobile navigation card should carry optional objective status while secondary card is hidden")
+	if not nav_status.text.contains("00:16 left"):
+		failures.append("mobile navigation card lost optional objective remaining-time status")
