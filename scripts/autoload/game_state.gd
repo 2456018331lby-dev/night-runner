@@ -7,6 +7,7 @@ signal run_finished(success: bool)
 signal progress_changed
 
 const SAVE_PATH := "user://night_runner_save.json"
+const UI_EMIT_INTERVAL := 0.2
 const DEFAULT_COMBO_WINDOW := 4.8
 const RANK_THRESHOLDS := [
 	{"rank": "S", "score": 2400},
@@ -66,7 +67,6 @@ var secondary_objective_summary: String = ""
 var extraction_bonus_config: Dictionary = {}
 var extraction_bonus_label: String = ""
 var cashout_tiers: Array = []
-var max_cashout_tier_label: String = ""
 var extraction_bonus_active: bool = false
 var extraction_bonus_kills: int = 0
 var pending_extraction_bonus: int = 0
@@ -88,6 +88,7 @@ var live_route_pressure: String = "Route cold."
 var live_hazard_status: String = "Hazard net dormant."
 var event_banner_text: String = ""
 var event_banner_emphasis: float = 0.0
+var _ui_emit_accumulator: float = 0.0
 
 
 func _ready() -> void:
@@ -111,7 +112,13 @@ func _process(delta: float) -> void:
 				combo_count = 0
 				should_emit = true
 	if should_emit:
-		state_changed.emit()
+		# 计时驱动的刷新按 0.2s 节流：HUD 每次收到信号会重建约 25 个字符串，
+		# 每帧发信号等于每帧 60 次纯分配。离散事件（受击、得分、拾取）从各自
+		# 调用点立即 emit，不经过这里，节奏不受影响。
+		_ui_emit_accumulator += delta
+		if _ui_emit_accumulator >= UI_EMIT_INTERVAL:
+			_ui_emit_accumulator = 0.0
+			state_changed.emit()
 
 
 func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
@@ -123,7 +130,6 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	extraction_bonus_config = Dictionary(operation.get("extraction_bonus", {})).duplicate(true)
 	extraction_bonus_label = String(extraction_bonus_config.get("label", "Cashout Bonus"))
 	cashout_tiers = Array(operation.get("cashout_tiers", [])).duplicate(true)
-	max_cashout_tier_label = ""
 	run_modifiers = _build_run_modifiers(operation, directive)
 	score = 0
 	health = max(1, 3 + int(run_modifiers.get("health_bonus", 0)))
@@ -272,14 +278,6 @@ func formatted_time() -> String:
 	return "%02d:%02d" % [minutes, seconds]
 
 
-func formatted_success_rate() -> String:
-	var runs := int(meta_progress.get("career_runs", 0))
-	if runs <= 0:
-		return "--"
-	var wins := int(meta_progress.get("career_successes", 0))
-	return "%d%%" % int(round(float(wins) / float(runs) * 100.0))
-
-
 func is_operation_unlocked(operation_id: String) -> bool:
 	return get_unlocked_operations().has(operation_id)
 
@@ -287,7 +285,7 @@ func is_operation_unlocked(operation_id: String) -> bool:
 func get_unlocked_operations() -> Array[String]:
 	var unlocked: Array[String] = []
 	for value in meta_progress.get("unlocked_operations", []):
-		unlocked.append(String(value))
+		unlocked.append(str(value))
 	return unlocked
 
 
@@ -420,7 +418,32 @@ func _merge_meta_progress(raw: Dictionary) -> Dictionary:
 	var merged := DEFAULT_META_PROGRESS.duplicate(true).merged(raw, true)
 	merged["ux_flags"] = Dictionary(DEFAULT_META_PROGRESS["ux_flags"]).merged(_dictionary_or_empty(raw.get("ux_flags", {})), true)
 	merged["settings"] = Dictionary(DEFAULT_META_PROGRESS["settings"]).merged(_dictionary_or_empty(raw.get("settings", {})), true)
+	merged["unlocked_operations"] = _string_array_or_default(raw.get("unlocked_operations", []), DEFAULT_META_PROGRESS["unlocked_operations"])
+	merged["operation_records"] = _records_or_empty(raw.get("operation_records", {}))
+	merged["selected_directives"] = _dictionary_or_empty(raw.get("selected_directives", {}))
+	merged["selected_operation_id"] = str(merged["selected_operation_id"])
+	merged["highest_score"] = maxi(0, int(merged["highest_score"]))
+	merged["career_runs"] = maxi(0, int(merged["career_runs"]))
+	merged["career_successes"] = maxi(0, int(merged["career_successes"]))
+	merged["career_failures"] = maxi(0, int(merged["career_failures"]))
 	return merged
+
+
+func _string_array_or_default(value: Variant, fallback: Array) -> Array:
+	if value is Array:
+		var filtered: Array = []
+		for entry in value:
+			filtered.append(str(entry))
+		return filtered
+	return (fallback as Array).duplicate(true)
+
+
+func _records_or_empty(value: Variant) -> Dictionary:
+	var records := _dictionary_or_empty(value)
+	for key in records.keys():
+		if not (records[key] is Dictionary):
+			records.erase(key)
+	return records
 
 
 func _dictionary_or_empty(value: Variant) -> Dictionary:
@@ -567,16 +590,6 @@ func get_cashout_tier_multiplier() -> float:
 	if tier.is_empty():
 		return 1.0
 	return float(tier.get("bounty_multiplier", 1.0))
-
-
-func get_cashout_tier_label() -> String:
-	return String(get_cashout_tier().get("label", ""))
-
-
-func record_cashout_tier_reached(tier_label: String) -> void:
-	if tier_label.is_empty():
-		return
-	max_cashout_tier_label = tier_label
 
 
 func get_extraction_bonus_label() -> String:
@@ -900,14 +913,14 @@ func _commit_run_record(success: bool) -> void:
 	record["runs"] = int(record.get("runs", 0)) + 1
 	if success:
 		record["successes"] = int(record.get("successes", 0)) + 1
-		record["best_rank"] = _pick_best_rank(String(record.get("best_rank", "--")), final_rank)
+		record["best_rank"] = _pick_best_rank(str(record.get("best_rank", "--")), final_rank)
 	if score > int(record.get("best_score", 0)):
 		record["best_score"] = score
 	if success:
 		var best_time := float(record.get("best_time", 0.0))
 		if best_time <= 0.0 or elapsed_time < best_time:
 			record["best_time"] = elapsed_time
-	if String(record.get("last_directive_name", "")).is_empty() or not current_directive.is_empty():
+	if str(record.get("last_directive_name", "")).is_empty() or not current_directive.is_empty():
 		record["last_directive_name"] = get_current_directive_name()
 	records[current_operation_id] = record
 	meta_progress["operation_records"] = records
@@ -920,7 +933,7 @@ func _commit_run_record(success: bool) -> void:
 func _unlock_follow_up_operations() -> void:
 	var operation: Dictionary = preload("res://scripts/game/run_catalog.gd").shared().get_operation(current_operation_id)
 	for operation_id in operation.get("unlocks", []):
-		unlock_operation(String(operation_id))
+		unlock_operation(str(operation_id))
 
 
 func _default_operation_record() -> Dictionary:

@@ -20,6 +20,7 @@
 - `scripts/game`: 关卡循环、摄像机、生成、模式状态
 - `scripts/actors`: 角色行为
 - `scripts/ui`: UI 逻辑
+- `scripts/data`: 资源数据类（如 `RunOperationData`，供 `.tres` 资源绑定脚本结构）
 - `docs/index.html`: GitHub Pages 手工维护的落地页（`export_web_to_docs.bat` 只覆盖 `index.js` / `index.pck` / `index.wasm`，不会覆盖它）。其中的 `fileSizes` 必须等于真实包体字节数——Godot 用声明值累加下载总量，而进度回调里的 `current` 是真实下载字节数，声明偏小会让进度条提前冲到 100% 后卡住。`sync_web_bundle_sizes.ps1` 负责回填，护栏是 `verify_web_portal_bundle.tscn`
 - `docs/index.html` 的加载层 `#status` 必须盖在焦点提示 `#click-to-focus` 之上（前者 z-index 更大），否则 50MB 资源下载期间玩家看到的是 "Click to Start" 而不是下载进度
 

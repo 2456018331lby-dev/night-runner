@@ -87,6 +87,9 @@ func _on_viewport_resized() -> void:
 
 
 func _process(delta: float) -> void:
+	# CanvasLayer 常驻 _process，隐藏期间（对局中）直接跳过装饰动画与计时累积。
+	if not visible:
+		return
 	ambient_pulse += delta
 	_animate_decor(delta)
 

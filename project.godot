@@ -38,6 +38,10 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=4
 
+[gui]
+
+theme/custom_font="res://assets/fonts/noto_sans_sc_subset.ttf"
+
 [input]
 
 move_left={

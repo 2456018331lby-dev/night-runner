@@ -110,6 +110,7 @@ var combo_edge_right: Polygon2D
 var combo_break_timer: float = 0.0
 var last_combo_count: int = 0
 var dash_ready_state: bool = true
+var cached_player_node: Node = null
 var dash_fill_ready: StyleBoxFlat
 var dash_fill_cooling: StyleBoxFlat
 
@@ -468,11 +469,15 @@ func _update_bars(delta: float) -> void:
 	combo_bar.visible = combo_bar.value > 0.02
 
 	var dash_target := 1.0
-	var player_nodes := get_tree().get_nodes_in_group("player")
-	if player_nodes.size() > 0:
-		var p := player_nodes[0]
-		var cd := float(p.get("dash_cooldown_timer"))
-		var max_cd := float(p.get("DASH_COOLDOWN"))
+	# 缓存玩家引用，避免每帧 get_nodes_in_group 分配数组；跨局玩家被释放后自动重新获取。
+	var player: Node = cached_player_node
+	if not is_instance_valid(player):
+		var player_nodes := get_tree().get_nodes_in_group("player")
+		player = player_nodes[0] if player_nodes.size() > 0 else null
+		cached_player_node = player
+	if player != null:
+		var cd := float(player.get("dash_cooldown_timer"))
+		var max_cd := float(player.get("DASH_COOLDOWN"))
 		if cd > 0.0 and max_cd > 0.0:
 			dash_target = 1.0 - (cd / max_cd)
 	dash_bar.value = move_toward(dash_bar.value, dash_target, delta * 5.0)
@@ -531,7 +536,7 @@ func _create_screen_overlays() -> void:
 	combo_multiplier_label = Label.new()
 	combo_multiplier_label.text = ""
 	combo_multiplier_label.add_theme_font_size_override("font_size", 48)
-	combo_multiplier_label.add_theme_color_override("font_color", Color(1.0, 0.88, 0.3, 0.0))
+	combo_multiplier_label.add_theme_color_override("font_color", Color.WHITE)
 	combo_multiplier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	combo_multiplier_label.z_index = 88
 	combo_multiplier_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -587,7 +592,8 @@ func _check_combo_celebration() -> void:
 		combo_multiplier_label.text = "x%.1f" % multiplier
 		var intensity := clampf(float(combo) / 8.0, 0.0, 1.0)
 		var label_pulse := sin(cashout_pulse * 8.0) * 0.12 + 0.88
-		combo_multiplier_label.add_theme_color_override("font_color", Color(1.0, 0.85 - intensity * 0.3, 0.3 - intensity * 0.2, label_pulse))
+		# modulate instead of a per-frame theme override: same visual, no re-style cost.
+		combo_multiplier_label.modulate = Color(1.0, 0.85 - intensity * 0.3, 0.3 - intensity * 0.2, label_pulse)
 		combo_multiplier_label.scale = Vector2.ONE * (1.0 + intensity * 0.3 + sin(cashout_pulse * 6.0) * 0.04)
 		# Edge flames
 		combo_edge_left.visible = true
@@ -609,7 +615,7 @@ func _check_combo_celebration() -> void:
 	if combo_break_timer > 0.0:
 		combo_break_timer -= get_process_delta_time()
 		combo_multiplier_label.text = "BREAK"
-		combo_multiplier_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2, combo_break_timer / 0.25))
+		combo_multiplier_label.modulate = Color(1.0, 0.3, 0.2, combo_break_timer / 0.25)
 		combo_multiplier_label.scale = Vector2.ONE * (1.0 + combo_break_timer * 1.5)
 	last_combo_count = combo
 

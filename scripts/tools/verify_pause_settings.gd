@@ -10,6 +10,7 @@ var save_file_existed: bool = false
 
 func _ready() -> void:
 	_snapshot_save_file()
+	_verify_meta_merge_guards()
 	var original_mobile := PlatformProfile.is_mobile
 	var original_volume := GameState.get_master_volume()
 	var original_haptics := GameState.are_haptics_enabled()
@@ -174,6 +175,35 @@ func _ready() -> void:
 		for failure in failures:
 			push_error(failure)
 		get_tree().quit(1)
+
+
+func _verify_meta_merge_guards() -> void:
+	# 损坏 / 被手改的存档不得让 autoload 启动崩溃：
+	# 类型错误的字段回落默认值，数值字段钳到合法区间，有效数据保留。
+	# 注意全部用 Variant 承接（带 is 类型判断），避免守卫自身因脚本错误中断而漏报。
+	var merged: Dictionary = GameState._merge_meta_progress({
+		"unlocked_operations": "corrupted",
+		"operation_records": {"blitz_pursuit": "corrupted", "ghost_circuit": {"runs": 2}},
+		"selected_directives": "corrupted",
+		"highest_score": -50,
+		"career_runs": -3,
+		"selected_operation_id": 42,
+	})
+	var unlocked: Variant = merged.get("unlocked_operations", [])
+	var unlocked_ok := unlocked is Array and not (unlocked as Array).is_empty() and str((unlocked as Array)[0]) == "blitz_pursuit"
+	_expect(unlocked_ok, "corrupted unlocked_operations should fall back to the default unlock list")
+	var records: Variant = merged.get("operation_records", {})
+	var ghost: Variant = (records as Dictionary).get("ghost_circuit", {}) if records is Dictionary else {}
+	var records_ok := records is Dictionary \
+			and not (records as Dictionary).has("blitz_pursuit") \
+			and ghost is Dictionary and int(ghost.get("runs", 0)) == 2
+	_expect(records_ok, "corrupted operation record entries should be dropped while valid ones survive")
+	_expect(merged.get("selected_directives", {}) is Dictionary,
+		"corrupted selected_directives should fall back to a dictionary")
+	_expect(int(merged.get("highest_score", 0)) == 0, "negative highest_score should clamp to zero")
+	_expect(int(merged.get("career_runs", 0)) == 0, "negative career counters should clamp to zero")
+	_expect(str(merged.get("selected_operation_id", "")) == "42",
+		"non-string selected_operation_id should coerce to string")
 
 
 func _find_first_child_of_type(root: Node, type_hint: Variant) -> Node:

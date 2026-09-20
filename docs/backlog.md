@@ -51,3 +51,6 @@
 - 前端桥接协议文档化 —— 已完成：`docs/frontend-bridge.md`（相位机 / 信号表 / 方法副作用 / 典型时序 / 禁区），后续改 `frontend_bridge.gd` 协议时需同步更新该文档
 - 网页版包体尺寸自动同步 —— 已完成：`sync_web_bundle_sizes.ps1` 把 `docs/index.html` 的 `fileSizes` 回填成 `docs/index.pck` / `index.wasm` 的真实字节数（Godot 用声明值累加下载总量，声明偏小会让进度条提前冲到 100% 后卡住），由 `export_web_to_docs.bat` 自动调用；`verify_web_portal_bundle.tscn` 作为护栏
 - 导出预设与 CI 的剩余缺口：尚无 CI 在 push 时自动跑 `run_all_verifications.ps1` 和网页门户契约检查
+- 敌人脚本公共层抽取 —— 5 个 `enemy_*.gd` 各自复制近似的 `_setup_hp_bar` / `_refresh_hp_bar` / `_spawn_hit_number` / `_spawn_defeat_number` / `_defeat`（合计约 380 行重复，仅 y 偏移与宽度微差），残影生命周期循环另有 4 份拷贝（player / phantom / stalker）；建议抽 `EnemyBase` 或静态 helper，改动面大、需配合 verify 场景整体回归后单独提交
+- 字体子集再生成流程 —— 画布内中文依赖 `assets/fonts/noto_sans_sc_subset.ttf`（按项目实际用字子集化的 Noto Sans SC，272KB）；新增游戏内文案后需重跑 `tools/build_font_subset.js` 重建子集，否则新字符会显示为方块（tofu）
+- JavaScriptBridge.telemetry 的 console.log 采用字符串拼接 eval（`game_state.gd`），字段全部来自内部目录、当前无注入面；后续若把用户输入并入该 JSON，需改为参数化调用

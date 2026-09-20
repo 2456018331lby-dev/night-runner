@@ -27,7 +27,7 @@ func bootstrap() -> void:
 		selected_operation_id = ""
 		bootstrapped.emit()
 		return
-	var remembered_id := String(GameState.meta_progress.get("selected_operation_id", ""))
+	var remembered_id := str(GameState.meta_progress.get("selected_operation_id", ""))
 	selected_directives = GameState.meta_progress.get("selected_directives", {}).duplicate(true)
 	if remembered_id.is_empty() or not GameState.is_operation_unlocked(remembered_id):
 		remembered_id = _get_first_unlocked_operation_id()
@@ -84,7 +84,7 @@ func get_selected_directive(operation_id: String) -> Dictionary:
 	var directive_pool: Array = operation.get("directive_pool", [])
 	if directive_pool.is_empty():
 		return {}
-	var selected_id := String(selected_directives.get(operation_id, ""))
+	var selected_id := str(selected_directives.get(operation_id, ""))
 	for directive in directive_pool:
 		if String(directive.get("id", "")) == selected_id:
 			return directive.duplicate(true)
