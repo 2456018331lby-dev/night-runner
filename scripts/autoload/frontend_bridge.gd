@@ -9,8 +9,6 @@ signal retry_requested(operation_id: String)
 signal return_to_hub_requested
 signal pause_state_changed(paused: bool)
 
-const RunCatalog := preload("res://scripts/game/run_catalog.gd")
-
 const PHASE_HUB := "hub"
 const PHASE_RUN := "run"
 const PHASE_RESULTS := "results"
@@ -24,7 +22,7 @@ var selected_directives: Dictionary = {}
 
 
 func bootstrap() -> void:
-	operations = RunCatalog.get_operations()
+	operations = RunCatalog.shared().get_operations()
 	if operations.is_empty():
 		selected_operation_id = ""
 		bootstrapped.emit()
@@ -154,7 +152,7 @@ func _get_first_unlocked_operation_id() -> String:
 		var operation_id := String(operation.get("id", ""))
 		if GameState.is_operation_unlocked(operation_id):
 			return operation_id
-	return RunCatalog.get_first_operation_id()
+	return RunCatalog.shared().get_first_operation_id()
 
 
 func _ensure_directive_selection(operation_id: String) -> bool:

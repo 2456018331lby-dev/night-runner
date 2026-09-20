@@ -113,6 +113,50 @@ func _ready() -> void:
 	_expect(_vector_approx(attack.scale, Vector2.ONE), "hiding touch controls restores attack button visual scale")
 	_expect(_vector_approx(dash.scale, Vector2.ONE), "hiding touch controls restores dash button visual scale")
 
+	# ---- 小视口缩放回归：offset 必须保持设计像素，缩放只由 scale 承担 ----
+	# 设计像素常量与 scripts/ui/touch_controls.gd 中的布局保持一致。
+	var window := get_window()
+	var original_content_scale_size := window.content_scale_size
+
+	window.content_scale_size = Vector2i(880, 495)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var small_scale := PlatformProfile.get_mobile_ui_scale()
+	_expect(small_scale < 1.0, "small viewport should lower mobile ui scale for this check")
+	controls.call("configure", true)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	_expect(is_equal_approx(left_pad.scale.x, small_scale) and is_equal_approx(left_pad.scale.y, small_scale), "pad scale must be the only scaling source")
+	_expect(is_equal_approx(left_pad.offset_right, 332.0) and is_equal_approx(left_pad.offset_top, -206.0), "left pad offsets must stay in design pixels")
+	_expect(is_equal_approx(action_pad.offset_left, -388.0) and is_equal_approx(action_pad.offset_top, -302.0), "action pad offsets must stay in design pixels")
+	_expect(_vector_approx(left_pad.pivot_offset, Vector2(0.0, left_pad.size.y)), "left pad pivot must sit on its bottom-left corner")
+	_expect(_vector_approx(action_pad.pivot_offset, Vector2(action_pad.size.x, action_pad.size.y)), "action pad pivot must sit on its bottom-right corner")
+
+	var screen := Rect2(Vector2.ZERO, get_viewport().get_visible_rect().size)
+	_expect(screen.encloses(left_pad.get_global_rect()), "scaled left pad must stay inside the viewport")
+	_expect(screen.encloses(action_pad.get_global_rect()), "scaled action pad must stay inside the viewport")
+	_expect(not _rects_overlap(left_pad.get_global_rect(), action_pad.get_global_rect()), "scaled pads must not overlap")
+
+	# ---- 视口尺寸变化必须刷新布局（网页画布缩放 / 设备旋转） ----
+	window.content_scale_size = Vector2i(1152, 648)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var resized_scale := PlatformProfile.get_mobile_ui_scale()
+	_expect(not is_equal_approx(resized_scale, small_scale), "resize check needs two distinct ui scales")
+	controls.get_viewport().size_changed.emit()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_expect(is_equal_approx(left_pad.scale.x, resized_scale), "viewport resize must refresh touch control layout")
+	_expect(is_equal_approx(left_pad.offset_right, 332.0), "resize must not re-scale pad offsets")
+	_expect(_vector_approx(left_pad.pivot_offset, Vector2(0.0, left_pad.size.y)), "resize must re-align pad pivots")
+
+	window.content_scale_size = original_content_scale_size
+	await get_tree().process_frame
+	await get_tree().process_frame
+	controls.call("configure", true)
+	await get_tree().process_frame
+
 	InputRouter.release_action("jump")
 	InputRouter.release_action("attack")
 	InputRouter.release_action("dash")

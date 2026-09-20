@@ -2,20 +2,20 @@ extends CharacterBody2D
 
 signal defeated(points: int)
 
-const WALK_SPEED := 128.0
-const GRAVITY := 1500.0
-const CONTACT_RANGE := 30.0
-const DIVE_RANGE_X := 420.0
-const DIVE_RANGE_Y := 210.0
-const DIVE_SPEED_X := 460.0
-const DIVE_SPEED_Y := -250.0
-const DIVE_COOLDOWN := 2.25
-const DIVE_RECOVERY_TIME := 0.22
-const WINDUP_TIME := 0.42
-const DIVE_TIME := 0.34
+var WALK_SPEED := 128.0
+var GRAVITY := 1500.0
+var CONTACT_RANGE := 30.0
+var DIVE_RANGE_X := 420.0
+var DIVE_RANGE_Y := 210.0
+var DIVE_SPEED_X := 460.0
+var DIVE_SPEED_Y := -250.0
+var DIVE_COOLDOWN := 2.25
+var DIVE_RECOVERY_TIME := 0.22
+var WINDUP_TIME := 0.42
+var DIVE_TIME := 0.34
 const AFTERIMAGE_INTERVAL := 0.055
 const AFTERIMAGE_LIFETIME := 0.24
-const POINTS_AWARD := 220
+var POINTS_AWARD := 220
 
 @onready var rig: Node2D = $Rig
 @onready var body_visual: Polygon2D = $Rig/Body
@@ -42,8 +42,25 @@ var afterimage_timer: float = 0.0
 var afterimages: Array[Polygon2D] = []
 
 
+func _hydrate_stats() -> void:
+	WALK_SPEED = EnemyStats.get_stat("phantom", "walk_speed", WALK_SPEED)
+	GRAVITY = EnemyStats.get_stat("phantom", "gravity", GRAVITY)
+	CONTACT_RANGE = EnemyStats.get_stat("phantom", "contact_range", CONTACT_RANGE)
+	DIVE_RANGE_X = EnemyStats.get_stat("phantom", "dive_range_x", DIVE_RANGE_X)
+	DIVE_RANGE_Y = EnemyStats.get_stat("phantom", "dive_range_y", DIVE_RANGE_Y)
+	DIVE_SPEED_X = EnemyStats.get_stat("phantom", "dive_speed_x", DIVE_SPEED_X)
+	DIVE_SPEED_Y = EnemyStats.get_stat("phantom", "dive_speed_y", DIVE_SPEED_Y)
+	DIVE_COOLDOWN = EnemyStats.get_stat("phantom", "dive_cooldown", DIVE_COOLDOWN)
+	DIVE_RECOVERY_TIME = EnemyStats.get_stat("phantom", "dive_recovery_time", DIVE_RECOVERY_TIME)
+	WINDUP_TIME = EnemyStats.get_stat("phantom", "windup_time", WINDUP_TIME)
+	DIVE_TIME = EnemyStats.get_stat("phantom", "dive_time", DIVE_TIME)
+	POINTS_AWARD = EnemyStats.get_stat("phantom", "points_award", POINTS_AWARD)
+	max_hp = EnemyStats.get_stat("phantom", "max_hp", max_hp)
+
+
 func _ready() -> void:
 	add_to_group("enemy")
+	_hydrate_stats()
 	current_hp = max_hp
 	_setup_hp_bar()
 	_setup_warning_visuals()
@@ -129,9 +146,12 @@ func _spawn_hit_number() -> void:
 	tween.tween_callback(text_label.queue_free)
 
 
-func _spawn_defeat_number() -> void:
+func _spawn_defeat_number(points: int) -> void:
+	# 无分（纯演出离场）时不弹飘字，避免出现 "+0"。
+	if points <= 0:
+		return
 	var text_label := Label.new()
-	text_label.text = "+220"
+	text_label.text = "+%d" % points
 	text_label.add_theme_font_size_override("font_size", 20)
 	text_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.32, 1.0))
 	text_label.z_index = 25
@@ -162,6 +182,9 @@ func _physics_process(delta: float) -> void:
 
 
 func receive_hit(force: Vector2) -> void:
+	# queue_free 当帧内节点仍在 enemy 组里，必须挡住二次命中，否则血条和飘字会重复播放。
+	if defeated_once:
+		return
 	current_hp -= 1
 	knocked_velocity = force * 1.1
 	hit_flash_timer = 0.2
@@ -331,8 +354,9 @@ func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 		if is_instance_valid(image):
 			image.queue_free()
 	afterimages.clear()
-	_spawn_defeat_number()
+	# 环境击杀（被击落出界）只给一半分，飘字必须显示实收，避免"看到 +100 实得 +50"。
+	var awarded := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
+	_spawn_defeat_number(awarded if award_points else 0)
 	if award_points:
-		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
-		defeated.emit(pts)
+		defeated.emit(awarded)
 	queue_free()

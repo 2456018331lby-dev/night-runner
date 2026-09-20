@@ -6,14 +6,14 @@ var failures: Array[String] = []
 
 
 func _ready() -> void:
-	var blitz := RunCatalogScript.get_operation("blitz_pursuit")
+	var blitz := RunCatalogScript.shared().get_operation("blitz_pursuit")
 	_expect(not blitz.is_empty(), "Blitz Pursuit exists")
 	if not blitz.is_empty():
 		var blitz_objective: Dictionary = blitz.get("secondary_objective", {})
 		_expect(float(blitz_objective.get("target_time", 0.0)) == 58.0, "Blitz time-limit target remains 00:58")
 		_expect(String(blitz_objective.get("description", "")).contains("00:58"), "Blitz time-limit description matches its target")
 
-	var overdrive := RunCatalogScript.get_operation("overdrive_protocol")
+	var overdrive := RunCatalogScript.shared().get_operation("overdrive_protocol")
 	_expect(not overdrive.is_empty(), "Overdrive Protocol exists")
 	if overdrive.is_empty():
 		_finish()
@@ -50,6 +50,28 @@ func _ready() -> void:
 		_expect(float(final_event.get("elapsed", 0.0)) >= 22.0, "final Overdrive cashout wave is a late greed check")
 		_expect(_count_control_enemies(final_event.get("spawn", [])) >= 3, "final Overdrive cashout wave uses cross-lane control pressure")
 
+	var beacon_config: Dictionary = overdrive.get("cashout_beacon", {})
+	_expect(not beacon_config.is_empty(), "Overdrive has a double-down cashout beacon")
+	if not beacon_config.is_empty():
+		var beacon_position := Vector2(beacon_config.get("position", Vector2.ZERO))
+		var extraction_position := Vector2(overdrive.get("extraction_position", Vector2.ZERO))
+		_expect(absf(extraction_position.x - beacon_position.x) >= 1200.0, "double-down beacon forces a long traversal away from extraction")
+		_expect(float(beacon_config.get("multiplier", 0.0)) >= 2.0, "double-down beacon at least doubles the bank")
+		_expect(int(beacon_config.get("min_pending_bonus", 0)) > 0, "double-down beacon requires a live banked bonus")
+		_expect(_count_control_enemies(beacon_config.get("spawn_on_collect", [])) >= 1, "double-down punish wave keeps at least one control enemy")
+
+	for operation_id in ["blitz_pursuit", "ghost_circuit", "overdrive_protocol"]:
+		_check_cashout_loop_contract(RunCatalogScript.shared().get_operation(operation_id))
+
+	var loop_config: Dictionary = overdrive.get("cashout_loop", {})
+	if not loop_config.is_empty():
+		var loop_start := float(loop_config.get("start_elapsed", 0.0))
+		var loop_interval := float(loop_config.get("interval", 0.0))
+		_expect(GameState.compute_cashout_loop_count(loop_start - 0.1, loop_config) == 0, "cashout loop stays silent before start_elapsed")
+		_expect(GameState.compute_cashout_loop_count(loop_start, loop_config) == 1, "cashout loop fires its first wave at start_elapsed")
+		_expect(GameState.compute_cashout_loop_count(loop_start + 2.1 * loop_interval, loop_config) == 3, "cashout loop schedule accumulates waves over intervals")
+	_expect(GameState.compute_cashout_loop_count(999.0, {}) == 0, "cashout loop count is zero without loop config")
+
 	GameState.start_run(overdrive, {"modifiers": {"extraction_bonus_multiplier": 1.5}})
 	GameState.score = 2200
 	_expect(GameState.get_secondary_objective_status_text().contains("1000 left"), "score-threshold optional objective shows remaining score")
@@ -80,7 +102,7 @@ func _ready() -> void:
 		_expect(blitz_missed_status.contains("Time bonus missed"), "time-limit optional objective marks missed bonus")
 		_expect(blitz_missed_status.contains("00:07 over"), "time-limit optional objective shows over-time")
 
-	var ghost := RunCatalogScript.get_operation("ghost_circuit")
+	var ghost := RunCatalogScript.shared().get_operation("ghost_circuit")
 	_expect(not ghost.is_empty(), "Ghost Circuit exists")
 	if not ghost.is_empty():
 		GameState.start_run(ghost, {})
@@ -121,6 +143,24 @@ func _ready() -> void:
 	_expect(_has_line(failure_report, "lost +390"), "failed rank report calls out lost cashout value")
 
 	_finish()
+
+
+func _check_cashout_loop_contract(operation: Dictionary) -> void:
+	var operation_id := String(operation.get("id", "unknown"))
+	var loop_config: Dictionary = operation.get("cashout_loop", {})
+	_expect(not loop_config.is_empty(), "%s has a cashout sustain loop" % operation_id)
+	if loop_config.is_empty():
+		return
+	var interval := float(loop_config.get("interval", 0.0))
+	_expect(interval >= 6.0 and interval <= 14.0, "%s cashout loop interval stays between 6 and 14 seconds" % operation_id)
+	var final_event_elapsed := 0.0
+	for event in operation.get("cashout_events", []):
+		final_event_elapsed = maxf(final_event_elapsed, float(Dictionary(event).get("elapsed", 0.0)))
+	_expect(float(loop_config.get("start_elapsed", 0.0)) >= final_event_elapsed, "%s cashout loop starts after the final one-shot wave" % operation_id)
+	var waves: Array = loop_config.get("waves", [])
+	_expect(not waves.is_empty(), "%s cashout loop defines at least one wave" % operation_id)
+	for wave_index in waves.size():
+		_expect(_count_control_enemies(waves[wave_index]) >= 1, "%s cashout loop wave %d keeps at least one control enemy" % [operation_id, wave_index])
 
 
 func _count_control_enemies(spawn_list: Array) -> int:

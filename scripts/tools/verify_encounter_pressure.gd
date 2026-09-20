@@ -24,7 +24,7 @@ var failures: Array[String] = []
 
 
 func _ready() -> void:
-	for operation in RunCatalogScript.get_operations():
+	for operation in RunCatalogScript.shared().get_operations():
 		var operation_id := String(operation.get("id", "unknown_operation"))
 		_verify_operation_phase_profile(operation_id, operation)
 		_scan_bucket(operation_id, "initial encounters", operation.get("encounters", []))

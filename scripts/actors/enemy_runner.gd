@@ -2,10 +2,10 @@ extends CharacterBody2D
 
 signal defeated(points: int)
 
-const SPEED := 132.0
-const GRAVITY := 1500.0
-const CONTACT_RANGE := 30.0
-const POINTS_AWARD := 100
+var SPEED := 132.0
+var GRAVITY := 1500.0
+var CONTACT_RANGE := 30.0
+var POINTS_AWARD := 100
 
 @onready var body_visual: Polygon2D = $Body
 @onready var art_sprite: Sprite2D = $Art
@@ -24,14 +24,27 @@ var dash_attack_timer: float = 0.0
 var dash_attack_cooldown: float = 0.0
 var is_dashing: bool = false
 var dash_direction: float = 0.0
-const DASH_ATTACK_SPEED := 320.0
-const DASH_ATTACK_DURATION := 0.22
-const DASH_ATTACK_COOLDOWN := 2.8
-const DASH_ATTACK_RANGE := 220.0
+var DASH_ATTACK_SPEED := 320.0
+var DASH_ATTACK_DURATION := 0.22
+var DASH_ATTACK_COOLDOWN := 2.8
+var DASH_ATTACK_RANGE := 220.0
+
+
+func _hydrate_stats() -> void:
+	SPEED = EnemyStats.get_stat("runner", "speed", SPEED)
+	GRAVITY = EnemyStats.get_stat("runner", "gravity", GRAVITY)
+	CONTACT_RANGE = EnemyStats.get_stat("runner", "contact_range", CONTACT_RANGE)
+	POINTS_AWARD = EnemyStats.get_stat("runner", "points_award", POINTS_AWARD)
+	DASH_ATTACK_SPEED = EnemyStats.get_stat("runner", "dash_attack_speed", DASH_ATTACK_SPEED)
+	DASH_ATTACK_DURATION = EnemyStats.get_stat("runner", "dash_attack_duration", DASH_ATTACK_DURATION)
+	DASH_ATTACK_COOLDOWN = EnemyStats.get_stat("runner", "dash_attack_cooldown", DASH_ATTACK_COOLDOWN)
+	DASH_ATTACK_RANGE = EnemyStats.get_stat("runner", "dash_attack_range", DASH_ATTACK_RANGE)
+	max_hp = EnemyStats.get_stat("runner", "max_hp", max_hp)
 
 
 func _ready() -> void:
 	add_to_group("enemy")
+	_hydrate_stats()
 	current_hp = max_hp
 	_setup_hp_bar()
 
@@ -123,6 +136,9 @@ func _update_dash_attack(delta: float) -> void:
 
 
 func receive_hit(force: Vector2) -> void:
+	# queue_free 当帧内节点仍在 enemy 组里，必须挡住二次命中，否则血条和飘字会重复播放。
+	if defeated_once:
+		return
 	current_hp -= 1
 	knocked_velocity = force
 	hit_flash_timer = 0.18
@@ -162,10 +178,11 @@ func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
-	_spawn_defeat_number()
+	# 环境击杀（被击落出界）只给一半分，飘字必须显示实收，避免"看到 +100 实得 +50"。
+	var awarded := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
+	_spawn_defeat_number(awarded if award_points else 0)
 	if award_points:
-		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
-		defeated.emit(pts)
+		defeated.emit(awarded)
 	queue_free()
 
 
@@ -185,9 +202,12 @@ func _spawn_hit_number() -> void:
 	tween.tween_callback(text_label.queue_free)
 
 
-func _spawn_defeat_number() -> void:
+func _spawn_defeat_number(points: int) -> void:
+	# 无分（纯演出离场）时不弹飘字，避免出现 "+0"。
+	if points <= 0:
+		return
 	var text_label := Label.new()
-	text_label.text = "+%d" % POINTS_AWARD
+	text_label.text = "+%d" % points
 	text_label.add_theme_font_size_override("font_size", 20)
 	text_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.32, 1.0))
 	text_label.z_index = 25

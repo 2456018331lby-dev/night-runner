@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/tools/verify_session_screen_panels.gd" id="1_session_panels"]
+
+[node name="VerifySessionScreenPanels" type="Node"]
+script = ExtResource("1_session_panels")

@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="EnemyStatsData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/autoload/enemy_stats_data.gd" id="1_esd"]
+
+[resource]
+script = ExtResource("1_esd")
+runner = {
+"max_hp": 2,
+"points_award": 100,
+"speed": 132.0,
+"gravity": 1500.0,
+"contact_range": 30.0,
+"dash_attack_speed": 320.0,
+"dash_attack_duration": 0.22,
+"dash_attack_cooldown": 2.8,
+"dash_attack_range": 220.0
+}
+suppressor = {
+"max_hp": 3,
+"points_award": 150,
+"walk_speed": 90.0,
+"retreat_speed": 145.0,
+"gravity": 1500.0,
+"contact_range": 30.0,
+"fire_range_x": 520.0,
+"fire_range_y": 170.0,
+"comfort_range": 250.0,
+"too_close_range": 150.0,
+"fire_cooldown": 1.65,
+"projectile_speed": 385.0
+}
+bastion = {
+"max_hp": 5,
+"points_award": 260,
+"walk_speed": 64.0,
+"gravity": 1500.0,
+"contact_range": 38.0,
+"pressure_range_x": 380.0,
+"pressure_range_y": 180.0,
+"shock_cooldown": 2.55,
+"shock_windup": 0.68
+}
+phantom = {
+"max_hp": 3,
+"points_award": 220,
+"walk_speed": 128.0,
+"gravity": 1500.0,
+"contact_range": 30.0,
+"dive_range_x": 420.0,
+"dive_range_y": 210.0,
+"dive_speed_x": 460.0,
+"dive_speed_y": -250.0,
+"dive_cooldown": 2.25,
+"dive_recovery_time": 0.22,
+"windup_time": 0.42,
+"dive_time": 0.34
+}
+stalker = {
+"max_hp": 4,
+"points_award": 240,
+"walk_speed": 72.0,
+"gravity": 1500.0,
+"contact_range": 32.0,
+"plunge_speed_y": 680.0,
+"plunge_aim_range_x": 260.0,
+"cling_time": 1.8,
+"warning_time": 0.55,
+"recovery_time": 0.48,
+"reposition_time": 1.2,
+"landing_impact_range": 120.0,
+"platform_reach_x": 380.0
+}
+bolt = {
+"lifetime": 3.5
+}

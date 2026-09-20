@@ -14,25 +14,25 @@ anchor_bottom = 1.0
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
 
 [node name="Root" type="VBoxContainer" parent="Content"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 8
 
 [node name="Header" type="PanelContainer" parent="Content/Root"]
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 52)
 
 [node name="HeaderRow" type="HBoxContainer" parent="Content/Root/Header"]
 theme_override_constants/separation = 18
 
 [node name="TitleSection" type="VBoxContainer" parent="Content/Root/Header/HeaderRow"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 
 [node name="Title" type="Label" parent="Content/Root/Header/HeaderRow/TitleSection"]
 text = "NIGHT RUNNER"
@@ -50,13 +50,13 @@ horizontal_alignment = 2
 [node name="Body" type="HBoxContainer" parent="Content/Root"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="LeftPanel" type="PanelContainer" parent="Content/Root/Body"]
-custom_minimum_size = Vector2(300, 0)
+custom_minimum_size = Vector2(280, 0)
 
 [node name="LeftCol" type="VBoxContainer" parent="Content/Root/Body/LeftPanel"]
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 
 [node name="SectionTitle" type="Label" parent="Content/Root/Body/LeftPanel/LeftCol"]
 text = "ROUTES"
@@ -67,17 +67,17 @@ horizontal_scroll_mode = 0
 
 [node name="RouteList" type="VBoxContainer" parent="Content/Root/Body/LeftPanel/LeftCol/RouteScroll"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="RightPanel" type="PanelContainer" parent="Content/Root/Body"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="RightCol" type="VBoxContainer" parent="Content/Root/Body/RightPanel"]
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 
 [node name="InfoColumn" type="VBoxContainer" parent="Content/Root/Body/RightPanel/RightCol"]
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 size_flags_vertical = 3
 
 [node name="Mode" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
@@ -101,7 +101,7 @@ text = "Intel"
 [node name="RecordGrid" type="GridContainer" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
 columns = 2
 theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 6
+theme_override_constants/v_separation = 4
 
 [node name="DirectiveName" type="Label" parent="Content/Root/Body/RightPanel/RightCol/InfoColumn"]
 text = "Directive"
@@ -111,16 +111,16 @@ autowrap_mode = 3
 text = "Directive summary"
 
 [node name="DirectiveScroll" type="ScrollContainer" parent="Content/Root/Body/RightPanel/RightCol"]
-custom_minimum_size = Vector2(0, 160)
+custom_minimum_size = Vector2(0, 80)
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
 [node name="DirectiveList" type="VBoxContainer" parent="Content/Root/Body/RightPanel/RightCol/DirectiveScroll"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="Footer" type="HBoxContainer" parent="Content/Root"]
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Hint" type="Label" parent="Content/Root/Footer"]
 size_flags_horizontal = 3
@@ -131,9 +131,9 @@ text = "Select a route and directive, then launch."
 theme_override_constants/separation = 12
 
 [node name="Primary" type="Button" parent="Content/Root/Footer/ActionRow"]
-custom_minimum_size = Vector2(180, 50)
+custom_minimum_size = Vector2(180, 46)
 text = "LAUNCH"
 
 [node name="Secondary" type="Button" parent="Content/Root/Footer/ActionRow"]
-custom_minimum_size = Vector2(150, 50)
+custom_minimum_size = Vector2(140, 46)
 text = "HUB"

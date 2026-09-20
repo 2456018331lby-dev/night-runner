@@ -91,7 +91,15 @@ var score_popups: Array[Dictionary] = []
 var popup_container: Control
 var health_pips: Array[PanelContainer] = []
 var health_target_scale: Array[float] = []
+var health_pip_lit: Array[bool] = []
+var health_pips_styled: bool = false
+var pip_style_lit: StyleBoxFlat
+var pip_style_dim: StyleBoxFlat
 var displayed_max_health: int = 0
+# 字体颜色写入缓存：GameState 每帧 emit state_changed，避免重复 add_theme_color_override。
+var font_color_cache: Dictionary = {}
+# 同时存在的飘分数量上限，防止高强度连杀时无限堆积 Label。
+const SCORE_POPUP_CAP := 24
 var low_health_overlay: ColorRect
 var cashout_border: ColorRect
 var combo_celebration_timer: float = 0.0
@@ -101,6 +109,9 @@ var combo_edge_left: Polygon2D
 var combo_edge_right: Polygon2D
 var combo_break_timer: float = 0.0
 var last_combo_count: int = 0
+var dash_ready_state: bool = true
+var dash_fill_ready: StyleBoxFlat
+var dash_fill_cooling: StyleBoxFlat
 
 
 func _ready() -> void:
@@ -130,6 +141,11 @@ func _process(delta: float) -> void:
 
 
 func spawn_score_popup(amount: int, at_position: Vector2, color: Color = TEXT_ACCENT) -> void:
+	while score_popups.size() >= SCORE_POPUP_CAP:
+		var oldest: Dictionary = score_popups.pop_front()
+		var oldest_node: Label = oldest["node"]
+		if is_instance_valid(oldest_node):
+			oldest_node.queue_free()
 	var popup := Label.new()
 	popup.text = "+%d" % amount
 	popup.add_theme_font_size_override("font_size", 20)
@@ -145,6 +161,8 @@ func spawn_score_popup(amount: int, at_position: Vector2, color: Color = TEXT_AC
 func set_operation_context(operation: Dictionary, directive: Dictionary) -> void:
 	operation_context = operation.duplicate(true)
 	directive_context = directive.duplicate(true)
+	# 行动配色只取决于 operation_context，不必跟着每帧的 state_changed 重建 StyleBox。
+	_apply_operation_palette()
 	_refresh()
 
 
@@ -158,64 +176,70 @@ func _refresh() -> void:
 			health_target_scale[i] = 1.5
 	last_score = GameState.score
 	last_health = GameState.health
-	score_label.text = "%04d" % GameState.score
-	best_label.text = "CAREER BEST %04d" % int(GameState.meta_progress.get("highest_score", 0))
+	_set_text(score_caption, "得分 (SCORE)")
+	_set_text(score_label, "%04d" % GameState.score)
+	_set_text(best_label, "最高 %04d" % int(GameState.meta_progress.get("highest_score", 0)))
 	if GameState.combo_count > 1 and GameState.combo_timer > 0.0:
-		combo_label.text = "COMBO x%d" % GameState.combo_count
-		combo_label.add_theme_color_override("font_color", TEXT_ACCENT)
+		_set_text(combo_label, "连击 x%d (COMBO)" % GameState.combo_count)
+		_set_font_color(combo_label, TEXT_ACCENT)
 	else:
-		combo_label.text = "COMBO READY"
-		combo_label.add_theme_color_override("font_color", TEXT_MUTED)
-	core_label.text = "%d / %d" % [GameState.data_cores_collected, GameState.data_cores_total]
-	time_label.text = GameState.formatted_time()
+		_set_text(combo_label, "连击准备")
+		_set_font_color(combo_label, TEXT_MUTED)
+	_set_text(health_caption, "护盾 (HP)")
+	_set_text(core_caption, "核心 (CORES)")
+	_set_text(core_label, "%d / %d" % [GameState.data_cores_collected, GameState.data_cores_total])
+	_set_text(time_caption, "用时 (TIME)")
+	_set_text(time_label, GameState.formatted_time())
 	if GameState.extraction_unlocked and not GameState.run_success and not GameState.is_run_failed:
-		time_label.text = "%s // CASH %s" % [GameState.formatted_time(), GameState.formatted_cashout_time()]
-		combo_label.text = "CASHOUT LIVE"
-		combo_label.add_theme_color_override("font_color", TEXT_ACCENT)
-	objective_label.text = objective_text
-	title_label.text = String(operation_context.get("title", "NIGHT RUNNER"))
-	subtitle_label.text = String(operation_context.get("subtitle", "Urban combat archive"))
-	phase_name.text = GameState.get_route_phase_text()
-	phase_status.text = "%s\n%s" % [GameState.get_operation_feel_summary(), GameState.get_route_pressure_text()]
+		_set_text(time_label, "%s // CASH %s" % [GameState.formatted_time(), GameState.formatted_cashout_time()])
+		_set_text(combo_label, "撤离开放")
+		_set_font_color(combo_label, TEXT_ACCENT)
+	_set_text(objective_title, "任务目标 (OBJECTIVE)")
+	_set_text(objective_label, objective_text)
+	_set_text(title_label, String(operation_context.get("title", "NIGHT RUNNER")))
+	_set_text(subtitle_label, String(operation_context.get("subtitle", "Urban combat archive")))
+	_set_text(phase_name, GameState.get_route_phase_text())
+	_set_text(phase_status, "%s\n%s" % [GameState.get_operation_feel_summary(), GameState.get_route_pressure_text()])
 	if directive_context.is_empty():
-		directive_title.text = "LOADOUT"
-		directive_name.text = "Base Protocol"
-		directive_summary.text = "" if PlatformProfile.is_mobile else "No adaptive directive active."
+		_set_text(directive_title, "LOADOUT")
+		_set_text(directive_name, "Base Protocol")
+		_set_text(directive_summary, "" if PlatformProfile.is_mobile else "No adaptive directive active.")
 	else:
-		directive_title.text = "DIRECTIVE"
-		directive_name.text = String(directive_context.get("name", "Adaptive Protocol"))
-		directive_summary.text = String(directive_context.get("summary", ""))
-	secondary_title.text = "OPTIONAL OBJECTIVE"
-	secondary_name.text = GameState.get_secondary_objective_name() if not GameState.get_secondary_objective_name().is_empty() else "No optional objective"
-	secondary_status.text = GameState.get_secondary_objective_status_text()
-	cashout_title.text = GameState.get_extraction_bonus_label().to_upper() if not GameState.get_extraction_bonus_label().is_empty() else "CASHOUT WINDOW"
-	cashout_status.text = GameState.get_extraction_bonus_status_text()
+		_set_text(directive_title, "DIRECTIVE")
+		_set_text(directive_name, String(directive_context.get("name", "Adaptive Protocol")))
+		_set_text(directive_summary, String(directive_context.get("summary", "")))
+	_set_text(secondary_title, "OPTIONAL OBJECTIVE")
+	_set_text(secondary_name, GameState.get_secondary_objective_name() if not GameState.get_secondary_objective_name().is_empty() else "No optional objective")
+	_set_text(secondary_status, GameState.get_secondary_objective_status_text())
+	_set_text(cashout_title, GameState.get_extraction_bonus_label().to_upper() if not GameState.get_extraction_bonus_label().is_empty() else "CASHOUT WINDOW")
+	var cashout_line := GameState.get_extraction_bonus_status_text()
 	if operation_context.has("hazards") and Array(operation_context.get("hazards", [])).size() > 0 and not GameState.run_success and not GameState.is_run_failed:
-		cashout_status.text += "\n%s" % GameState.get_hazard_status_text()
+		cashout_line += "\n%s" % GameState.get_hazard_status_text()
+	_set_text(cashout_status, cashout_line)
 	if not directive_context.is_empty():
-		directive_summary.text = GameState.describe_modifier_block(Dictionary(directive_context.get("modifiers", {})))
+		_set_text(directive_summary, GameState.describe_modifier_block(Dictionary(directive_context.get("modifiers", {}))))
 	_refresh_event_banner()
 	if GameState.run_success:
-		rank_label.text = "RANK %s" % GameState.final_rank
-		rank_label.add_theme_color_override("font_color", TEXT_SUCCESS)
-		objective_title.text = "RUN COMPLETE"
-		objective_label.add_theme_color_override("font_color", TEXT_SUCCESS)
-		secondary_status.add_theme_color_override("font_color", TEXT_SUCCESS if GameState.secondary_objective_completed else TEXT_ALERT)
-		cashout_status.add_theme_color_override("font_color", TEXT_SUCCESS if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
+		_set_text(rank_label, "RANK %s" % GameState.final_rank)
+		_set_font_color(rank_label, TEXT_SUCCESS)
+		_set_text(objective_title, "RUN COMPLETE")
+		_set_font_color(objective_label, TEXT_SUCCESS)
+		_set_font_color(secondary_status, TEXT_SUCCESS if GameState.secondary_objective_completed else TEXT_ALERT)
+		_set_font_color(cashout_status, TEXT_SUCCESS if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
 	elif GameState.is_run_failed:
-		rank_label.text = "FAILED"
-		rank_label.add_theme_color_override("font_color", TEXT_ALERT)
-		objective_title.text = "RUN FAILED"
-		objective_label.add_theme_color_override("font_color", TEXT_ALERT)
-		secondary_status.add_theme_color_override("font_color", TEXT_ALERT)
-		cashout_status.add_theme_color_override("font_color", TEXT_ALERT if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
+		_set_text(rank_label, "FAILED")
+		_set_font_color(rank_label, TEXT_ALERT)
+		_set_text(objective_title, "RUN FAILED")
+		_set_font_color(objective_label, TEXT_ALERT)
+		_set_font_color(secondary_status, TEXT_ALERT)
+		_set_font_color(cashout_status, TEXT_ALERT if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
 	else:
-		rank_label.text = "RANK --"
-		rank_label.add_theme_color_override("font_color", TEXT_MUTED)
-		objective_title.text = "OBJECTIVE"
-		objective_label.add_theme_color_override("font_color", TEXT_PRIMARY)
+		_set_text(rank_label, "RANK --")
+		_set_font_color(rank_label, TEXT_MUTED)
+		_set_text(objective_title, "OBJECTIVE")
+		_set_font_color(objective_label, TEXT_PRIMARY)
 		if GameState.current_secondary_objective.is_empty():
-			secondary_status.add_theme_color_override("font_color", TEXT_MUTED)
+			_set_font_color(secondary_status, TEXT_MUTED)
 		else:
 			var progress_ratio := GameState.get_secondary_objective_progress_ratio()
 			var secondary_color := TEXT_PRIMARY
@@ -225,34 +249,62 @@ func _refresh() -> void:
 				secondary_color = TEXT_ALERT
 			elif String(GameState.current_secondary_objective.get("type", "")) == "score_threshold" and progress_ratio >= 1.0:
 				secondary_color = TEXT_SUCCESS
-			secondary_status.add_theme_color_override("font_color", secondary_color)
-		cashout_status.add_theme_color_override("font_color", TEXT_ACCENT if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
+			_set_font_color(secondary_status, secondary_color)
+		_set_font_color(cashout_status, TEXT_ACCENT if GameState.pending_extraction_bonus > 0 else TEXT_MUTED)
 	if PlatformProfile.is_mobile:
-		directive_summary.text = ""
-		phase_status.text = GameState.get_route_pressure_text()
-		cashout_status.text = _get_mobile_cashout_status_text()
+		_set_text(directive_summary, "")
+		_set_text(phase_status, GameState.get_route_pressure_text())
+		_set_text(cashout_status, _get_mobile_cashout_status_text())
 		operation_card.visible = false
 		phase_card.visible = false
 		secondary_card.visible = false
 		nav_card.visible = true
 		directive_card.visible = false
+		objective_card.visible = false
+		cashout_card.visible = false
 		best_label.visible = false
 		combo_bar.visible = false
+		objective_row.visible = false
+		directive_row.visible = false
+		cashout_row.visible = false
 	else:
-		operation_card.visible = true
-		phase_card.visible = true
-		secondary_card.visible = true
-		directive_card.visible = true
-		best_label.visible = true
+		operation_card.visible = false
+		phase_card.visible = false
+		secondary_card.visible = false
+		directive_card.visible = false
+		objective_card.visible = false
+		cashout_card.visible = false
+		nav_card.visible = false
+		best_label.visible = false
 		combo_bar.visible = true
+		objective_row.visible = false
+		directive_row.visible = false
+		cashout_row.visible = false
 	_refresh_navigation()
 	_refresh_health_pips()
-	_apply_operation_palette()
+
+
+## 只在文本真的变化时写入，避免每帧触发 Label 重排与重绘。
+func _set_text(label: Label, value: String) -> void:
+	if label == null or label.text == value:
+		return
+	label.text = value
+
+
+## 主题色覆盖会触发 Control 重新造型，缓存上次写入的颜色后只在变化时覆盖。
+func _set_font_color(label: Label, color: Color) -> void:
+	if label == null:
+		return
+	var key := label.get_instance_id()
+	if font_color_cache.has(key) and Color(font_color_cache[key]) == color:
+		return
+	font_color_cache[key] = color
+	label.add_theme_color_override("font_color", color)
 
 
 func set_objective(text: String) -> void:
 	objective_text = text
-	objective_label.text = text
+	_set_text(objective_label, text)
 
 
 func set_navigation_target(label: String, distance: float, direction: Vector2, active: bool = true) -> void:
@@ -279,40 +331,42 @@ func show_toast(text: String, duration: float = 2.3) -> void:
 
 
 func _apply_theme() -> void:
+	# 生命格只有亮/暗两态，风格只建一次，_refresh_health_pips 只切换引用。
+	pip_style_lit = _make_panel_style(HEALTH_ON, Color(1.0, 0.62, 0.45, 0.8), 999, 1, 0)
+	pip_style_dim = _make_panel_style(HEALTH_OFF, Color(0.22, 0.33, 0.49, 0.7), 999, 1, 0)
 	var mobile_scale := PlatformProfile.get_mobile_ui_scale()
-	var card_h: int = 100 if PlatformProfile.is_mobile else 152
-	var card_w_score: int = 180 if PlatformProfile.is_mobile else 232
-	var card_w_telem: int = 200 if PlatformProfile.is_mobile else 252
+	var card_h: int = 68 if PlatformProfile.is_mobile else 76
+	var card_w_score: int = 160 if PlatformProfile.is_mobile else 180
+	var card_w_telem: int = 190 if PlatformProfile.is_mobile else 210
 	score_card.custom_minimum_size = Vector2(card_w_score, card_h)
-	telemetry_card.custom_minimum_size = Vector2(card_w_telem, card_h + 40 if not PlatformProfile.is_mobile else card_h)
-	score_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
-	operation_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
-	telemetry_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 22))
-	objective_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, PANEL_BORDER, 18))
-	phase_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(0.96, 0.55, 0.26, 0.42), 18))
-	directive_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, PANEL_ACCENT, 18))
-	secondary_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(0.82, 0.84, 1.0, 0.3), 18))
-	cashout_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(1.0, 0.72, 0.35, 0.4), 18))
-	if PlatformProfile.is_mobile:
-		objective_card.custom_minimum_size = Vector2(300, 60)
-		cashout_card.custom_minimum_size = Vector2(300, 56)
-	nav_card.add_theme_stylebox_override("panel", _make_panel_style(Color(0.08, 0.13, 0.21, 0.74), Color(0.42, 0.94, 1.0, 0.42), 18))
-	toast_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_ACCENT, 18, 2, 12))
+	telemetry_card.custom_minimum_size = Vector2(card_w_telem, card_h)
+	score_card.add_theme_stylebox_override("panel", _make_panel_style(Color(0.03, 0.06, 0.12, 0.72), PANEL_BORDER, 14))
+	operation_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_BORDER, 14))
+	telemetry_card.add_theme_stylebox_override("panel", _make_panel_style(Color(0.03, 0.06, 0.12, 0.72), PANEL_BORDER, 14))
+	objective_card.add_theme_stylebox_override("panel", _make_panel_style(Color(0.04, 0.08, 0.16, 0.65), PANEL_BORDER, 12))
+	phase_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(0.96, 0.55, 0.26, 0.42), 12))
+	directive_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, PANEL_ACCENT, 12))
+	secondary_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_SOFT, Color(0.82, 0.84, 1.0, 0.3), 12))
+	cashout_card.add_theme_stylebox_override("panel", _make_panel_style(Color(0.1, 0.07, 0.03, 0.75), Color(1.0, 0.72, 0.35, 0.6), 12))
+	objective_card.custom_minimum_size = Vector2(280, 42)
+	cashout_card.custom_minimum_size = Vector2(260, 42)
+	nav_card.add_theme_stylebox_override("panel", _make_panel_style(Color(0.06, 0.11, 0.18, 0.75), Color(0.42, 0.94, 1.0, 0.5), 12))
+	toast_card.add_theme_stylebox_override("panel", _make_panel_style(PANEL_BG, PANEL_ACCENT, 14, 2, 10))
 	_combo_bar_style()
 	_dash_bar_style()
 	for label in [score_caption, best_label, combo_label, health_caption, core_caption, time_caption, objective_title, phase_title, directive_title, secondary_title, cashout_title, nav_title]:
 		_style_caption(label)
 	_style_caption(dash_label)
-	_style_metric(score_label, int(34 * mobile_scale), TEXT_ACCENT)
-	_style_metric(core_label, int(22 * mobile_scale), TEXT_PRIMARY)
-	_style_metric(time_label, int(24 * mobile_scale), TEXT_PRIMARY)
-	_style_metric(rank_label, int(20 * mobile_scale), TEXT_MUTED)
+	_style_metric(score_label, int(26 * mobile_scale), TEXT_ACCENT)
+	_style_metric(core_label, int(18 * mobile_scale), TEXT_PRIMARY)
+	_style_metric(time_label, int(18 * mobile_scale), TEXT_PRIMARY)
+	_style_metric(rank_label, int(16 * mobile_scale), TEXT_MUTED)
 	score_label.pivot_offset = Vector2(80, 22)
-	title_label.add_theme_font_size_override("font_size", int(24 * mobile_scale))
+	title_label.add_theme_font_size_override("font_size", int(20 * mobile_scale))
 	title_label.add_theme_color_override("font_color", Color(0.61, 0.86, 1.0))
-	subtitle_label.add_theme_font_size_override("font_size", int(14 * mobile_scale))
+	subtitle_label.add_theme_font_size_override("font_size", int(13 * mobile_scale))
 	subtitle_label.add_theme_color_override("font_color", TEXT_MUTED)
-	objective_label.add_theme_font_size_override("font_size", int(16 * mobile_scale))
+	objective_label.add_theme_font_size_override("font_size", int(14 * mobile_scale))
 	objective_label.add_theme_color_override("font_color", TEXT_PRIMARY)
 	phase_name.add_theme_font_size_override("font_size", int(17 * mobile_scale))
 	phase_name.add_theme_color_override("font_color", TEXT_ACCENT)
@@ -381,20 +435,21 @@ func _combo_bar_style() -> void:
 func _dash_bar_style() -> void:
 	dash_bar.max_value = 1.0
 	dash_bar.value = 1.0
-	var bg_style := StyleBoxFlat.new()
-	bg_style.bg_color = DASH_BAR_BG
-	bg_style.corner_radius_top_left = 6
-	bg_style.corner_radius_top_right = 6
-	bg_style.corner_radius_bottom_left = 6
-	bg_style.corner_radius_bottom_right = 6
-	dash_bar.add_theme_stylebox_override("background", bg_style)
-	var fill_style := StyleBoxFlat.new()
-	fill_style.bg_color = DASH_BAR_FILL
-	fill_style.corner_radius_top_left = 6
-	fill_style.corner_radius_top_right = 6
-	fill_style.corner_radius_bottom_left = 6
-	fill_style.corner_radius_bottom_right = 6
-	dash_bar.add_theme_stylebox_override("fill", fill_style)
+	dash_bar.add_theme_stylebox_override("background", _make_rounded_style(DASH_BAR_BG))
+	# 就绪 / 冷却两套填充只建一次，_update_bars 每帧只在状态翻转时切换引用。
+	dash_fill_ready = _make_rounded_style(Color(0.28, 0.88, 1.0, 0.95))
+	dash_fill_cooling = _make_rounded_style(Color(0.18, 0.42, 0.62, 0.8))
+	dash_bar.add_theme_stylebox_override("fill", dash_fill_ready)
+
+
+func _make_rounded_style(color: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	return style
 
 
 func _create_popup_container() -> void:
@@ -422,26 +477,12 @@ func _update_bars(delta: float) -> void:
 			dash_target = 1.0 - (cd / max_cd)
 	dash_bar.value = move_toward(dash_bar.value, dash_target, delta * 5.0)
 	dash_bar.visible = true
-	if dash_bar.value >= 0.98:
-		dash_label.text = "DASH READY"
-		var fill_ready := StyleBoxFlat.new()
-		fill_ready.bg_color = Color(0.28, 0.88, 1.0, 0.95)
-		fill_ready.corner_radius_top_left = 6
-		fill_ready.corner_radius_top_right = 6
-		fill_ready.corner_radius_bottom_left = 6
-		fill_ready.corner_radius_bottom_right = 6
-		dash_bar.add_theme_stylebox_override("fill", fill_ready)
-		dash_label.add_theme_color_override("font_color", Color(0.42, 0.94, 1.0, 0.85))
-	else:
-		dash_label.text = "DASH COOLING"
-		var fill_cd := StyleBoxFlat.new()
-		fill_cd.bg_color = Color(0.18, 0.42, 0.62, 0.8)
-		fill_cd.corner_radius_top_left = 6
-		fill_cd.corner_radius_top_right = 6
-		fill_cd.corner_radius_bottom_left = 6
-		fill_cd.corner_radius_bottom_right = 6
-		dash_bar.add_theme_stylebox_override("fill", fill_cd)
-		dash_label.add_theme_color_override("font_color", Color(0.32, 0.52, 0.68, 0.6))
+	var dash_ready := dash_bar.value >= 0.98
+	if dash_ready != dash_ready_state:
+		dash_ready_state = dash_ready
+		_set_text(dash_label, "DASH READY" if dash_ready else "DASH COOLING")
+		_set_font_color(dash_label, Color(0.42, 0.94, 1.0, 0.85) if dash_ready else Color(0.32, 0.52, 0.68, 0.6))
+		dash_bar.add_theme_stylebox_override("fill", dash_fill_ready if dash_ready else dash_fill_cooling)
 
 
 func _update_popups(delta: float) -> void:
@@ -597,10 +638,14 @@ func _spawn_combo_burst() -> void:
 
 func _refresh_health_pips() -> void:
 	_sync_health_pip_count(_get_current_max_health())
+	if health_pip_lit.size() != health_pips.size():
+		health_pip_lit.resize(health_pips.size())
 	for index in health_pips.size():
-		var fill := HEALTH_ON if index < GameState.health else HEALTH_OFF
-		var border := Color(1.0, 0.62, 0.45, 0.8) if index < GameState.health else Color(0.22, 0.33, 0.49, 0.7)
-		health_pips[index].add_theme_stylebox_override("panel", _make_panel_style(fill, border, 999, 1, 0))
+		var lit := index < GameState.health
+		if health_pip_lit[index] == lit:
+			continue
+		health_pip_lit[index] = lit
+		health_pips[index].add_theme_stylebox_override("panel", pip_style_lit if lit else pip_style_dim)
 
 
 func _get_current_max_health() -> int:
@@ -613,6 +658,8 @@ func _sync_health_pip_count(max_health: int) -> void:
 		return
 	health_pips.clear()
 	health_target_scale.clear()
+	health_pip_lit.clear()
+	health_pips_styled = false
 	for child in health_pip_row.get_children():
 		health_pip_row.remove_child(child)
 		child.queue_free()
@@ -692,7 +739,7 @@ func _apply_operation_palette() -> void:
 
 
 func _refresh_navigation() -> void:
-	nav_card.visible = navigation_active and not GameState.run_success and not GameState.is_run_failed
+	nav_card.visible = navigation_active and not GameState.run_success and not GameState.is_run_failed and PlatformProfile.is_mobile
 	if not nav_card.visible:
 		return
 	var arrow := _direction_to_arrow(navigation_direction)
@@ -700,13 +747,10 @@ func _refresh_navigation() -> void:
 	var vector_line := "%s  %s // %s" % [arrow, navigation_label.to_upper(), distance_text]
 	if PlatformProfile.is_mobile:
 		var context_line := _get_mobile_navigation_context_line()
-		nav_status.text = "%s\n%s" % [vector_line, context_line] if not context_line.is_empty() else vector_line
+		_set_text(nav_status, "%s\n%s" % [vector_line, context_line] if not context_line.is_empty() else vector_line)
 	else:
-		nav_status.text = vector_line
-	if navigation_label.to_lower().contains("extract"):
-		nav_status.add_theme_color_override("font_color", TEXT_ACCENT)
-	else:
-		nav_status.add_theme_color_override("font_color", TEXT_SOFT)
+		_set_text(nav_status, vector_line)
+	_set_font_color(nav_status, TEXT_ACCENT if navigation_label.to_lower().contains("extract") else TEXT_SOFT)
 
 
 func _get_mobile_navigation_context_line() -> String:
@@ -809,7 +853,7 @@ func _refresh_event_banner() -> void:
 		event_banner.scale = Vector2(1.04, 1.12)
 		var tween := create_tween()
 		tween.tween_property(event_banner, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	event_label.text = banner_text.to_upper()
+	_set_text(event_label, banner_text.to_upper())
 	event_banner.modulate.a = clampf(0.3 + emphasis * 0.7, 0.2, 1.0)
 
 func _make_panel_style(fill: Color, border: Color, radius: int, border_width: int = 2, shadow_size: int = 10) -> StyleBoxFlat:

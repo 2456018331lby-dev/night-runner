@@ -33,6 +33,16 @@ func _ready() -> void:
 	_wire_action_button(dash_button, "dash")
 	_wire_pause_button()
 	call_deferred("_finalize_button_pivots")
+	var viewport := get_viewport()
+	if viewport != null and not viewport.size_changed.is_connected(_on_viewport_resized):
+		# 安全区与移动端缩放都由视口尺寸推导（网页端画布缩放 / 设备旋转），
+		# 不监听尺寸变化会让按键停留在旧布局，甚至被推到屏幕外。
+		viewport.size_changed.connect(_on_viewport_resized)
+
+
+func _on_viewport_resized() -> void:
+	_apply_mobile_layout()
+	call_deferred("_finalize_button_pivots")
 
 
 func configure(visible_on_platform: bool) -> void:
@@ -40,6 +50,7 @@ func configure(visible_on_platform: bool) -> void:
 	if not visible_on_platform:
 		_release_all_inputs()
 	_apply_mobile_layout()
+	call_deferred("_finalize_button_pivots")
 
 
 func _apply_mobile_layout() -> void:
@@ -49,16 +60,20 @@ func _apply_mobile_layout() -> void:
 	controls_root.offset_top = 18.0 + safe.y
 	controls_root.offset_right = -22.0 - safe.z
 	controls_root.offset_bottom = -28.0 - safe.w
-	left_pad.scale = Vector2.ONE * ui_scale
-	action_pad.scale = Vector2.ONE * ui_scale
+	# 缩放只由 scale 承担：offset 一律保持设计像素。
+	# 之前 offset 也乘了 ui_scale，与 pad 自身的 scale 叠加成双重缩放，
+	# 且 offset_bottom 未参与缩放，导致缩放后 pad 与屏幕下边缘错位。
 	left_pad.offset_left = 0.0
-	left_pad.offset_top = -206.0 * ui_scale
-	left_pad.offset_right = 332.0 * ui_scale
+	left_pad.offset_top = -206.0
+	left_pad.offset_right = 332.0
 	left_pad.offset_bottom = -8.0
-	action_pad.offset_left = -388.0 * ui_scale
-	action_pad.offset_top = -302.0 * ui_scale
+	action_pad.offset_left = -388.0
+	action_pad.offset_top = -302.0
 	action_pad.offset_right = -8.0
 	action_pad.offset_bottom = -8.0
+	left_pad.scale = Vector2.ONE * ui_scale
+	action_pad.scale = Vector2.ONE * ui_scale
+	_align_pad_pivots()
 	var pause_size := Vector2(maxf(PAUSE_BUTTON_MIN_SIZE.x, PAUSE_BUTTON_BASE_SIZE.x * ui_scale), maxf(PAUSE_BUTTON_MIN_SIZE.y, PAUSE_BUTTON_BASE_SIZE.y * ui_scale))
 	pause_button.scale = Vector2.ONE
 	pause_button.custom_minimum_size = pause_size
@@ -66,6 +81,13 @@ func _apply_mobile_layout() -> void:
 	pause_button.offset_top = 0.0
 	pause_button.offset_right = 0.0
 	pause_button.offset_bottom = pause_size.y
+
+
+func _align_pad_pivots() -> void:
+	# 左侧 pad 锚定屏幕左下、右侧 pad 锚定屏幕右下：把轴心放在对应的那个角上，
+	# 缩放时就只会向内收，而不会把 pad 拖离屏幕边缘。
+	left_pad.pivot_offset = Vector2(0.0, left_pad.size.y)
+	action_pad.pivot_offset = Vector2(action_pad.size.x, action_pad.size.y)
 
 
 func _release_move(expected: float) -> void:
@@ -129,6 +151,8 @@ func _style_button(button: Button, fill: Color, border: Color, radius: int, font
 
 
 func _finalize_button_pivots() -> void:
+	# 延迟执行：此时容器已完成布局，pad 的 size 才是最终值，轴心才能算准。
+	_align_pad_pivots()
 	for button in [left_button, right_button, jump_button, attack_button, dash_button, pause_button]:
 		button.pivot_offset = button.size * 0.5
 		_set_button_visual(button, false)

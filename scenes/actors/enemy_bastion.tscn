@@ -1,6 +1,7 @@
 [gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/actors/enemy_bastion.gd" id="1_jap3w"]
+[ext_resource type="Texture2D" path="res://assets/art/sprite_enemy_bastion.png" id="2_bastion_art"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(36, 56)
@@ -19,16 +20,24 @@ shape = SubResource("RectangleShape2D_body")
 [node name="Rig" type="Node2D" parent="."]
 
 [node name="Body" type="Polygon2D" parent="Rig"]
+visible = false
 polygon = PackedVector2Array(-18, -28, 18, -28, 18, 28, -18, 28)
-color = Color(0.96, 0.42, 0.34, 0.1)
+color = Color(0.96, 0.42, 0.34, 0)
 
 [node name="Shield" type="Polygon2D" parent="Rig"]
+visible = false
 polygon = PackedVector2Array(4, -20, 34, -16, 40, 0, 32, 18, 0, 18, -4, 0)
-color = Color(1, 0.72, 0.42, 0.14)
+color = Color(1, 0.72, 0.42, 0)
 
 [node name="Core" type="Polygon2D" parent="Rig"]
+visible = false
 polygon = PackedVector2Array(-2, -10, 12, -14, 18, -2, 10, 10, -2, 8, -8, -2)
-color = Color(1, 0.9, 0.68, 0.18)
+color = Color(1, 0.9, 0.68, 0)
+
+[node name="Art" type="Sprite2D" parent="Rig"]
+position = Vector2(0, -2)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_bastion_art")
 
 [node name="PulseZone" type="Area2D" parent="."]
 collision_layer = 0

@@ -54,6 +54,7 @@ func _ready() -> void:
 	_expect(GameState.are_haptics_enabled(), "haptics toggle stores true")
 
 	_verify_platform_boundaries()
+	_verify_mobile_detection()
 
 	GameState.set_master_volume(original_volume, false)
 	GameState.set_haptics_enabled(original_haptics, false)
@@ -119,6 +120,17 @@ func _verify_platform_boundaries() -> void:
 		),
 		"invalid screen size produces zero margins"
 	)
+
+
+func _verify_mobile_detection() -> void:
+	_expect(PlatformProfile.detect_is_mobile("Android", false, false, false, false), "Android platform is mobile")
+	_expect(PlatformProfile.detect_is_mobile("iOS", false, false, false, false), "iOS platform is mobile")
+	_expect(not PlatformProfile.detect_is_mobile("Windows", false, false, false, true), "Windows platform stays desktop even with touchscreen")
+	_expect(PlatformProfile.detect_is_mobile("Web", true, false, false, false), "web_android tag marks web as mobile")
+	_expect(PlatformProfile.detect_is_mobile("Web", false, true, false, false), "web_ios tag marks web as mobile")
+	_expect(not PlatformProfile.detect_is_mobile("Web", false, false, true, true), "desktop web tag overrides touchscreen availability")
+	_expect(PlatformProfile.detect_is_mobile("Web", false, false, false, true), "untagged web falls back to touchscreen availability")
+	_expect(not PlatformProfile.detect_is_mobile("Web", false, false, false, false), "untagged web without touchscreen stays desktop")
 
 
 func _verify_haptic_cooldowns() -> void:

@@ -3,6 +3,9 @@ extends Node2D
 const DATA_CORE_SCENE := preload("res://scenes/game/data_core.tscn")
 const BOOST_PAD_SCENE := preload("res://scenes/game/boost_pad.tscn")
 const ROUTE_HAZARD_SCENE := preload("res://scenes/game/route_hazard.tscn")
+const CASHOUT_LOOP_ENEMY_CAP := 14
+# 批量事件检查的节流间隔：时间轴 / cashout / 阶段演出都不需要 60Hz 精度。
+const EVENT_CHECK_INTERVAL := 0.08
 
 @onready var presentation: Node2D = $Presentation
 @onready var ground_container: Node2D = $Geometry
@@ -21,6 +24,9 @@ var reinforcements_spawned: bool = false
 var triggered_timeline_events: Dictionary = {}
 var triggered_core_events: Dictionary = {}
 var triggered_cashout_events: Dictionary = {}
+var cashout_loop_waves_spawned: int = 0
+var beacon_spawned: bool = false
+var beacon_collected: bool = false
 var triggered_setpiece_events: Dictionary = {}
 var generated_platforms: Array[Node2D] = []
 var spawned_hazards: Array[Area2D] = []
@@ -31,6 +37,7 @@ var collapse_wall_node: StaticBody2D
 var collapse_wall_visual: Polygon2D
 var tutorial_move_prompt_time: float = -1.0
 var tutorial_combat_prompt_pending: bool = false
+var event_check_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -64,12 +71,17 @@ func begin(operation: Dictionary) -> void:
 	triggered_timeline_events.clear()
 	triggered_core_events.clear()
 	triggered_cashout_events.clear()
+	cashout_loop_waves_spawned = 0
+	beacon_spawned = false
+	beacon_collected = false
 	triggered_setpiece_events.clear()
 	last_hazard_status_text = ""
 	active_setpiece_label = ""
 	active_data_cores.clear()
 	tutorial_move_prompt_time = -1.0
 	tutorial_combat_prompt_pending = false
+	# 开局第一帧就要跑一遍事件检查，别等到第一个节流窗口结束。
+	event_check_timer = EVENT_CHECK_INTERVAL
 	_build_platforms()
 	_apply_operation_theme()
 	_position_player()
@@ -132,16 +144,20 @@ func reset_world() -> void:
 		hud.call("clear_navigation_target")
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not GameState.is_run_active or GameState.is_run_failed:
 		return
-	_check_timeline_events()
-	_check_cashout_events()
-	_check_setpiece_events()
-	_update_hazard_states()
-	_refresh_live_route_status()
+	# 批量事件检查按 12.5Hz 跑；导航指向仍每帧更新，保证方向箭头跟手。
+	event_check_timer += delta
+	if event_check_timer >= EVENT_CHECK_INTERVAL:
+		event_check_timer = 0.0
+		_check_timeline_events()
+		_check_cashout_events()
+		_check_setpiece_events()
+		_update_hazard_states()
+		_refresh_live_route_status()
+		_check_tutorial_hints()
 	_refresh_navigation_target()
-	_check_tutorial_hints()
 
 
 func _spawn_initial_encounters() -> void:
@@ -296,6 +312,65 @@ func _check_cashout_events() -> void:
 			continue
 		triggered_cashout_events[index] = true
 		_trigger_spawn_event(event)
+	_check_cashout_beacon()
+	_check_cashout_loop()
+
+
+func _check_cashout_beacon() -> void:
+	if beacon_spawned:
+		return
+	var beacon_config: Dictionary = active_operation.get("cashout_beacon", {})
+	if beacon_config.is_empty():
+		return
+	if GameState.get_cashout_elapsed_time() < float(beacon_config.get("elapsed", 0.0)):
+		return
+	if GameState.pending_extraction_bonus < int(beacon_config.get("min_pending_bonus", 0)):
+		return
+	beacon_spawned = true
+	var core: Area2D = DATA_CORE_SCENE.instantiate() as Area2D
+	if core == null:
+		return
+	core.global_position = Vector2(beacon_config.get("position", Vector2.ZERO))
+	core.set_meta("double_down_beacon", true)
+	core.collected.connect(_on_beacon_collected.bind(core))
+	data_core_container.add_child(core)
+	var toast := String(beacon_config.get("toast", ""))
+	if not toast.is_empty():
+		_show_toast(toast, 3.0)
+	GameState.push_event_banner("DIVIDEND BEACON", 0.9)
+
+
+func _on_beacon_collected(_core: Area2D) -> void:
+	if beacon_collected:
+		return
+	beacon_collected = true
+	var beacon_config: Dictionary = active_operation.get("cashout_beacon", {})
+	var doubled_bank := GameState.double_down_pending_bonus(float(beacon_config.get("multiplier", 2.0)))
+	_trigger_spawn_event({"spawn": beacon_config.get("spawn_on_collect", [])})
+	GameState.push_event_banner("DOUBLE DOWN", 1.0)
+	_show_toast("Double down locked // %s bank now +%d. Walk it back out." % [GameState.get_extraction_bonus_label(), doubled_bank], 2.6)
+
+
+func _check_cashout_loop() -> void:
+	var loop_config: Dictionary = active_operation.get("cashout_loop", {})
+	if loop_config.is_empty():
+		return
+	var expected_count := GameState.compute_cashout_loop_count(GameState.get_cashout_elapsed_time(), loop_config)
+	if expected_count <= cashout_loop_waves_spawned:
+		return
+	var waves: Array = loop_config.get("waves", [])
+	if waves.is_empty():
+		cashout_loop_waves_spawned = expected_count
+		return
+	while cashout_loop_waves_spawned < expected_count:
+		var wave_index: int = mini(cashout_loop_waves_spawned, waves.size() - 1)
+		cashout_loop_waves_spawned += 1
+		if enemy_container.get_child_count() > CASHOUT_LOOP_ENEMY_CAP:
+			continue
+		_trigger_spawn_event({
+			"spawn": waves[wave_index],
+			"toast": String(loop_config.get("toast", "")),
+		})
 
 
 func _check_setpiece_events() -> void:
@@ -473,6 +548,8 @@ func _on_enemy_defeated(points: int, source: Node2D) -> void:
 	GameState.register_enemy_defeat(points)
 	AudioEngine.play_enemy_defeat()
 	AudioEngine.play_combo(GameState.combo_count)
+	if GameState.combo_count >= 3 and player != null and player.has_method("trigger_kill_slowmo"):
+		player.call("trigger_kill_slowmo")
 	if GameState.extraction_bonus_active and GameState.extraction_unlocked and GameState.pending_extraction_bonus > 0:
 		_show_toast(GameState.get_extraction_bonus_status_text(), 1.5)
 	if GameState.combo_count >= 3:
@@ -482,6 +559,8 @@ func _on_enemy_defeated(points: int, source: Node2D) -> void:
 
 
 func _on_player_hit() -> void:
+	if not GameState.is_run_active or GameState.is_run_failed or GameState.run_success:
+		return
 	var damage_summary := GameState.get_last_damage_source_summary()
 	var damage_feedback := _get_damage_feedback_profile(GameState.last_damage_source_kind, GameState.last_damage_source_detail)
 	_spawn_screen_impact(damage_feedback["color"], damage_feedback["duration"])
@@ -498,8 +577,12 @@ func _on_player_hit() -> void:
 
 
 func _on_player_fell() -> void:
+	# 坠落收尾只做一次；玩家掉出关卡后会连续多帧低于判定线。
+	if not GameState.is_run_active or GameState.is_run_failed or GameState.run_success:
+		return
 	_spawn_screen_impact(Color(0.12, 0.08, 0.18, 0.4), 0.3)
 	AudioEngine.play_fail()
+	GameState.register_damage_source("fall", "player_fell", player.global_position)
 	GameState.set_result("FAIL", "Route collapse. Re-enter the operation from hub or retry immediately.")
 	GameState.finish_run(false)
 	_set_objective("Route failed. Rebuild your line and try again.")
@@ -520,6 +603,8 @@ func _on_run_finished(success: bool) -> void:
 
 
 func _on_data_core_collected(core: Area2D) -> void:
+	if not GameState.is_run_active or GameState.is_run_failed or GameState.run_success:
+		return
 	active_data_cores.erase(core)
 	GameState.collect_data_core(250)
 	AudioEngine.play_core_collect()

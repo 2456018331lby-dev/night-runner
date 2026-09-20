@@ -6,13 +6,13 @@
 script = ExtResource("1_fxges")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
-anchors_preset = 15
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 18.0
-offset_right = -24.0
-offset_bottom = -18.0
+offset_left = 18.0
+offset_top = 12.0
+offset_right = -18.0
+offset_bottom = 86.0
+grow_horizontal = 2
 
 [node name="RootColumn" type="VBoxContainer" parent="MarginContainer"]
 size_flags_horizontal = 3
@@ -20,48 +20,51 @@ theme_override_constants/separation = 12
 
 [node name="TopRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
 size_flags_horizontal = 3
-theme_override_constants/separation = 18
+theme_override_constants/separation = 12
 
 [node name="ScoreCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
-custom_minimum_size = Vector2(232, 152)
+custom_minimum_size = Vector2(150, 64)
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/ScoreCard"]
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin"]
 theme_override_constants/separation = 2
 
 [node name="ScoreCaption" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
-text = "SCORE"
+text = "得分 (SCORE)"
 
 [node name="ScoreLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
 text = "0000"
 
 [node name="BestLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
+visible = false
 text = "BEST 0000"
 
 [node name="ComboLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
-text = "COMBO READY"
+text = "连击准备"
 
 [node name="ComboBar" type="ProgressBar" parent="MarginContainer/RootColumn/TopRow/ScoreCard/Margin/VBox"]
-custom_minimum_size = Vector2(0, 8)
+custom_minimum_size = Vector2(0, 4)
 show_percentage = false
 
-[node name="OperationCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
-custom_minimum_size = Vector2(332, 152)
+[node name="Spacer" type="Control" parent="MarginContainer/RootColumn/TopRow"]
 size_flags_horizontal = 3
 
+[node name="OperationCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
+visible = false
+
 [node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/OperationCard"]
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/OperationCard/Margin"]
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/RootColumn/TopRow/OperationCard/Margin/VBox"]
 text = "NIGHT RUNNER"
@@ -71,13 +74,13 @@ autowrap_mode = 3
 text = "Urban combat archive"
 
 [node name="TelemetryCard" type="PanelContainer" parent="MarginContainer/RootColumn/TopRow"]
-custom_minimum_size = Vector2(252, 192)
+custom_minimum_size = Vector2(190, 64)
 
 [node name="Margin" type="MarginContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard"]
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="MarginContainer/RootColumn/TopRow/TelemetryCard/Margin"]
 theme_override_constants/separation = 6
@@ -123,10 +126,12 @@ text = "00:00"
 text = "RANK --"
 
 [node name="ObjectiveRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
+visible = false
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
 [node name="ObjectiveCard" type="PanelContainer" parent="MarginContainer/RootColumn/ObjectiveRow"]
+visible = false
 custom_minimum_size = Vector2(420, 88)
 size_flags_horizontal = 3
 
@@ -147,6 +152,7 @@ autowrap_mode = 3
 text = "Steal all data cores and extract."
 
 [node name="PhaseCard" type="PanelContainer" parent="MarginContainer/RootColumn/ObjectiveRow"]
+visible = false
 custom_minimum_size = Vector2(330, 88)
 size_flags_horizontal = 3
 
@@ -170,10 +176,12 @@ autowrap_mode = 3
 text = "Phase status"
 
 [node name="DirectiveRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
+visible = false
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
 [node name="DirectiveCard" type="PanelContainer" parent="MarginContainer/RootColumn/DirectiveRow"]
+visible = false
 custom_minimum_size = Vector2(520, 82)
 size_flags_horizontal = 3
 
@@ -197,6 +205,7 @@ autowrap_mode = 3
 text = "No adaptive directive active."
 
 [node name="SecondaryCard" type="PanelContainer" parent="MarginContainer/RootColumn/DirectiveRow"]
+visible = false
 custom_minimum_size = Vector2(360, 82)
 size_flags_horizontal = 3
 
@@ -220,10 +229,12 @@ autowrap_mode = 3
 text = "Objective status"
 
 [node name="CashoutRow" type="HBoxContainer" parent="MarginContainer/RootColumn"]
+visible = false
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
 [node name="CashoutCard" type="PanelContainer" parent="MarginContainer/RootColumn/CashoutRow"]
+visible = false
 custom_minimum_size = Vector2(500, 76)
 size_flags_horizontal = 3
 
@@ -244,6 +255,7 @@ autowrap_mode = 3
 text = "Cashout status"
 
 [node name="NavCard" type="PanelContainer" parent="MarginContainer/RootColumn/CashoutRow"]
+visible = false
 custom_minimum_size = Vector2(330, 76)
 size_flags_horizontal = 3
 

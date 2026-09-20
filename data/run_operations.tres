@@ -1,0 +1,1103 @@
+[gd_resource type="Resource" script_class="RunOperationData" load_steps=7 format=3 uid="uid://bvj8y3qm4nlfy"]
+
+[ext_resource type="Script" path="res://scripts/data/run_operation_data.gd" id="1_a8d9f"]
+[ext_resource type="PackedScene" path="res://scenes/actors/enemy_runner.tscn" id="2_runner"]
+[ext_resource type="PackedScene" path="res://scenes/actors/enemy_suppressor.tscn" id="3_suppressor"]
+[ext_resource type="PackedScene" path="res://scenes/actors/enemy_bastion.tscn" id="4_bastion"]
+[ext_resource type="PackedScene" path="res://scenes/actors/enemy_phantom.tscn" id="5_phantom"]
+[ext_resource type="PackedScene" path="res://scenes/actors/enemy_stalker.tscn" id="6_stalker"]
+
+[resource]
+script = ExtResource("1_a8d9f")
+operations = Array[Dictionary]([{
+"boost_pads": [{
+"boost_velocity": Vector2(420, -520),
+"position": Vector2(494, 618)
+}, {
+"boost_velocity": Vector2(350, -480),
+"position": Vector2(1126, 294)
+}, {
+"boost_velocity": Vector2(310, -390),
+"position": Vector2(1714, 112)
+}, {
+"boost_velocity": Vector2(290, -360),
+"position": Vector2(1966, 148)
+}],
+"brief": "Kick the alarmed convoy off-balance, grab the cores and punch through the extraction corridor before the kill-team closes the grid.",
+"cashout_events": [{
+"elapsed": 8.0,
+"spawn": [{
+"position": Vector2(1688, 124),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1980, 126),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1846, 88),
+"scene": ExtResource("5_phantom")
+}],
+"toast": "Clean-up bikes are cutting across the roofline. Fast cashout is still clean, but greed is now paying out."
+}, {
+"elapsed": 16.0,
+"spawn": [{
+"position": Vector2(1824, 88),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(2140, 126),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(2020, 126),
+"scene": ExtResource("2_runner")
+}],
+"toast": "Kill-team suppressors have sight on extraction. Cash out or break them."
+}, {
+"elapsed": 25.0,
+"spawn": [{
+"position": Vector2(1548, 188),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1836, 88),
+"scene": ExtResource("5_phantom")
+}, {
+"position": Vector2(2142, 126),
+"scene": ExtResource("4_bastion")
+}],
+"toast": "Pursuit ceiling. Bastion is sealing the exit tier while riders flood the low lane."
+}],
+"cashout_loop": {
+"interval": 9.0,
+"start_elapsed": 33.0,
+"toast": "Pursuit lockdown deepens. The convoy keeps feeding riders into your exit lane.",
+"waves": [[{
+"position": Vector2(1688, 124),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2140, 126),
+"scene": ExtResource("3_suppressor")
+}], [{
+"position": Vector2(1960, 126),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1846, 88),
+"scene": ExtResource("5_phantom")
+}, {
+"position": Vector2(2142, 126),
+"scene": ExtResource("4_bastion")
+}]]
+},
+"cashout_tiers": [{
+"bounty_multiplier": 1.0,
+"elapsed": 0.0,
+"label": "HEAT"
+}, {
+"bounty_multiplier": 1.2,
+"elapsed": 8.0,
+"label": "SURGE"
+}, {
+"bounty_multiplier": 1.4,
+"elapsed": 16.0,
+"label": "FEVER"
+}, {
+"bounty_multiplier": 1.7,
+"elapsed": 25.0,
+"label": "MELTDOWN"
+}],
+"completion_spawns": [{
+"position": Vector2(868, 364),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1512, 188),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1880, 124),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2208, 126),
+"scene": ExtResource("3_suppressor")
+}],
+"completion_toast": "Alarm trip confirmed. The convoy is dumping reinforcements into the lane.",
+"core_events": [{
+"count": 2,
+"spawn": [{
+"position": Vector2(1640, 124),
+"scene": ExtResource("2_runner")
+}],
+"toast": "Momentum spike. The convoy is splitting its shield line."
+}, {
+"count": 4,
+"spawn": [{
+"position": Vector2(2040, 126),
+"scene": ExtResource("3_suppressor")
+}],
+"toast": "Convoy fracture. The upper sprint line is now lethal but faster."
+}],
+"data_cores": [Vector2(690, 364), Vector2(1120, 276), Vector2(1502, 180), Vector2(1800, 92), Vector2(2100, 124)],
+"directive_pool": [{
+"id": "surge_injection",
+"modifiers": {
+"dash_multiplier": 1.14,
+"score_multiplier": 1.05,
+"speed_multiplier": 1.12
+},
+"name": "Surge Injection",
+"summary": "Overclocks movement and rewards relentless pace."
+}, {
+"id": "knife_party",
+"modifiers": {
+"attack_force_multiplier": 1.12,
+"combo_window_multiplier": 1.25
+},
+"name": "Knife Party",
+"summary": "Longer combo window and stronger melee launches."
+}, {
+"id": "redline_thrusters",
+"modifiers": {
+"boost_multiplier": 1.2,
+"finish_bonus_multiplier": 0.94
+},
+"name": "Redline Thrusters",
+"summary": "Boost pads hit harder, but the score clock pushes faster."
+}],
+"encounters": [{
+"position": Vector2(520, 348),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(874, 184),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1240, 214),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1700, 88),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1900, 124),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1458, 206),
+"scene": ExtResource("4_bastion")
+}, {
+"position": Vector2(1224, 294),
+"scene": ExtResource("6_stalker")
+}],
+"extraction_bonus": {
+"base_bounty": 90,
+"label": "Pursuit Bonus",
+"step_bounty": 20
+},
+"extraction_position": Vector2(2244, 118),
+"hazards": [{
+"activate_on": "core_2",
+"active_time": 0.9,
+"cycle_time": 2.4,
+"id": "convoy_laser_low",
+"label": "Convoy shear line",
+"position": Vector2(1288, 318),
+"primary_color": Color(1, 0.541176, 0.321569, 1),
+"push_direction": 1.0,
+"rotation_degrees": -10.0,
+"secondary_color": Color(0.337255, 0.85098, 1, 1),
+"size": Vector2(180, 18),
+"start_offset": 0.2,
+"sweep_distance": 86.0,
+"type": "sweep_wall",
+"warning_time": 0.46
+}, {
+"activate_on": "core_3",
+"active_time": 0.7,
+"cycle_time": 2.9,
+"id": "convoy_collapse_strip",
+"label": "Collapse strip",
+"position": Vector2(1756, 138),
+"primary_color": Color(1, 0.490196, 0.298039, 1),
+"push_direction": 1.0,
+"secondary_color": Color(0.27451, 0.823529, 1, 1),
+"size": Vector2(126, 54),
+"start_offset": 1.1,
+"type": "collapse_zone",
+"warning_time": 0.55
+}, {
+"activate_on": "cashout",
+"active_time": 0.72,
+"cycle_time": 2.0,
+"id": "convoy_laser_high",
+"label": "Kill-lane beam",
+"position": Vector2(1988, 146),
+"primary_color": Color(1, 0.490196, 0.298039, 1),
+"push_direction": -1.0,
+"secondary_color": Color(0.27451, 0.823529, 1, 1),
+"size": Vector2(164, 16),
+"start_offset": 1.0,
+"type": "pulse_beam",
+"warning_time": 0.34
+}],
+"id": "blitz_pursuit",
+"intel": "Best for players who want velocity, aggression and constant forward pressure.",
+"intro_toast": "Route is hot. Chain boost pads to stay ahead of the response time.",
+"lane_signals": ["Velocity route. Treat boost pads like offensive tempo, not just traversal.", "Once extraction unlocks, staying alive turns pursuit pressure into a score ladder.", "This lane is about controlled greed: fast clear first, then decide how long to overstay."],
+"locked_text": "Available from the start.",
+"base_modifiers": {
+"boost_multiplier": 1.08,
+"combo_window_multiplier": 1.1,
+"dash_multiplier": 1.08,
+"finish_bonus_multiplier": 1.0,
+"health_bonus": 1,
+"jump_multiplier": 1.0,
+"score_multiplier": 1.0,
+"silent_bonus": 0,
+"speed_multiplier": 1.08
+},
+"mode_label": "Chase / Combo Route",
+"objective_complete": "Extraction corridor is live. Cash out now or ride the pursuit ladder for a bigger payout.",
+"objective_intro": "Blitz through the convoy rooftops, secure all 5 data cores and break out alive.",
+"phase_setpiece": {
+"label": "Convoy Split",
+"pressure_text": "Convoy Split. The high route is faster, but every overstay pulls escorts into the cashout lane.",
+"spawn": [{
+"position": Vector2(1868, 124),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1668, 124),
+"scene": ExtResource("5_phantom")
+}],
+"toast": "Convoy Split. The upper sprint line fractures and the exit lane starts feeding pursuit pressure.",
+"trigger": "core_4"
+},
+"platforms": [{
+"color": Color(0.0941176, 0.137255, 0.227451, 1),
+"position": Vector2(920, 666),
+"size": Vector2(2300, 64)
+}, {
+"color": Color(0.12549, 0.192157, 0.301961, 1),
+"position": Vector2(630, 426),
+"size": Vector2(300, 30)
+}, {
+"color": Color(0.109804, 0.168627, 0.27451, 1),
+"position": Vector2(1060, 344),
+"size": Vector2(300, 30)
+}, {
+"color": Color(0.109804, 0.164706, 0.266667, 1),
+"position": Vector2(1458, 252),
+"size": Vector2(286, 30)
+}, {
+"color": Color(0.12549, 0.192157, 0.301961, 1),
+"position": Vector2(1782, 162),
+"size": Vector2(254, 30)
+}, {
+"color": Color(0.121569, 0.184314, 0.290196, 1),
+"position": Vector2(2066, 198),
+"size": Vector2(270, 30)
+}, {
+"color": Color(0.137255, 0.211765, 0.329412, 1),
+"position": Vector2(2250, 132),
+"size": Vector2(180, 30)
+}],
+"block_toast": "Extraction lane is still sealed. You need every core.",
+"secondary_objective": {
+"description": "Extract within 00:58 to cash the pursuit bonus.",
+"id": "shock_exit",
+"name": "Shock Exit",
+"reward_score": 360,
+"target_time": 58.0,
+"type": "time_limit"
+},
+"spawn_position": Vector2(148, 590),
+"subtitle": "High-speed assault extraction",
+"summary": "A neon sprint built around boost chains, collapsing lanes and aggressive combo play.",
+"theme": {
+"backdrop": Color(0.0313726, 0.0666667, 0.121569, 1),
+"moon": Color(1, 0.819608, 0.4, 1),
+"primary": Color(0.27451, 0.823529, 1, 1),
+"secondary": Color(1, 0.494118, 0.262745, 1)
+},
+"timeline_events": [{
+"spawn": [{
+"position": Vector2(936, 350),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1510, 188),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1838, 126),
+"scene": ExtResource("4_bastion")
+}],
+"time": 16.0,
+"toast": "Rear pursuit drones are burning into your lane."
+}, {
+"spawn": [{
+"position": Vector2(1960, 126),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2146, 126),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1688, 124),
+"scene": ExtResource("5_phantom")
+}, {
+"position": Vector2(1458, 202),
+"scene": ExtResource("6_stalker")
+}],
+"time": 31.0,
+"toast": "Convoy counter-rush. Front guards are doubling back through the upper lane."
+}],
+"title": "Blitz Pursuit",
+"unlocks": ["ghost_circuit"]
+}, {
+"boost_pads": [{
+"boost_velocity": Vector2(300, -420),
+"position": Vector2(356, 626)
+}, {
+"boost_velocity": Vector2(260, -340),
+"position": Vector2(928, 374)
+}, {
+"boost_velocity": Vector2(220, -260),
+"position": Vector2(1728, 126)
+}],
+"brief": "Slip through a live relay garden, pull the black-box cores and leave before the sniper lattice triangulates your route.",
+"cashout_events": [{
+"elapsed": 10.0,
+"spawn": [{
+"position": Vector2(1748, 126),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1980, 76),
+"scene": ExtResource("4_bastion")
+}],
+"toast": "Back-trace active. New suppressor beams are crossing the exit tier."
+}, {
+"elapsed": 19.0,
+"spawn": [{
+"position": Vector2(1290, 202),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1534, 126),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1820, 76),
+"scene": ExtResource("5_phantom")
+}],
+"toast": "Relay harvest spike. Couriers are rushing the low lane and a hunter is collapsing the exit tier."
+}, {
+"elapsed": 28.0,
+"spawn": [{
+"position": Vector2(1588, 126),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1908, 76),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2218, 74),
+"scene": ExtResource("6_stalker")
+}],
+"toast": "Relay lock. The ghost window is gone and the exit tier is under cross-angle control."
+}],
+"cashout_loop": {
+"interval": 10.0,
+"start_elapsed": 37.0,
+"toast": "Relay lattice re-triangulates. Fresh suppressor angles keep folding onto your exit route.",
+"waves": [[{
+"position": Vector2(1290, 202),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1748, 126),
+"scene": ExtResource("3_suppressor")
+}], [{
+"position": Vector2(1534, 126),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1860, 76),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(2096, 74),
+"scene": ExtResource("6_stalker")
+}]]
+},
+"cashout_tiers": [{
+"bounty_multiplier": 1.0,
+"elapsed": 0.0,
+"label": "HEAT"
+}, {
+"bounty_multiplier": 1.2,
+"elapsed": 10.0,
+"label": "SURGE"
+}, {
+"bounty_multiplier": 1.5,
+"elapsed": 19.0,
+"label": "FEVER"
+}, {
+"bounty_multiplier": 1.8,
+"elapsed": 28.0,
+"label": "MELTDOWN"
+}],
+"completion_spawns": [{
+"position": Vector2(1210, 282),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1764, 126),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2130, 74),
+"scene": ExtResource("3_suppressor")
+}],
+"completion_toast": "Relay net compromised. The circuit is broadcasting your position.",
+"core_events": [{
+"count": 1,
+"spawn": [{
+"position": Vector2(948, 280),
+"scene": ExtResource("2_runner")
+}],
+"toast": "First vault cracked. The relay net is waking up."
+}, {
+"count": 3,
+"spawn": [{
+"position": Vector2(1860, 76),
+"scene": ExtResource("3_suppressor")
+}],
+"toast": "You are no longer invisible. Exit routes are now contested."
+}, {
+"count": 4,
+"spawn": [{
+"position": Vector2(2096, 74),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1688, 126),
+"scene": ExtResource("4_bastion")
+}],
+"toast": "Mirror bloom. Upper ledges are safer, but the relay core is baiting you wide."
+}],
+"data_cores": [Vector2(506, 470), Vector2(800, 366), Vector2(1086, 278), Vector2(1670, 122), Vector2(1990, 72)],
+"directive_pool": [{
+"id": "ghost_ink",
+"modifiers": {
+"score_multiplier": 1.04,
+"silent_bonus": 220
+},
+"name": "Ghost Ink",
+"summary": "Rewards no-hit clears with a larger silent bonus."
+}, {
+"id": "thin_wire",
+"modifiers": {
+"health_bonus": -1,
+"jump_multiplier": 1.08,
+"score_multiplier": 1.1
+},
+"name": "Thin Wire",
+"summary": "Higher jump control, but you enter the mission at reduced health."
+}, {
+"id": "blank_signal",
+"modifiers": {
+"finish_bonus_multiplier": 1.18
+},
+"name": "Blank Signal",
+"summary": "Suppressor pressure rises, but finish bonus climbs with it."
+}],
+"encounters": [{
+"position": Vector2(520, 458),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(786, 366),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1098, 282),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1416, 204),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1680, 124),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1996, 74),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1108, 282),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1724, 118),
+"scene": ExtResource("6_stalker")
+}],
+"extraction_bonus": {
+"base_bounty": 90,
+"label": "Relay Harvest",
+"step_bounty": 35
+},
+"extraction_position": Vector2(2246, 88),
+"hazards": [{
+"activate_on": "core_1",
+"active_time": 0.75,
+"cycle_time": 2.8,
+"id": "relay_grid_mid",
+"label": "Relay trip beam",
+"position": Vector2(1210, 300),
+"primary_color": Color(0.619608, 0.964706, 0.823529, 1),
+"push_direction": 1.0,
+"rotation_degrees": 0.0,
+"secondary_color": Color(0.478431, 0.658824, 1, 1),
+"size": Vector2(134, 16),
+"start_offset": 0.4,
+"type": "pulse_beam",
+"warning_time": 0.42
+}, {
+"activate_on": "core_3",
+"active_time": 0.64,
+"cycle_time": 3.0,
+"id": "relay_sightline_sweep",
+"label": "Mirror sweep",
+"position": Vector2(1560, 156),
+"primary_color": Color(0.619608, 0.964706, 0.823529, 1),
+"push_direction": -1.0,
+"rotation_degrees": -6.0,
+"secondary_color": Color(0.478431, 0.658824, 1, 1),
+"size": Vector2(154, 16),
+"start_offset": 1.05,
+"sweep_distance": 72.0,
+"type": "sweep_wall",
+"warning_time": 0.5
+}, {
+"activate_on": "cashout",
+"active_time": 0.58,
+"cycle_time": 2.2,
+"id": "relay_grid_exit",
+"label": "Back-trace snare",
+"position": Vector2(2050, 94),
+"primary_color": Color(0.619608, 0.964706, 0.823529, 1),
+"push_direction": -1.0,
+"rotation_degrees": 0.0,
+"secondary_color": Color(0.478431, 0.658824, 1, 1),
+"size": Vector2(138, 52),
+"start_offset": 1.3,
+"type": "collapse_zone",
+"warning_time": 0.38
+}],
+"id": "ghost_circuit",
+"intel": "Built around route reading, suppressor angles and reward for low-damage clears.",
+"intro_toast": "This route is quieter and meaner. Read the suppressor angles before you leap.",
+"lane_signals": ["Route-reading mission. High ground safety is temporary because suppressor angles mutate.", "Ghost windows reward clean clears, but overstay turns the route into a sniper puzzle."],
+"locked_text": "Clear Blitz Pursuit to unlock.",
+"base_modifiers": {
+"boost_multiplier": 0.92,
+"combo_window_multiplier": 1.0,
+"dash_multiplier": 1.0,
+"finish_bonus_multiplier": 1.06,
+"health_bonus": -1,
+"jump_multiplier": 1.02,
+"score_multiplier": 1.08,
+"silent_bonus": 260,
+"speed_multiplier": 1.0
+},
+"mode_label": "Stealth Pressure Route",
+"objective_complete": "Your ghost window is closing. Slip out now or risk a full sniper lock.",
+"objective_intro": "Pick apart the relay garden, stay clean and exfil with every black-box core.",
+"phase_setpiece": {
+"label": "Relay Bloom",
+"pressure_text": "Relay Bloom. Suppressor geometry is live; clean movement matters more than raw brawling.",
+"spawn": [{
+"position": Vector2(1502, 126),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1820, 76),
+"scene": ExtResource("5_phantom")
+}],
+"toast": "Relay Bloom. Mirror angles are rewriting the upper route; stay clean or break line of sight.",
+"trigger": "core_4"
+},
+"platforms": [{
+"color": Color(0.0823529, 0.145098, 0.172549, 1),
+"position": Vector2(930, 666),
+"size": Vector2(2280, 64)
+}, {
+"color": Color(0.113725, 0.211765, 0.25098, 1),
+"position": Vector2(500, 516),
+"size": Vector2(240, 30)
+}, {
+"color": Color(0.141176, 0.27451, 0.32549, 1),
+"position": Vector2(778, 412),
+"size": Vector2(210, 28)
+}, {
+"color": Color(0.12549, 0.223529, 0.278431, 1),
+"position": Vector2(1062, 324),
+"size": Vector2(248, 28)
+}, {
+"color": Color(0.105882, 0.192157, 0.25098, 1),
+"position": Vector2(1362, 244),
+"size": Vector2(216, 28)
+}, {
+"color": Color(0.121569, 0.215686, 0.270588, 1),
+"position": Vector2(1640, 168),
+"size": Vector2(210, 28)
+}, {
+"color": Color(0.141176, 0.27451, 0.32549, 1),
+"position": Vector2(1944, 116),
+"size": Vector2(220, 28)
+}, {
+"color": Color(0.156863, 0.294118, 0.364706, 1),
+"position": Vector2(2238, 100),
+"size": Vector2(150, 28)
+}],
+"block_toast": "The relay still has black boxes online. Clear the route first.",
+"secondary_objective": {
+"description": "Extract without taking damage to secure the silent bonus.",
+"id": "ghost_clause",
+"name": "Ghost Clause",
+"reward_score": 360,
+"type": "no_hit"
+},
+"spawn_position": Vector2(140, 596),
+"subtitle": "Low-profile relay theft",
+"summary": "A denser vertical route where suppressors control angles and perfect execution pays a silent bonus.",
+"theme": {
+"backdrop": Color(0.0313726, 0.0862745, 0.101961, 1),
+"moon": Color(0.623529, 0.905882, 1, 1),
+"primary": Color(0.619608, 0.964706, 0.823529, 1),
+"secondary": Color(0.478431, 0.658824, 1, 1)
+},
+"timeline_events": [{
+"spawn": [{
+"position": Vector2(1500, 202),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1720, 124),
+"scene": ExtResource("4_bastion")
+}],
+"time": 18.0,
+"toast": "Relay mirrors are pivoting. Expect new suppressor sight-lines."
+}, {
+"spawn": [{
+"position": Vector2(1240, 202),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1860, 76),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1600, 124),
+"scene": ExtResource("5_phantom")
+}, {
+"position": Vector2(1640, 118),
+"scene": ExtResource("6_stalker")
+}],
+"time": 34.0,
+"toast": "Relay flood. The ghost window is breaking and a hunter is dropping into the upper lane."
+}],
+"title": "Ghost Circuit",
+"unlocks": ["overdrive_protocol"]
+}, {
+"boost_pads": [{
+"boost_velocity": Vector2(320, -430),
+"position": Vector2(396, 626)
+}, {
+"boost_velocity": Vector2(290, -360),
+"position": Vector2(982, 348)
+}, {
+"boost_velocity": Vector2(250, -320),
+"position": Vector2(1564, 182)
+}, {
+"boost_velocity": Vector2(240, -300),
+"position": Vector2(2000, 154)
+}],
+"brief": "Take a black-budget kill switch through a reconfiguring rooftop sector, adapt to the directive draw and decide whether to cash out or overstay for score.",
+"cashout_beacon": {
+"elapsed": 20.0,
+"min_pending_bonus": 200,
+"multiplier": 2.0,
+"position": Vector2(620, 420),
+"spawn_on_collect": [{
+"position": Vector2(872, 336),
+"scene": ExtResource("6_stalker")
+}, {
+"position": Vector2(500, 410),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1190, 250),
+"scene": ExtResource("2_runner")
+}],
+"toast": "Dividend beacon lit at the ingress tier. Double the bank if you can walk back out."
+},
+"cashout_events": [{
+"elapsed": 7.0,
+"spawn": [{
+"position": Vector2(1710, 254),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2210, 90),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1948, 152),
+"scene": ExtResource("5_phantom")
+}],
+"toast": "Dividend spike. Hunters are feeding directly into the payout lane."
+}, {
+"elapsed": 15.0,
+"spawn": [{
+"position": Vector2(1216, 248),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1948, 152),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1498, 170),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(2142, 90),
+"scene": ExtResource("4_bastion")
+}],
+"toast": "Protocol panic. Every extra second now is greed made visible, and the sector is feeding mixed hunters straight into your payout lane."
+}, {
+"elapsed": 24.0,
+"spawn": [{
+"position": Vector2(1052, 250),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1460, 170),
+"scene": ExtResource("4_bastion")
+}, {
+"position": Vector2(1940, 152),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2186, 90),
+"scene": ExtResource("6_stalker")
+}],
+"toast": "Dividend lock. The big payout is live, but extraction is now under cross-lane hunter control."
+}],
+"cashout_loop": {
+"interval": 8.0,
+"start_elapsed": 32.0,
+"toast": "Sector lockdown deepens. The payout lane is repricing you.",
+"waves": [[{
+"position": Vector2(1710, 254),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2210, 90),
+"scene": ExtResource("3_suppressor")
+}], [{
+"position": Vector2(1216, 248),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1948, 152),
+"scene": ExtResource("5_phantom")
+}, {
+"position": Vector2(2142, 90),
+"scene": ExtResource("4_bastion")
+}], [{
+"position": Vector2(1940, 152),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1498, 170),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1862, 152),
+"scene": ExtResource("5_phantom")
+}, {
+"position": Vector2(2186, 90),
+"scene": ExtResource("6_stalker")
+}]]
+},
+"cashout_tiers": [{
+"bounty_multiplier": 1.0,
+"elapsed": 0.0,
+"label": "HEAT"
+}, {
+"bounty_multiplier": 1.4,
+"elapsed": 7.0,
+"label": "SURGE"
+}, {
+"bounty_multiplier": 1.8,
+"elapsed": 15.0,
+"label": "FEVER"
+}, {
+"bounty_multiplier": 2.2,
+"elapsed": 24.0,
+"label": "MELTDOWN"
+}],
+"completion_spawns": [{
+"position": Vector2(992, 338),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1638, 170),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1960, 150),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2268, 90),
+"scene": ExtResource("3_suppressor")
+}],
+"completion_toast": "Protocol breach confirmed. The sector is now fully hostile.",
+"core_events": [{
+"count": 2,
+"spawn": [{
+"position": Vector2(1580, 170),
+"scene": ExtResource("3_suppressor")
+}],
+"toast": "The protocol is changing shape. Expect a mixed wave ahead."
+}, {
+"count": 4,
+"spawn": [{
+"position": Vector2(980, 338),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2048, 90),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1788, 254),
+"scene": ExtResource("4_bastion")
+}],
+"toast": "Kill-switch instability. Upper and lower lines are both compromised now. The sector is entering an overdrive phase."
+}],
+"data_cores": [Vector2(620, 420), Vector2(904, 336), Vector2(1200, 248), Vector2(1740, 254), Vector2(2188, 90)],
+"directive_pool": [{
+"id": "glass_reactor",
+"modifiers": {
+"health_bonus": -1,
+"score_multiplier": 1.18
+},
+"name": "Glass Reactor",
+"summary": "Higher score multiplier, lower max health."
+}, {
+"id": "warpath",
+"modifiers": {
+"attack_force_multiplier": 1.16,
+"combo_window_multiplier": 1.18
+},
+"name": "Warpath",
+"summary": "Stronger attacks and longer combo windows reward aggression."
+}, {
+"id": "phantom_step",
+"modifiers": {
+"jump_multiplier": 1.06,
+"speed_multiplier": 1.1
+},
+"name": "Phantom Step",
+"summary": "Faster movement and cleaner landings tighten the route."
+}, {
+"id": "panic_dividend",
+"modifiers": {
+"extraction_bonus_multiplier": 1.35,
+"finish_bonus_multiplier": 1.06
+},
+"name": "Panic Dividend",
+"summary": "Extraction bonus surges if you survive the late game."
+}, {
+"id": "signal_jammer",
+"modifiers": {
+"dash_multiplier": 1.12,
+"jump_multiplier": 1.1,
+"score_multiplier": 1.06
+},
+"name": "Signal Jammer",
+"summary": "Higher jump and dash, but the sector adapts faster to your position."
+}],
+"encounters": [{
+"position": Vector2(500, 410),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(852, 334),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1190, 250),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1460, 170),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1736, 254),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1914, 152),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(2204, 90),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1766, 254),
+"scene": ExtResource("4_bastion")
+}, {
+"position": Vector2(1398, 170),
+"scene": ExtResource("5_phantom")
+}, {
+"position": Vector2(1178, 244),
+"scene": ExtResource("6_stalker")
+}],
+"extraction_bonus": {
+"base_bounty": 130,
+"label": "Dividend Chain",
+"step_bounty": 70
+},
+"extraction_position": Vector2(2330, 118),
+"hazards": [{
+"activate_on": "core_2",
+"active_time": 0.76,
+"cycle_time": 2.2,
+"id": "protocol_grid_mid",
+"label": "Protocol splitter",
+"position": Vector2(1324, 264),
+"primary_color": Color(1, 0.498039, 0.403922, 1),
+"push_direction": 1.0,
+"rotation_degrees": -4.0,
+"secondary_color": Color(1, 0.764706, 0.443137, 1),
+"size": Vector2(148, 18),
+"start_offset": 0.6,
+"type": "pulse_beam",
+"warning_time": 0.36
+}, {
+"activate_on": "core_3",
+"active_time": 0.86,
+"cycle_time": 3.1,
+"id": "protocol_sector_breach",
+"label": "Unstable sector",
+"position": Vector2(1712, 274),
+"primary_color": Color(1, 0.498039, 0.403922, 1),
+"push_direction": 1.0,
+"rotation_degrees": 0.0,
+"secondary_color": Color(1, 0.764706, 0.443137, 1),
+"size": Vector2(152, 66),
+"start_offset": 0.9,
+"type": "collapse_zone",
+"warning_time": 0.54
+}, {
+"activate_on": "cashout",
+"active_time": 0.72,
+"cycle_time": 1.9,
+"id": "protocol_grid_cashout",
+"label": "Dividend pressure wall",
+"position": Vector2(1868, 168),
+"primary_color": Color(1, 0.498039, 0.403922, 1),
+"push_direction": -1.0,
+"rotation_degrees": 6.0,
+"secondary_color": Color(1, 0.764706, 0.443137, 1),
+"size": Vector2(160, 18),
+"start_offset": 1.1,
+"sweep_distance": 92.0,
+"type": "sweep_wall",
+"warning_time": 0.34
+}],
+"id": "overdrive_protocol",
+"intel": "This is the replayable mode: mixed enemy lanes, more route branches and a stronger run modifier system.",
+"intro_toast": "This mode draws a fresh directive every run. Build your route around it immediately.",
+"lane_signals": ["Hybrid route. The sector keeps escalating against greed, not just survival.", "This is the highest replay lane: build choice, score pressure and cashout timing all matter.", "Directive choice should change your route plan, not just buff the same playstyle."],
+"locked_text": "Clear Ghost Circuit to unlock.",
+"base_modifiers": {
+"boost_multiplier": 1.0,
+"combo_window_multiplier": 1.0,
+"dash_multiplier": 1.04,
+"extraction_bonus_multiplier": 1.08,
+"finish_bonus_multiplier": 1.12,
+"health_bonus": 0,
+"jump_multiplier": 1.0,
+"score_multiplier": 1.12,
+"silent_bonus": 0,
+"speed_multiplier": 1.0
+},
+"mode_label": "Rogue Pursuit Route",
+"objective_complete": "Exit point is unlocked. Cash out now or stay in the overdrive pocket for score.",
+"objective_intro": "Survive the adaptive sector, seize every kill-switch core and decide how greedy you want to be.",
+"phase_setpiece": {
+"hazard_ids": ["protocol_sector_breach", "protocol_grid_cashout"],
+"label": "Overdrive Collapse",
+"pressure_text": "Overdrive Collapse. Upper and lower lanes are both compromised; every second now is visible greed.",
+"spawn": [{
+"position": Vector2(2142, 90),
+"scene": ExtResource("4_bastion")
+}, {
+"position": Vector2(1948, 152),
+"scene": ExtResource("5_phantom")
+}, {
+"position": Vector2(1718, 250),
+"scene": ExtResource("6_stalker")
+}],
+"toast": "Overdrive Collapse. The sector is hard-locking your route and forcing a final payout decision.",
+"trigger": "core_4"
+},
+"platforms": [{
+"color": Color(0.137255, 0.105882, 0.184314, 1),
+"position": Vector2(970, 666),
+"size": Vector2(2360, 64)
+}, {
+"color": Color(0.188235, 0.141176, 0.254902, 1),
+"position": Vector2(612, 468),
+"size": Vector2(220, 30)
+}, {
+"color": Color(0.207843, 0.160784, 0.286275, 1),
+"position": Vector2(872, 380),
+"size": Vector2(240, 28)
+}, {
+"color": Color(0.168627, 0.129412, 0.227451, 1),
+"position": Vector2(1178, 294),
+"size": Vector2(236, 28)
+}, {
+"color": Color(0.2, 0.152941, 0.270588, 1),
+"position": Vector2(1460, 214),
+"size": Vector2(230, 28)
+}, {
+"color": Color(0.231373, 0.176471, 0.313726, 1),
+"position": Vector2(1718, 300),
+"size": Vector2(188, 26)
+}, {
+"color": Color(0.2, 0.152941, 0.270588, 1),
+"position": Vector2(1912, 196),
+"size": Vector2(210, 28)
+}, {
+"color": Color(0.247059, 0.192157, 0.337255, 1),
+"position": Vector2(2186, 132),
+"size": Vector2(240, 28)
+}],
+"block_toast": "Kill-switch matrix incomplete. Finish the sweep before you run.",
+"secondary_objective": {
+"description": "Reach 3200 score before extraction to trigger the dividend payout.",
+"id": "dividend_hunter",
+"name": "Dividend Hunter",
+"reward_score": 640,
+"target_score": 3200,
+"type": "score_threshold"
+},
+"spawn_position": Vector2(144, 590),
+"subtitle": "Adaptive hunter operation",
+"summary": "A mixed route with a random combat directive every run, pushing repeatability and creative routing.",
+"theme": {
+"backdrop": Color(0.0784314, 0.0431373, 0.0901961, 1),
+"moon": Color(1, 0.721569, 0.423529, 1),
+"primary": Color(1, 0.372549, 0.427451, 1),
+"secondary": Color(1, 0.764706, 0.443137, 1)
+},
+"timeline_events": [{
+"spawn": [{
+"position": Vector2(1328, 250),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1828, 152),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1228, 250),
+"scene": ExtResource("4_bastion")
+}, {
+"position": Vector2(1460, 164),
+"scene": ExtResource("6_stalker")
+}],
+"time": 14.0,
+"toast": "Adaptive hunters have a live trace. The sector is rebalancing against you."
+}, {
+"spawn": [{
+"position": Vector2(2104, 92),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1862, 152),
+"scene": ExtResource("5_phantom")
+}],
+"time": 28.0,
+"toast": "Overdrive spike. Any greed from here on is a deliberate choice."
+}, {
+"spawn": [{
+"position": Vector2(1078, 250),
+"scene": ExtResource("3_suppressor")
+}, {
+"position": Vector2(1830, 152),
+"scene": ExtResource("2_runner")
+}, {
+"position": Vector2(1548, 170),
+"scene": ExtResource("5_phantom")
+}],
+"time": 40.0,
+"toast": "Hunter retask. The sector is rewriting itself around your route."
+}],
+"title": "Overdrive Protocol",
+"unlocks": []
+}])

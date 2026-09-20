@@ -6,3 +6,5 @@ exports/
 android/build/
 android/.gradle/
 nul
+.workbuddy/
+.omc/

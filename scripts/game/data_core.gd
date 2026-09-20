@@ -5,6 +5,9 @@ signal collected
 @onready var art_sprite: Sprite2D = $Art
 @onready var glow: Polygon2D = $Glow
 
+const MAGNET_RADIUS := 95.0
+const MAGNET_SPEED := 520.0
+
 var phase: float = randf() * TAU
 var base_position: Vector2
 var collected_once: bool = false
@@ -16,7 +19,23 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if collected_once:
+		return
 	phase += delta * 1.8
+
+	# Smooth magnetic pull towards player
+	var player_nodes := get_tree().get_nodes_in_group("player")
+	if player_nodes.size() > 0:
+		var player_node: Node2D = player_nodes[0] as Node2D
+		if player_node != null and is_instance_valid(player_node):
+			var dist := global_position.distance_to(player_node.global_position)
+			var is_dashing: bool = float(player_node.get("dash_timer")) > 0.0
+			var effective_radius := MAGNET_RADIUS * (1.65 if is_dashing else 1.0)
+			if dist < effective_radius:
+				var pull_dir := (player_node.global_position - global_position).normalized()
+				var speed := MAGNET_SPEED * (1.0 - (dist / effective_radius) * 0.4)
+				base_position += pull_dir * speed * delta
+
 	position = base_position + Vector2(0.0, sin(phase) * 5.0)
 	rotation = sin(phase * 0.75) * 0.06
 	art_sprite.modulate.a = 0.88 + sin(phase * 1.2) * 0.12

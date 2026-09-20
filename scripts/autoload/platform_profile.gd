@@ -12,10 +12,38 @@ var last_warn_haptic_msec: int = HAPTIC_INITIAL_MSEC
 
 
 func _ready() -> void:
-	var platform_name := OS.get_name()
-	is_mobile = platform_name == "Android" or platform_name == "iOS"
+	is_mobile = detect_is_mobile(
+		OS.get_name(),
+		OS.has_feature("web_android"),
+		OS.has_feature("web_ios"),
+		OS.has_feature("web_macos") or OS.has_feature("web_windows") or OS.has_feature("web_linuxbsd"),
+		DisplayServer.is_touchscreen_available()
+	)
 	is_desktop = not is_mobile
 	_refresh_safe_area_margin()
+
+
+static func detect_is_mobile(
+	platform_name: String,
+	has_web_android: bool,
+	has_web_ios: bool,
+	has_desktop_web_tag: bool,
+	touchscreen_available: bool
+) -> bool:
+	if platform_name == "Android" or platform_name == "iOS":
+		return true
+	if platform_name == "Web":
+		# 手机浏览器里 OS.get_name() 也是 "Web"，优先用特性标签判断移动端，
+		# 否则 web 版在手机上不会显示触控按键。
+		if has_web_android or has_web_ios:
+			return true
+		# 桌面浏览器标签是权威判据：带触屏的笔记本仍按桌面处理，
+		# 避免被误判成移动端（压缩 HUD + 强制触控按键）。
+		if has_desktop_web_tag:
+			return false
+		# 标签都缺失时才退回触屏能力兜底。
+		return touchscreen_available
+	return false
 
 
 func should_show_touch_controls() -> bool:

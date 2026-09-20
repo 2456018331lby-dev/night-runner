@@ -1,6 +1,6 @@
 extends Area2D
 
-const LIFETIME := 3.5
+var LIFETIME := 3.5
 
 var velocity: Vector2 = Vector2.ZERO
 var lifetime_remaining: float = LIFETIME
@@ -8,7 +8,13 @@ var pulse_time: float = randf() * TAU
 @onready var body_visual: Polygon2D = $Body
 
 
+func _hydrate_stats() -> void:
+	LIFETIME = EnemyStats.get_stat("bolt", "lifetime", LIFETIME)
+	lifetime_remaining = LIFETIME
+
+
 func _ready() -> void:
+	_hydrate_stats()
 	body_entered.connect(_on_body_entered)
 
 

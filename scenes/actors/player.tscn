@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/actors/player.gd" id="1_6ru4g"]
 [ext_resource type="Texture2D" path="res://assets/art/player_runner.svg" id="2_3mtg3"]
+[ext_resource type="Texture2D" path="res://assets/art/light_radial.png" id="3_light_tex"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(30, 56)
@@ -15,13 +16,20 @@ collision_mask = 14
 shape = SubResource("RectangleShape2D_body")
 
 [node name="Body" type="Polygon2D" parent="."]
+visible = false
 polygon = PackedVector2Array(-14, -28, 14, -28, 14, 28, -14, 28)
-color = Color(1, 0.34902, 0.541176, 0.18)
+color = Color(1, 0.34902, 0.541176, 0)
 
 [node name="Art" type="Sprite2D" parent="."]
-position = Vector2(0, -4)
-scale = Vector2(0.25, 0.25)
+position = Vector2(0, -2)
+scale = Vector2(0.095, 0.095)
 texture = ExtResource("2_3mtg3")
+
+[node name="GlowLight" type="PointLight2D" parent="."]
+color = Color(0.4, 0.88, 1, 0.75)
+energy = 0.85
+texture = ExtResource("3_light_tex")
+texture_scale = 1.3
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(90, -40)

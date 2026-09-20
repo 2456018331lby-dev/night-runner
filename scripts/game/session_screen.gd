@@ -6,9 +6,9 @@ signal retry_requested
 signal resume_requested
 signal hub_requested
 
-const FONT_DISPLAY_SIZE := 36
-const FONT_TITLE_SIZE := 20
-const FONT_BODY_SIZE := 14
+const FONT_DISPLAY_SIZE := 28
+const FONT_TITLE_SIZE := 18
+const FONT_BODY_SIZE := 13
 const FONT_CAPTION_SIZE := 11
 const MOBILE_TOUCH_TARGET_MIN := 56.0
 const MOBILE_ROUTE_BUTTON_HEIGHT := 124.0
@@ -60,32 +60,66 @@ var decor_signal_label: Label
 var decor_lines: Array[ColorRect] = []
 var decor_corner_glow: ColorRect
 var decor_bottom_bar: ColorRect
+var bg_texture_rect: TextureRect
+var route_banner_panel: PanelContainer
+var route_banner_texture: TextureRect
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_backdrop_decor()
-	_apply_theme()
+	_build_route_banner()
 	_build_first_run_brief()
 	_wire_actions()
+	# 主题必须在所有动态面板构建完成之后再应用：route_banner_panel / first_run_brief_panel
+	# 都是运行时 new 出来的，提前调用会让这两处的空判永远命中 null，样式覆盖全部丢失。
+	_apply_theme()
+	var viewport := get_viewport()
+	if viewport != null and not viewport.size_changed.is_connected(_on_viewport_resized):
+		# 安全区与移动端 UI 缩放都依赖视口尺寸（网页端画布缩放 / 设备旋转），
+		# 必须随尺寸变化重新计算，否则边距会一直停留在首次布局时的值。
+		viewport.size_changed.connect(_on_viewport_resized)
 	visible = true
+
+
+func _on_viewport_resized() -> void:
+	_apply_theme()
 
 
 func _process(delta: float) -> void:
 	ambient_pulse += delta
-	backdrop.material = null
 	_animate_decor(delta)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event.is_action_pressed("jump") or event.is_action_pressed("attack") or event.is_action_pressed("ui_accept"):
+		if primary_button.visible and not primary_button.disabled:
+			get_viewport().set_input_as_handled()
+			primary_button.pressed.emit()
+	elif event.is_action_pressed("ui_cancel"):
+		if secondary_button.visible and not secondary_button.disabled:
+			get_viewport().set_input_as_handled()
+			secondary_button.pressed.emit()
+	elif event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_1 and operation_buttons.has("blitz_pursuit"):
+			_select_route("blitz_pursuit")
+		elif event.keycode == KEY_2 and operation_buttons.has("ghost_circuit") and GameState.is_operation_unlocked("ghost_circuit"):
+			_select_route("ghost_circuit")
+		elif event.keycode == KEY_3 and operation_buttons.has("overdrive_protocol") and GameState.is_operation_unlocked("overdrive_protocol"):
+			_select_route("overdrive_protocol")
 
 
 func build_hub(operations: Array[Dictionary], selected_id: String) -> void:
 	current_phase = FrontendBridge.PHASE_HUB
 	show()
 	_clear_route_list()
-	title_label.text = "NIGHT RUNNER"
-	subtitle_label.text = "TACTICAL BREACH DECK · CASHOUT LIVE"
-	status_label.text = "LIVE DECK"
-	route_title.text = "QUICK DEPLOY" if not GameState.has_ux_flag("first_run_brief_seen") else "SELECT ROUTE"
-	footer_hint.text = "Start Blitz for a clean first run." if not GameState.has_ux_flag("first_run_brief_seen") else "Pick a route, then launch."
+	title_label.text = "NIGHT RUNNER // 暗夜奔行者"
+	subtitle_label.text = "赛博战术突入 · 核心撤离行动 (TACTICAL BREACH DECK)"
+	status_label.text = "作战就绪 (READY)"
+	route_title.text = "快速行动 (QUICK DEPLOY)" if not GameState.has_ux_flag("first_run_brief_seen") else "选择行动路线 (SELECT ROUTE)"
+	footer_hint.text = "【操作指南】A/D 移动 · 空格 跳跃 · J 键连续挥砍 · K 键无敌冲刺 (按 空格/回车 直接开打)"
 	primary_button.text = _get_launch_button_text(FrontendBridge.get_operation(selected_id))
 	secondary_button.text = ""
 	secondary_button.visible = false
@@ -100,13 +134,13 @@ func build_results(operation: Dictionary) -> void:
 	current_phase = FrontendBridge.PHASE_RESULTS
 	show()
 	_clear_route_list()
-	title_label.text = "RUN COMPLETE" if GameState.run_success else "RUN FAILED"
-	subtitle_label.text = "Rank %s · %04d" % [GameState.final_rank, GameState.score]
-	status_label.text = "DEBRIEF"
-	route_title.text = "RUN METRICS"
-	footer_hint.text = GameState.result_summary
-	primary_button.text = "RETRY"
-	secondary_button.text = "HUB"
+	title_label.text = "行动成功 (MISSION COMPLETE)" if GameState.run_success else "行动失败 (MISSION FAILED)"
+	subtitle_label.text = "最终评级: %s · 结算得分: %04d" % [GameState.final_rank, GameState.score]
+	status_label.text = "战后复盘 (DEBRIEF)"
+	route_title.text = "作战数据统计 (RUN METRICS)"
+	footer_hint.text = "按 空格 或 J 键可立即重新开始；按 Esc 返回主大厅。"
+	primary_button.text = "⚡ 重新开始 (RETRY)"
+	secondary_button.text = "⮌ 返回大厅 (HUB)"
 	secondary_button.visible = true
 	secondary_button.disabled = false
 	primary_button.disabled = false
@@ -119,13 +153,13 @@ func build_pause(operation: Dictionary) -> void:
 	current_phase = FrontendBridge.PHASE_PAUSE
 	show()
 	_clear_route_list()
-	title_label.text = "PAUSED"
-	subtitle_label.text = "Score %04d · Cores %d/%d · HP %d" % [GameState.score, GameState.data_cores_collected, GameState.data_cores_total, GameState.health]
-	status_label.text = "HOLD"
-	route_title.text = "LIVE DATA"
-	footer_hint.text = "Resume to continue, or return to hub."
-	primary_button.text = "RESUME"
-	secondary_button.text = "HUB"
+	title_label.text = "战术暂停 (PAUSED)"
+	subtitle_label.text = "当前得分 %04d · 数据核心 %d/%d · 护盾生命 %d" % [GameState.score, GameState.data_cores_collected, GameState.data_cores_total, GameState.health]
+	status_label.text = "战术挂起 (HOLD)"
+	route_title.text = "实时战况 (LIVE DATA)"
+	footer_hint.text = "按 空格 或 回车 继续行动；按 Esc 放弃并返回大厅。"
+	primary_button.text = "▶ 继续行动 (RESUME)"
+	secondary_button.text = "⮌ 返回大厅 (HUB)"
 	secondary_button.visible = true
 	secondary_button.disabled = false
 	primary_button.disabled = false
@@ -178,13 +212,41 @@ func _refresh_focus(operation: Dictionary) -> void:
 		focus_summary.text = "First route online. Move fast, secure all 5 cores, then extract clean."
 		focus_intel.text = "Default directive is already armed for your first clear."
 	if current_phase == FrontendBridge.PHASE_HUB:
-		focus_mode.text = "FIRST PLAYABLE" if not GameState.has_ux_flag("first_run_brief_seen") and operation_id == "blitz_pursuit" else String(selected.get("mode_label", ""))
+		focus_summary.visible = false
+		focus_brief.visible = false
+		focus_intel.visible = false
+		record_grid.visible = false
+		directive_name.visible = false
+		directive_summary.visible = false
+		directive_scroll.visible = false
+		if route_banner_panel != null and route_banner_texture != null:
+			var logo_path := "res://assets/art/title_logo.png"
+			if ResourceLoader.exists(logo_path):
+				route_banner_texture.texture = load(logo_path) as Texture2D
+				route_banner_panel.visible = true
+				route_banner_panel.custom_minimum_size = Vector2(0, 160)
+				route_banner_texture.custom_minimum_size = Vector2(0, 150)
+				route_banner_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			else:
+				route_banner_panel.visible = false
+		focus_mode.text = "赛博战术跑酷行动"
+		focus_title.text = String(selected.get("title", "极速突破"))
 		var selected_directive := FrontendBridge.get_selected_directive(operation_id)
 		_set_hub_directive_detail(selected_directive, first_deploy_focus)
 		_populate_directive_list(selected)
-		directive_scroll.visible = not (PlatformProfile.is_mobile and first_deploy_focus)
 		primary_button.text = _get_launch_button_text(selected)
 	else:
+		if route_banner_panel != null:
+			route_banner_panel.visible = false
+		# HUB 会把信息列的 Summary / Brief / Intel / 记录网格 / 指令区整体隐藏，
+		# 暂停与结算分支必须显式恢复它们，否则进入过一次 HUB 之后，
+		# 右侧战况与复盘内容将永久不可见。
+		focus_summary.visible = true
+		focus_brief.visible = true
+		focus_intel.visible = true
+		record_grid.visible = true
+		directive_name.visible = true
+		directive_summary.visible = true
 		directive_name.text = "AFTER ACTION" if current_phase == FrontendBridge.PHASE_RESULTS else GameState.get_current_directive_name()
 		directive_summary.text = "Why the run ended, what worked, and what to change next." if current_phase == FrontendBridge.PHASE_RESULTS else GameState.get_current_directive_summary()
 		directive_scroll.visible = true
@@ -235,7 +297,7 @@ func _add_route_button(operation: Dictionary, selected_id: String) -> void:
 
 func _add_directive_button(operation: Dictionary, directive: Dictionary, selected: bool) -> void:
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(0, 72)
+	btn.custom_minimum_size = Vector2(0, 46 if not PlatformProfile.is_mobile else 72)
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.toggle_mode = true
@@ -244,7 +306,7 @@ func _add_directive_button(operation: Dictionary, directive: Dictionary, selecte
 	btn.pressed.connect(func(): _select_directive(operation_id, directive_id))
 	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
 	btn.add_theme_color_override("font_disabled_color", TEXT_MUTED)
-	btn.add_theme_font_size_override("font_size", 14)
+	btn.add_theme_font_size_override("font_size", 13 if not PlatformProfile.is_mobile else 14)
 	_set_directive_button_state(btn, directive, selected)
 	directive_list.add_child(btn)
 	directive_buttons[directive_id] = btn
@@ -273,16 +335,26 @@ func _set_route_button_state(btn: Button, operation: Dictionary, selected: bool)
 	var state_label := "LOCKED"
 	if unlocked:
 		state_label = "ACTIVE" if selected else "READY"
+	var title_cn := ""
+	match operation_id:
+		"blitz_pursuit":
+			title_cn = "极速突破 (Blitz Pursuit)"
+		"ghost_circuit":
+			title_cn = "幽灵潜行 (Ghost Circuit)"
+		"overdrive_protocol":
+			title_cn = "过载协议 (Overdrive Protocol)"
+		_:
+			title_cn = title
 	if PlatformProfile.is_mobile:
-		btn.text = "%s  %s\n%s\n%s" % [state_label, title, mode, _format_mobile_route_record(operation_id)]
+		btn.text = "%s  %s\n%s\n%s" % [state_label, title_cn, mode, _format_mobile_route_record(operation_id)]
 	else:
-		btn.text = "%s  %s\n%s\n%s" % [state_label, title, mode, subtitle]
+		btn.text = "%s  %s\n%s\n%s" % [state_label, title_cn, mode, subtitle]
 	if not unlocked and not lock_text.is_empty():
 		btn.text += "\n%s" % lock_text
 	if PlatformProfile.is_mobile:
 		btn.custom_minimum_size = Vector2(0, MOBILE_ROUTE_BUTTON_HEIGHT if unlocked else MOBILE_LOCKED_ROUTE_BUTTON_HEIGHT)
 	else:
-		btn.custom_minimum_size = Vector2(0, 90 if unlocked else 104)
+		btn.custom_minimum_size = Vector2(0, 68 if unlocked else 80)
 	btn.disabled = not unlocked
 	btn.button_pressed = selected
 	var theme: Dictionary = operation.get("theme", {})
@@ -327,7 +399,30 @@ func _select_directive(operation_id: String, directive_id: String) -> void:
 func _set_directive_button_state(btn: Button, directive: Dictionary, selected: bool) -> void:
 	btn.toggle_mode = true
 	var modifier_summary := GameState.describe_modifier_block(Dictionary(directive.get("modifiers", {})))
-	btn.text = "%s  %s" % [("ACTIVE" if selected else "OPTION"), String(directive.get("name", ""))]
+	var directive_name_raw := String(directive.get("name", ""))
+	var name_cn := ""
+	match directive_name_raw:
+		"Surge Injection":
+			name_cn = "过载奔行 (Surge Injection)"
+		"Knife Party":
+			name_cn = "刀锋派对 (Knife Party)"
+		"Redline Thrusters":
+			name_cn = "红线喷射 (Redline Thrusters)"
+		"Cloak Battery":
+			name_cn = "隐形电池 (Cloak Battery)"
+		"Null Siphon":
+			name_cn = "虚空汲取 (Null Siphon)"
+		"Ghost Step":
+			name_cn = "幽灵漫步 (Ghost Step)"
+		"Risk Multiplier":
+			name_cn = "高危倍率 (Risk Multiplier)"
+		"Adrenaline Harvest":
+			name_cn = "肾上腺素 (Adrenaline Harvest)"
+		"Double Down":
+			name_cn = "孤注一掷 (Double Down)"
+		_:
+			name_cn = directive_name_raw
+	btn.text = "%s  %s" % [("ACTIVE" if selected else "OPTION"), name_cn]
 	if not PlatformProfile.is_mobile:
 		btn.text += "\n%s" % String(directive.get("summary", ""))
 	if not modifier_summary.is_empty():
@@ -370,6 +465,11 @@ func _add_debrief_metrics(operation: Dictionary) -> void:
 	], TEXT_MUTED)
 	_add_route_note("Combat +%d · Cores +%d" % [int(metrics.get("combat_score", 0)), int(metrics.get("core_score", 0))], TEXT_TEAL)
 	_add_route_note("Exit +%d · Cashout +%d" % [int(metrics.get("exit_bonus", 0)), int(metrics.get("cashout_bonus", 0))], TEXT_PRIMARY)
+	if GameState.double_down_taken:
+		if GameState.run_success:
+			_add_route_note("Double-down honored · bank x2 (+%d)" % GameState.double_down_bonus_gained, TEXT_GOLD)
+		else:
+			_add_route_note("Double-down lost · +%d gone with the bank" % GameState.pending_extraction_bonus, TEXT_ALERT)
 	_add_route_note("Why: %s" % GameState.get_result_outcome_summary(), TEXT_PRIMARY)
 	_add_route_note("Try next: %s" % GameState.get_result_next_hint(), TEXT_MUTED)
 
@@ -498,14 +598,24 @@ func _add_result_card(title: String, lines: Array[String], accent: Color) -> voi
 
 
 func _add_stat_pair(caption: String, value: String) -> void:
+	var caption_cn := caption
+	match caption:
+		"Best Score":
+			caption_cn = "最高得分 (Best Score)"
+		"Best Rank":
+			caption_cn = "最高评级 (Best Rank)"
+		"Runs":
+			caption_cn = "行动次数 (Runs)"
+		"Win Rate":
+			caption_cn = "撤离胜率 (Win Rate)"
 	var l1 := Label.new()
-	l1.text = caption
+	l1.text = caption_cn
 	l1.add_theme_font_size_override("font_size", 11)
 	l1.add_theme_color_override("font_color", TEXT_MUTED)
 	record_grid.add_child(l1)
 	var l2 := Label.new()
 	l2.text = value
-	l2.add_theme_font_size_override("font_size", 14)
+	l2.add_theme_font_size_override("font_size", 13)
 	l2.add_theme_color_override("font_color", TEXT_PRIMARY)
 	record_grid.add_child(l2)
 
@@ -553,12 +663,41 @@ func _build_first_run_brief() -> void:
 	right_col.move_child(first_run_brief_panel, 1)
 
 
+func _build_route_banner() -> void:
+	route_banner_panel = PanelContainer.new()
+	route_banner_panel.custom_minimum_size = Vector2(0, 68)
+	route_banner_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	route_banner_panel.clip_contents = true
+	route_banner_texture = TextureRect.new()
+	route_banner_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	route_banner_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	route_banner_texture.custom_minimum_size = Vector2(0, 68)
+	route_banner_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	route_banner_panel.add_child(route_banner_texture)
+	route_banner_panel.add_theme_stylebox_override("panel", _make_style(Color(0.04, 0.08, 0.14, 0.88), PANEL_LINE, 8, 1, 4))
+	var info_col: VBoxContainer = $Content/Root/Body/RightPanel/RightCol/InfoColumn
+	info_col.add_child(route_banner_panel)
+	info_col.move_child(route_banner_panel, 0)
+
+
 func _build_backdrop_decor() -> void:
 	decor_root = Control.new()
 	decor_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	decor_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(decor_root)
 	move_child(decor_root, 1)
+
+	if ResourceLoader.exists("res://assets/art/game_hero_backdrop.jpg"):
+		var bg_tex := load("res://assets/art/game_hero_backdrop.jpg") as Texture2D
+		if bg_tex != null:
+			bg_texture_rect = TextureRect.new()
+			bg_texture_rect.texture = bg_tex
+			bg_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			bg_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			bg_texture_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+			bg_texture_rect.modulate = Color(0.42, 0.55, 0.8, 0.65)
+			bg_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			decor_root.add_child(bg_texture_rect)
 
 	for index in 4:
 		var stripe := ColorRect.new()
@@ -644,7 +783,7 @@ func _refresh_decor_signal(operation: Dictionary) -> void:
 		return
 	if current_phase == FrontendBridge.PHASE_HUB:
 		decor_signal_label.text = "%s // %s" % [
-			String(operation.get("title", "BLITZ PURSUIT")).to_upper(),
+			String(operation.get("title", GameState.current_operation_title)).to_upper(),
 			String(operation.get("mode_label", "BREACH READY")).to_upper()
 		]
 	elif current_phase == FrontendBridge.PHASE_RESULTS:
@@ -686,59 +825,67 @@ func _animate_decor(delta: float) -> void:
 
 
 func _apply_theme() -> void:
+	if not is_node_ready():
+		return
 	var ms := PlatformProfile.get_mobile_ui_scale()
 	var safe := PlatformProfile.get_safe_area_margin()
 	backdrop.color = Color(0.015, 0.025, 0.06, 1.0)
-	content_margin.add_theme_constant_override("margin_left", int(20 * ms + safe.x))
-	content_margin.add_theme_constant_override("margin_top", int(16 * ms + safe.y))
-	content_margin.add_theme_constant_override("margin_right", int(20 * ms + safe.z))
-	content_margin.add_theme_constant_override("margin_bottom", int(16 * ms + safe.w))
-	$Content/Root/Header.add_theme_stylebox_override("panel", _make_style(Color("09121f"), PANEL_LINE, 12, 2, 18))
-	_style_sub_panel($Content/Root/Body/LeftPanel, Color("0a1628"), PANEL_LINE)
-	_style_sub_panel($Content/Root/Body/RightPanel, Color("0a1628"), PANEL_ACCENT)
+	content_margin.add_theme_constant_override("margin_left", int((16 if PlatformProfile.is_mobile else 20) * ms + safe.x))
+	content_margin.add_theme_constant_override("margin_top", int((8 if PlatformProfile.is_mobile else 10) * ms + safe.y))
+	content_margin.add_theme_constant_override("margin_right", int((16 if PlatformProfile.is_mobile else 20) * ms + safe.z))
+	content_margin.add_theme_constant_override("margin_bottom", int((8 if PlatformProfile.is_mobile else 10) * ms + safe.w))
+	$Content/Root.add_theme_constant_override("separation", 6 if not PlatformProfile.is_mobile else 10)
+	$Content/Root/Header.custom_minimum_size = Vector2(0, int(48 * ms))
+	$Content/Root/Header.add_theme_stylebox_override("panel", _make_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0))
+	_style_sub_panel($Content/Root/Body/LeftPanel, Color(0.02, 0.04, 0.08, 0.4), Color(0.25, 0.65, 0.95, 0.15))
+	_style_sub_panel($Content/Root/Body/RightPanel, Color(0.02, 0.04, 0.08, 0.4), Color(0.25, 0.65, 0.95, 0.15))
+	if route_banner_panel != null:
+		route_banner_panel.add_theme_stylebox_override("panel", _make_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0))
 	if decor_signal_panel != null:
 		decor_signal_panel.offset_left = -360.0 - safe.z
 		decor_signal_panel.offset_right = -28.0 - safe.z
 		decor_signal_panel.offset_top = 24.0 + safe.y
 		decor_signal_panel.offset_bottom = 68.0 + safe.y
-		decor_signal_panel.add_theme_stylebox_override("panel", _make_style(Color("0b1422"), PANEL_LINE, 12, 1, 8))
+		decor_signal_panel.add_theme_stylebox_override("panel", _make_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0))
 	if decor_signal_label != null:
 		decor_signal_label.add_theme_font_size_override("font_size", int(12 * ms))
-		decor_signal_label.add_theme_color_override("font_color", TEXT_PRIMARY)
+		decor_signal_label.add_theme_color_override("font_color", TEXT_MUTED)
 	if first_run_brief_panel != null:
-		first_run_brief_panel.add_theme_stylebox_override("panel", _make_style(Color("0d1726"), PANEL_ACCENT, 10, 1, 10))
-	$Content/Root/Header/HeaderRow/StatusBadge.add_theme_stylebox_override("panel", _make_style(Color("0d1a2c"), PANEL_ACCENT, 8, 1, 8))
-	title_label.add_theme_font_size_override("font_size", int(FONT_DISPLAY_SIZE * ms))
-	title_label.add_theme_color_override("font_color", TEXT_PRIMARY)
-	subtitle_label.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
-	subtitle_label.add_theme_color_override("font_color", TEXT_MUTED)
+		first_run_brief_panel.add_theme_stylebox_override("panel", _make_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0))
+	$Content/Root/Header/HeaderRow/StatusBadge.add_theme_stylebox_override("panel", _make_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0))
+	title_label.add_theme_font_size_override("font_size", int(26 * ms))
+	title_label.add_theme_color_override("font_color", Color(0.5, 0.92, 1.0))
+	subtitle_label.add_theme_font_size_override("font_size", int(14 * ms))
+	subtitle_label.add_theme_color_override("font_color", Color(0.75, 0.82, 0.94))
 	status_label.add_theme_font_size_override("font_size", int(FONT_TITLE_SIZE * ms))
 	status_label.add_theme_color_override("font_color", TEXT_GOLD)
 	route_title.add_theme_font_size_override("font_size", int(FONT_TITLE_SIZE * ms))
 	route_title.add_theme_color_override("font_color", TEXT_PRIMARY)
 	focus_mode.add_theme_font_size_override("font_size", int(FONT_CAPTION_SIZE * ms))
 	focus_mode.add_theme_color_override("font_color", TEXT_GOLD)
-	focus_title.add_theme_font_size_override("font_size", int(26 * ms))
+	focus_title.add_theme_font_size_override("font_size", int(20 * ms))
 	focus_title.add_theme_color_override("font_color", TEXT_PRIMARY)
-	focus_summary.add_theme_font_size_override("font_size", int(15 * ms))
+	focus_summary.add_theme_font_size_override("font_size", int(13 * ms))
 	focus_summary.add_theme_color_override("font_color", TEXT_PRIMARY)
 	focus_brief.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	focus_brief.add_theme_color_override("font_color", TEXT_MUTED)
 	focus_intel.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	focus_intel.add_theme_color_override("font_color", TEXT_SUCCESS)
-	directive_name.add_theme_font_size_override("font_size", int(17 * ms))
+	directive_name.add_theme_font_size_override("font_size", int(15 * ms))
 	directive_name.add_theme_color_override("font_color", TEXT_PRIMARY)
 	directive_summary.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	directive_summary.add_theme_color_override("font_color", TEXT_MUTED)
 	footer_hint.add_theme_font_size_override("font_size", int(FONT_BODY_SIZE * ms))
 	footer_hint.add_theme_color_override("font_color", TEXT_MUTED)
-	body_row.add_theme_constant_override("separation", 12 if PlatformProfile.is_mobile else 16)
-	$Content/Root/Body/LeftPanel.custom_minimum_size = Vector2(272 if PlatformProfile.is_mobile else 300, 0)
-	$Content/Root/Body/RightPanel/RightCol.add_theme_constant_override("separation", 14 if not PlatformProfile.is_mobile else 10)
-	$Content/Root/Body/LeftPanel/LeftCol.add_theme_constant_override("separation", 12 if not PlatformProfile.is_mobile else 10)
-	var footer_button_height := _get_pause_control_height() if PlatformProfile.is_mobile else 50.0
-	primary_button.custom_minimum_size = Vector2(180, footer_button_height)
-	secondary_button.custom_minimum_size = Vector2(150, footer_button_height)
+	body_row.add_theme_constant_override("separation", 10 if PlatformProfile.is_mobile else 14)
+	$Content/Root/Body/LeftPanel.custom_minimum_size = Vector2(260 if PlatformProfile.is_mobile else 280, 0)
+	$Content/Root/Body/RightPanel/RightCol.add_theme_constant_override("separation", 8 if not PlatformProfile.is_mobile else 6)
+	$Content/Root/Body/LeftPanel/LeftCol.add_theme_constant_override("separation", 8 if not PlatformProfile.is_mobile else 6)
+	$Content/Root/Body/RightPanel/RightCol/InfoColumn.add_theme_constant_override("separation", 4)
+	directive_scroll.custom_minimum_size = Vector2(0, 72 if not PlatformProfile.is_mobile else 140)
+	var footer_button_height := _get_pause_control_height() if PlatformProfile.is_mobile else 46.0
+	primary_button.custom_minimum_size = Vector2(200, footer_button_height)
+	secondary_button.custom_minimum_size = Vector2(140, footer_button_height)
 	_style_button(primary_button, Color("173554"), Color("4fdcff"), TEXT_PRIMARY)
 	_style_button(secondary_button, Color("2b2238"), Color("ff7b43"), TEXT_PRIMARY)
 	_refresh_first_run_brief()
@@ -780,7 +927,13 @@ func _make_style(fill: Color, border: Color, radius: int, bw: int = 2, ss: int =
 
 func _get_launch_button_text(operation: Dictionary) -> String:
 	var title := String(operation.get("title", "Route"))
-	if title.is_empty():
-		return "START RUN"
-	var primary_word := title.split(" ")[0].to_upper()
-	return "START %s" % primary_word
+	var primary_word := title.split(" ")[0].to_upper() if not title.is_empty() else "RUN"
+	match primary_word:
+		"BLITZ":
+			return "▶ 开始极速突破 (START BLITZ)"
+		"GHOST":
+			return "▶ 开始幽灵潜行 (START GHOST)"
+		"OVERDRIVE":
+			return "▶ 开始过载协议 (START OVERDRIVE)"
+		_:
+			return "▶ 开始行动 (START %s)" % primary_word

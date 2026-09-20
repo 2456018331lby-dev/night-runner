@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/tools/verify_focus_auto_pause.gd" id="1_fapse"]
+
+[node name="VerifyFocusAutoPause" type="Node"]
+script = ExtResource("1_fapse")

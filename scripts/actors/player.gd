@@ -16,12 +16,42 @@ const ATTACK_FORCE := 590.0
 const ATTACK_COOLDOWN := 0.16
 const DAMAGE_AFTERIMAGE_LIFETIME := 0.24
 const JUMP_BUFFER_TIME := 0.14
+const ATTACK_BUFFER_TIME := 0.12
 const COYOTE_TIME := 0.1
+# 世界坠落判定线；低于它即视为掉出关卡。
+const FALL_LINE_Y := 920.0
+
+const RUN_FRAMES: Array[Texture2D] = [
+	preload("res://assets/art/anim_run_0.png"),
+	preload("res://assets/art/anim_run_1.png"),
+	preload("res://assets/art/anim_run_2.png"),
+	preload("res://assets/art/anim_run_3.png"),
+	preload("res://assets/art/anim_run_4.png"),
+	preload("res://assets/art/anim_run_5.png"),
+	preload("res://assets/art/anim_run_6.png"),
+	preload("res://assets/art/anim_run_7.png"),
+]
+
+const ATTACK_FRAMES: Array[Texture2D] = [
+	preload("res://assets/art/anim_attack_0.png"),
+	preload("res://assets/art/anim_attack_1.png"),
+	preload("res://assets/art/anim_attack_2.png"),
+	preload("res://assets/art/anim_attack_3.png"),
+	preload("res://assets/art/anim_attack_4.png"),
+	preload("res://assets/art/anim_attack_5.png"),
+]
+
+const TEX_RUN := preload("res://assets/art/sprite_player_run.png")
+const TEX_JUMP := preload("res://assets/art/sprite_player_jump.png")
+const TEX_ATTACK := preload("res://assets/art/sprite_player_attack.png")
+const TEX_DASH := preload("res://assets/art/sprite_player_dash.png")
 
 @onready var body_visual: Polygon2D = $Body
 @onready var art_sprite: Sprite2D = $Art
 @onready var camera: Camera2D = $Camera2D
 
+var anim_run_timer: float = 0.0
+var anim_attack_timer: float = 0.0
 var jumps_remaining: int = 2
 var dash_timer: float = 0.0
 var dash_cooldown_timer: float = 0.0
@@ -45,10 +75,38 @@ var landing_dust_timer: float = 0.0
 var speed_line_timer: float = 0.0
 var jump_buffer_timer: float = 0.0
 var coyote_timer: float = 0.0
+var time_dip_generation: int = 0
+var land_squash_timer: float = 0.0
+var land_squash_duration: float = 0.12
+var land_squash_strength: float = 0.0
+var jump_stretch_timer: float = 0.0
+var air_fall_speed: float = 0.0
+var camera_kick_vector: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
 	add_to_group("player")
+
+
+func _time_effects_allowed() -> bool:
+	return DisplayServer.get_name() != "headless"
+
+
+func _apply_hitstop(duration: float, dip_scale: float = 0.05) -> void:
+	if not _time_effects_allowed():
+		return
+	time_dip_generation += 1
+	var generation := time_dip_generation
+	Engine.time_scale = dip_scale
+	get_tree().create_timer(duration, true, false, true).timeout.connect(func() -> void:
+		if generation == time_dip_generation:
+			Engine.time_scale = 1.0
+	)
+
+
+func trigger_kill_slowmo() -> void:
+	_apply_hitstop(0.08, 0.3)
+	_trigger_camera_shake(5.0, 0.12)
 
 
 func _physics_process(delta: float) -> void:
@@ -67,6 +125,14 @@ func _physics_process(delta: float) -> void:
 
 func _update_timers(delta: float) -> void:
 	_refresh_jump_windows(delta, is_on_floor())
+	if is_on_floor() and absf(velocity.x) > 20.0:
+		anim_run_timer += delta * (absf(velocity.x) / 340.0) * 16.0
+	else:
+		anim_run_timer = 0.0
+	if strike_flash_timer > 0.0 or attack_timer > 0.0:
+		anim_attack_timer += delta * 24.0
+	else:
+		anim_attack_timer = 0.0
 	if dash_timer > 0.0:
 		dash_timer -= delta
 	if dash_cooldown_timer > 0.0:
@@ -93,6 +159,11 @@ func _update_timers(delta: float) -> void:
 		landing_dust_timer -= delta
 	if speed_line_timer > 0.0:
 		speed_line_timer -= delta
+	if land_squash_timer > 0.0:
+		land_squash_timer -= delta
+	if jump_stretch_timer > 0.0:
+		jump_stretch_timer -= delta
+	camera_kick_vector = camera_kick_vector.move_toward(Vector2.ZERO, delta * 70.0)
 	trail_phase += delta * 7.0
 	_update_dash_afterimages(delta)
 	_update_damage_afterimages(delta)
@@ -132,6 +203,7 @@ func _try_jump() -> bool:
 	coyote_timer = 0.0
 	jump_buffer_timer = 0.0
 	velocity.y = JUMP_VELOCITY * GameState.get_modifier_value("jump_multiplier", 1.0)
+	jump_stretch_timer = 0.12
 	return true
 
 
@@ -170,6 +242,7 @@ func _try_attack() -> void:
 	if attack_timer > 0.0:
 		return
 	attack_timer = ATTACK_COOLDOWN
+	velocity.x = facing * maxf(absf(velocity.x) + 40.0, 180.0)
 	var hit_any := false
 	for enemy: Node in get_tree().get_nodes_in_group("enemy"):
 		if not enemy.has_method("receive_hit"):
@@ -187,8 +260,10 @@ func _try_attack() -> void:
 			hit_any = true
 	action_pop_timer = 0.1
 	strike_flash_timer = 0.16
+	_spawn_attack_arc()
 	if hit_any:
 		hit_stop_timer = 0.05
+		_apply_hitstop(0.05)
 		AudioEngine.play_hit()
 	else:
 		AudioEngine.play_attack()
@@ -199,7 +274,11 @@ func _apply_gravity(delta: float) -> void:
 	if dash_timer > 0.0:
 		return
 	if not is_on_floor():
-		velocity.y += GRAVITY * delta
+		var grav_mult := 1.0
+		# Jump apex float: slight hang time when near the peak of a jump for silky platforming control
+		if absf(velocity.y) < 110.0 and not is_on_floor():
+			grav_mult = 0.76
+		velocity.y += GRAVITY * grav_mult * delta
 
 
 func _handle_horizontal_motion(delta: float) -> void:
@@ -211,14 +290,17 @@ func _handle_horizontal_motion(delta: float) -> void:
 
 
 func _handle_fall_check() -> void:
-	if global_position.y > 920.0:
+	# 只在跑动中判定：坠落会连续多帧低于判定线，收尾后必须停止重复触发。
+	if not GameState.is_run_active or GameState.is_run_failed or GameState.run_success:
+		return
+	if global_position.y > FALL_LINE_Y:
 		player_fell.emit()
 
 
 func take_contact_hit(push_direction: float, source_kind: String = "enemy", source_detail: String = "") -> void:
-	if invulnerable_timer > 0.0 or GameState.is_run_failed:
+	if invulnerable_timer > 0.0 or GameState.is_run_failed or GameState.run_success or not GameState.is_run_active:
 		return
-	GameState.register_damage_source(source_kind, source_detail)
+	GameState.register_damage_source(source_kind, source_detail, global_position)
 	var heavy_hit := _is_heavy_damage_source(source_kind, source_detail)
 	var hit_direction := push_direction
 	if hit_direction == 0.0:
@@ -229,6 +311,8 @@ func take_contact_hit(push_direction: float, source_kind: String = "enemy", sour
 	damage_flash_duration = 0.34 if heavy_hit else 0.24
 	damage_flash_timer = damage_flash_duration
 	hit_stop_timer = maxf(hit_stop_timer, 0.085 if heavy_hit else 0.055)
+	_apply_hitstop(0.085 if heavy_hit else 0.055)
+	camera_kick_vector = Vector2(-hit_direction * 10.0, -4.0 if heavy_hit else -2.0)
 	_trigger_camera_shake(12.0 if heavy_hit else 8.0, 0.24 if heavy_hit else 0.18)
 	_spawn_damage_afterimage(hit_direction, heavy_hit)
 	_spawn_damage_burst(hit_direction, heavy_hit)
@@ -247,6 +331,7 @@ func apply_launch_boost(boost_velocity: Vector2) -> void:
 func _refresh_visuals() -> void:
 	var damage_mix := clampf(damage_flash_timer / maxf(0.01, damage_flash_duration), 0.0, 1.0)
 	var damage_strobe := 0.5 + absf(sin(trail_phase * 5.4)) * 0.5
+	body_visual.visible = false
 	if damage_flash_timer > 0.0:
 		body_visual.color = Color(1.0, 0.95 - damage_mix * 0.18, 0.78 - damage_mix * 0.28)
 	elif invulnerable_timer > 0.0:
@@ -259,7 +344,41 @@ func _refresh_visuals() -> void:
 		body_visual.color = Color(1.0, 0.35, 0.54)
 	var impact_strength := clampf(action_pop_timer * 8.0, 0.0, 1.0)
 	var locomotion_bob := 0.03 * sin(trail_phase) if is_on_floor() and absf(velocity.x) > 120.0 else 0.0
-	body_visual.scale = Vector2(facing * (1.0 + impact_strength * 0.14), 1.0 - impact_strength * 0.08 + locomotion_bob)
+	var squash_mix := clampf(land_squash_timer / maxf(0.01, land_squash_duration), 0.0, 1.0) * land_squash_strength
+	var stretch_mix := clampf(jump_stretch_timer / 0.12, 0.0, 1.0)
+	var scale_x_mix := 1.0 + impact_strength * 0.14 + squash_mix * 0.12 - stretch_mix * 0.12
+	var scale_y_mix := 1.0 - impact_strength * 0.08 + locomotion_bob - squash_mix * 0.18 + stretch_mix * 0.14
+	body_visual.scale = Vector2(facing * scale_x_mix, scale_y_mix)
+
+	# Dynamic Action Multi-frame Sprite Switching
+	var base_scale := 0.095
+	var sprite_offset := Vector2(0, -2)
+	if dash_timer > 0.0:
+		art_sprite.texture = TEX_DASH
+		base_scale = 0.095
+		sprite_offset = Vector2(0, -2)
+	elif strike_flash_timer > 0.0 or attack_timer > 0.0:
+		var atk_idx: int = clamp(int(anim_attack_timer), 0, ATTACK_FRAMES.size() - 1)
+		art_sprite.texture = ATTACK_FRAMES[atk_idx]
+		base_scale = 0.17
+		sprite_offset = Vector2(8 * facing, -4)
+	elif not is_on_floor():
+		art_sprite.texture = TEX_JUMP
+		base_scale = 0.095
+		sprite_offset = Vector2(0, -2)
+	else:
+		if absf(velocity.x) > 20.0:
+			var run_idx: int = int(anim_run_timer) % RUN_FRAMES.size()
+			art_sprite.texture = RUN_FRAMES[run_idx]
+			base_scale = 0.18
+			sprite_offset = Vector2(0, -4)
+		else:
+			art_sprite.texture = RUN_FRAMES[0]
+			base_scale = 0.18
+			sprite_offset = Vector2(0, -4)
+
+	art_sprite.position = sprite_offset
+
 	if damage_flash_timer > 0.0:
 		art_sprite.modulate = Color(1.0, 1.0 - damage_mix * 0.16, 0.84 - damage_mix * 0.16, 1.0).lerp(Color(1.0, 1.0, 1.0, 1.0), damage_strobe * 0.45)
 	elif invulnerable_timer > 0.0:
@@ -270,12 +389,40 @@ func _refresh_visuals() -> void:
 		art_sprite.modulate = Color(0.84, 0.98, 1.0)
 	else:
 		art_sprite.modulate = Color(1.0, 1.0, 1.0)
-	art_sprite.scale = Vector2(0.25 * facing * (1.0 + impact_strength * 0.08), 0.25 * (1.0 - impact_strength * 0.04 + locomotion_bob * 0.35))
+
+	art_sprite.scale = Vector2(base_scale * facing * (1.0 + impact_strength * 0.08 + squash_mix * 0.06 - stretch_mix * 0.06), base_scale * (1.0 - impact_strength * 0.04 + locomotion_bob * 0.35 - squash_mix * 0.09 + stretch_mix * 0.07))
 	camera.position.x = lerpf(camera.position.x, 90.0 * facing, 0.08)
+	camera.position.y = lerpf(camera.position.y, clampf(velocity.y * 0.06, -28.0, 40.0), 0.06)
 	var shake_target := Vector2.ZERO
 	if camera_shake_timer > 0.0:
 		shake_target = Vector2(randf_range(-camera_shake_strength, camera_shake_strength), randf_range(-camera_shake_strength, camera_shake_strength))
-	camera.offset = camera.offset.lerp(shake_target, 0.32)
+	camera.offset = camera.offset.lerp(shake_target + camera_kick_vector, 0.32)
+
+
+func _spawn_attack_arc() -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var arc := Polygon2D.new()
+	var points := PackedVector2Array()
+	var segments := 9
+	for step in segments + 1:
+		var angle := lerpf(-1.15, 1.15, float(step) / float(segments))
+		points.append(Vector2(cos(angle) * 52.0 * facing, sin(angle) * 52.0))
+	for step in segments + 1:
+		var angle := lerpf(1.15, -1.15, float(step) / float(segments))
+		points.append(Vector2(cos(angle) * 34.0 * facing, sin(angle) * 34.0))
+	arc.polygon = points
+	arc.global_position = global_position + Vector2(facing * 26.0, -8.0)
+	arc.color = Color(1.0, 0.72, 0.5, 0.7)
+	arc.z_index = 18
+	scene.add_child(arc)
+	var tween := arc.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(arc, "scale", Vector2(1.35, 1.15), 0.12).from(Vector2(0.6, 0.85))
+	tween.tween_property(arc, "modulate:a", 0.0, 0.12)
+	tween.set_parallel(false)
+	tween.tween_callback(arc.queue_free)
 
 
 func _spawn_hit_spark(at_position: Vector2) -> void:
@@ -436,7 +583,14 @@ func _spawn_damage_burst(push_direction: float, heavy_hit: bool) -> void:
 
 
 func _detect_landing() -> void:
+	if not is_on_floor():
+		air_fall_speed = maxf(air_fall_speed, velocity.y)
 	if is_on_floor() and not was_on_floor:
+		var impact_speed := maxf(air_fall_speed, absf(velocity.y))
+		land_squash_strength = clampf(impact_speed / 900.0, 0.35, 1.0)
+		land_squash_duration = clampf(0.12 + impact_speed / 900.0 * 0.08, 0.12, 0.2)
+		land_squash_timer = land_squash_duration
+		air_fall_speed = 0.0
 		_spawn_landing_dust()
 		AudioEngine.play_land()
 	was_on_floor = is_on_floor()

@@ -7,7 +7,10 @@ const BASTION_SCENE := preload("res://scenes/actors/enemy_bastion.tscn")
 const PHANTOM_SCENE := preload("res://scenes/actors/enemy_phantom.tscn")
 const STALKER_SCENE := preload("res://scenes/actors/enemy_stalker.tscn")
 
-const OPERATIONS := [
+const DATA_PATH := "res://data/run_operations.tres"
+
+# 加载失败时的兜底数组，与 data/run_operations.tres 保持一致。
+const DEFAULT_OPERATIONS := [
 	{
 		"id": "blitz_pursuit",
 		"title": "Blitz Pursuit",
@@ -223,6 +226,12 @@ const OPERATIONS := [
 			"base_bounty": 90,
 			"step_bounty": 20,
 		},
+		"cashout_tiers": [
+			{"elapsed": 0.0, "label": "HEAT", "bounty_multiplier": 1.0},
+			{"elapsed": 8.0, "label": "SURGE", "bounty_multiplier": 1.2},
+			{"elapsed": 16.0, "label": "FEVER", "bounty_multiplier": 1.4},
+			{"elapsed": 25.0, "label": "MELTDOWN", "bounty_multiplier": 1.7},
+		],
 		"cashout_events": [
 			{
 				"elapsed": 8.0,
@@ -252,6 +261,22 @@ const OPERATIONS := [
 				],
 			},
 		],
+		"cashout_loop": {
+			"start_elapsed": 33.0,
+			"interval": 9.0,
+			"toast": "Pursuit lockdown deepens. The convoy keeps feeding riders into your exit lane.",
+			"waves": [
+				[
+					{"scene": RUNNER_SCENE, "position": Vector2(1688, 124)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2140, 126)},
+				],
+				[
+					{"scene": RUNNER_SCENE, "position": Vector2(1960, 126)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1846, 88)},
+					{"scene": BASTION_SCENE, "position": Vector2(2142, 126)},
+				],
+			],
+		},
 	},
 	{
 		"id": "ghost_circuit",
@@ -474,6 +499,12 @@ const OPERATIONS := [
 			"base_bounty": 90,
 			"step_bounty": 35,
 		},
+		"cashout_tiers": [
+			{"elapsed": 0.0, "label": "HEAT", "bounty_multiplier": 1.0},
+			{"elapsed": 10.0, "label": "SURGE", "bounty_multiplier": 1.2},
+			{"elapsed": 19.0, "label": "FEVER", "bounty_multiplier": 1.5},
+			{"elapsed": 28.0, "label": "MELTDOWN", "bounty_multiplier": 1.8},
+		],
 		"cashout_events": [
 			{
 				"elapsed": 10.0,
@@ -502,6 +533,22 @@ const OPERATIONS := [
 				],
 			},
 		],
+		"cashout_loop": {
+			"start_elapsed": 37.0,
+			"interval": 10.0,
+			"toast": "Relay lattice re-triangulates. Fresh suppressor angles keep folding onto your exit route.",
+			"waves": [
+				[
+					{"scene": RUNNER_SCENE, "position": Vector2(1290, 202)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1748, 126)},
+				],
+				[
+					{"scene": RUNNER_SCENE, "position": Vector2(1534, 126)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1860, 76)},
+					{"scene": STALKER_SCENE, "position": Vector2(2096, 74)},
+				],
+			],
+		},
 	},
 	{
 		"id": "overdrive_protocol",
@@ -755,6 +802,12 @@ const OPERATIONS := [
 			"base_bounty": 130,
 			"step_bounty": 70,
 		},
+		"cashout_tiers": [
+			{"elapsed": 0.0, "label": "HEAT", "bounty_multiplier": 1.0},
+			{"elapsed": 7.0, "label": "SURGE", "bounty_multiplier": 1.4},
+			{"elapsed": 15.0, "label": "FEVER", "bounty_multiplier": 1.8},
+			{"elapsed": 24.0, "label": "MELTDOWN", "bounty_multiplier": 2.2},
+		],
 		"cashout_events": [
 			{
 				"elapsed": 7.0,
@@ -786,25 +839,102 @@ const OPERATIONS := [
 				],
 			},
 		],
+		"cashout_beacon": {
+			"elapsed": 20.0,
+			"position": Vector2(620, 420),
+			"multiplier": 2.0,
+			"min_pending_bonus": 200,
+			"toast": "Dividend beacon lit at the ingress tier. Double the bank if you can walk back out.",
+			"spawn_on_collect": [
+				{"scene": STALKER_SCENE, "position": Vector2(872, 336)},
+				{"scene": RUNNER_SCENE, "position": Vector2(500, 410)},
+				{"scene": RUNNER_SCENE, "position": Vector2(1190, 250)},
+			],
+		},
+		"cashout_loop": {
+			"start_elapsed": 32.0,
+			"interval": 8.0,
+			"toast": "Sector lockdown deepens. The payout lane is repricing you.",
+			"waves": [
+				[
+					{"scene": RUNNER_SCENE, "position": Vector2(1710, 254)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(2210, 90)},
+				],
+				[
+					{"scene": RUNNER_SCENE, "position": Vector2(1216, 248)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1948, 152)},
+					{"scene": BASTION_SCENE, "position": Vector2(2142, 90)},
+				],
+				[
+					{"scene": RUNNER_SCENE, "position": Vector2(1940, 152)},
+					{"scene": SUPPRESSOR_SCENE, "position": Vector2(1498, 170)},
+					{"scene": PHANTOM_SCENE, "position": Vector2(1862, 152)},
+					{"scene": STALKER_SCENE, "position": Vector2(2186, 90)},
+				],
+			],
+		},
 	},
 ]
 
+var _data: Resource
+var _operations: Array[Dictionary]
 
-static func get_operations() -> Array[Dictionary]:
-	var operations: Array[Dictionary] = []
-	for operation in OPERATIONS:
-		operations.append(operation.duplicate(true))
-	return operations
+# 共享实例：操作表 .tres 只需加载一次，避免每个调用点各持一份副本。
+static var _shared: RunCatalog = null
 
 
-static func get_operation(operation_id: String) -> Dictionary:
-	for operation in OPERATIONS:
+static func shared() -> RunCatalog:
+	if _shared == null:
+		_shared = RunCatalog.new()
+	return _shared
+
+
+func _init() -> void:
+	_load_data()
+
+
+func _load_data() -> void:
+	if not ResourceLoader.exists(DATA_PATH):
+		push_warning("RunCatalog: %s not found, using inline defaults." % DATA_PATH)
+		_operations = _deep_copy_operations(DEFAULT_OPERATIONS)
+		return
+
+	var data: Resource = ResourceLoader.load(DATA_PATH)
+	if data == null or not data.has_method("get_operations"):
+		push_error("RunCatalog: %s failed to load as RunOperationData, using inline defaults." % DATA_PATH)
+		_operations = _deep_copy_operations(DEFAULT_OPERATIONS)
+		return
+
+	var loaded: Array = data.get_operations()
+	if loaded.is_empty():
+		push_error("RunCatalog: %s contained no operations, using inline defaults." % DATA_PATH)
+		_operations = _deep_copy_operations(DEFAULT_OPERATIONS)
+		return
+
+	_data = data
+	_operations = _deep_copy_operations(loaded)
+
+
+func _deep_copy_operations(source: Array) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for operation in source:
+		if operation is Dictionary:
+			result.append(operation.duplicate(true))
+	return result
+
+
+func get_operations() -> Array[Dictionary]:
+	return _deep_copy_operations(_operations)
+
+
+func get_operation(operation_id: String) -> Dictionary:
+	for operation in _operations:
 		if String(operation.get("id", "")) == operation_id:
 			return operation.duplicate(true)
 	return {}
 
 
-static func get_first_operation_id() -> String:
-	if OPERATIONS.is_empty():
+func get_first_operation_id() -> String:
+	if _operations.is_empty():
 		return ""
-	return String(OPERATIONS[0].get("id", ""))
+	return String(_operations[0].get("id", ""))

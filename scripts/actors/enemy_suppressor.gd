@@ -2,17 +2,17 @@ extends CharacterBody2D
 
 signal defeated(points: int)
 
-const WALK_SPEED := 90.0
-const RETREAT_SPEED := 145.0
-const GRAVITY := 1500.0
-const CONTACT_RANGE := 30.0
-const FIRE_RANGE_X := 520.0
-const FIRE_RANGE_Y := 170.0
-const COMFORT_RANGE := 250.0
-const TOO_CLOSE_RANGE := 150.0
-const FIRE_COOLDOWN := 1.65
-const PROJECTILE_SPEED := 385.0
-const POINTS_AWARD := 150
+var WALK_SPEED := 90.0
+var RETREAT_SPEED := 145.0
+var GRAVITY := 1500.0
+var CONTACT_RANGE := 30.0
+var FIRE_RANGE_X := 520.0
+var FIRE_RANGE_Y := 170.0
+var COMFORT_RANGE := 250.0
+var TOO_CLOSE_RANGE := 150.0
+var FIRE_COOLDOWN := 1.65
+var PROJECTILE_SPEED := 385.0
+var POINTS_AWARD := 150
 
 @export var bolt_scene: PackedScene = preload("res://scenes/actors/enemy_bolt.tscn")
 
@@ -34,12 +34,39 @@ var max_hp: int = 3
 var current_hp: int = 3
 var hp_bar_bg: Polygon2D
 var hp_bar_fill: Polygon2D
+var aim_laser: Line2D
+
+
+func _hydrate_stats() -> void:
+	WALK_SPEED = EnemyStats.get_stat("suppressor", "walk_speed", WALK_SPEED)
+	RETREAT_SPEED = EnemyStats.get_stat("suppressor", "retreat_speed", RETREAT_SPEED)
+	GRAVITY = EnemyStats.get_stat("suppressor", "gravity", GRAVITY)
+	CONTACT_RANGE = EnemyStats.get_stat("suppressor", "contact_range", CONTACT_RANGE)
+	FIRE_RANGE_X = EnemyStats.get_stat("suppressor", "fire_range_x", FIRE_RANGE_X)
+	FIRE_RANGE_Y = EnemyStats.get_stat("suppressor", "fire_range_y", FIRE_RANGE_Y)
+	COMFORT_RANGE = EnemyStats.get_stat("suppressor", "comfort_range", COMFORT_RANGE)
+	TOO_CLOSE_RANGE = EnemyStats.get_stat("suppressor", "too_close_range", TOO_CLOSE_RANGE)
+	FIRE_COOLDOWN = EnemyStats.get_stat("suppressor", "fire_cooldown", FIRE_COOLDOWN)
+	PROJECTILE_SPEED = EnemyStats.get_stat("suppressor", "projectile_speed", PROJECTILE_SPEED)
+	POINTS_AWARD = EnemyStats.get_stat("suppressor", "points_award", POINTS_AWARD)
+	max_hp = EnemyStats.get_stat("suppressor", "max_hp", max_hp)
 
 
 func _ready() -> void:
 	add_to_group("enemy")
+	_hydrate_stats()
 	current_hp = max_hp
 	_setup_hp_bar()
+	_setup_aim_laser()
+
+
+func _setup_aim_laser() -> void:
+	aim_laser = Line2D.new()
+	aim_laser.width = 1.5
+	aim_laser.default_color = Color(1.0, 0.28, 0.22, 0.0)
+	aim_laser.z_index = 8
+	aim_laser.visible = false
+	add_child(aim_laser)
 
 
 
@@ -99,9 +126,12 @@ func _spawn_hit_number() -> void:
 	tween.tween_callback(text_label.queue_free)
 
 
-func _spawn_defeat_number() -> void:
+func _spawn_defeat_number(points: int) -> void:
+	# 无分（纯演出离场）时不弹飘字，避免出现 "+0"。
+	if points <= 0:
+		return
 	var text_label := Label.new()
-	text_label.text = "+150"
+	text_label.text = "+%d" % points
 	text_label.add_theme_font_size_override("font_size", 20)
 	text_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.32, 1.0))
 	text_label.z_index = 25
@@ -131,6 +161,9 @@ func _physics_process(delta: float) -> void:
 
 
 func receive_hit(force: Vector2) -> void:
+	# queue_free 当帧内节点仍在 enemy 组里，必须挡住二次命中，否则血条和飘字会重复播放。
+	if defeated_once:
+		return
 	current_hp -= 1
 	knocked_velocity = force
 	hit_flash_timer = 0.18
@@ -227,14 +260,25 @@ func _refresh_visuals() -> void:
 		art_sprite.modulate = Color(1.0, 1.0, 1.0)
 	body_visual.scale.y = stride
 	muzzle.scale = Vector2.ONE * (1.0 + clampf(aim_flash_timer / 0.24, 0.0, 1.0) * 0.16)
+	if is_instance_valid(aim_laser):
+		if is_instance_valid(player) and fire_cooldown_timer < 0.4 and not defeated_once and knocked_velocity.length() <= 1.0:
+			aim_laser.visible = true
+			var muzzle_local := to_local(muzzle.global_position)
+			var target_local := to_local(player.global_position + Vector2(0.0, -18.0))
+			aim_laser.points = PackedVector2Array([muzzle_local, target_local])
+			var laser_alpha := clampf((0.4 - fire_cooldown_timer) / 0.4, 0.0, 1.0) * 0.6
+			aim_laser.default_color = Color(1.0, 0.25, 0.2, laser_alpha)
+		else:
+			aim_laser.visible = false
 
 
 func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 	if defeated_once:
 		return
 	defeated_once = true
-	_spawn_defeat_number()
+	# 环境击杀（被击落出界）只给一半分，飘字必须显示实收，避免"看到 +100 实得 +50"。
+	var awarded := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
+	_spawn_defeat_number(awarded if award_points else 0)
 	if award_points:
-		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
-		defeated.emit(pts)
+		defeated.emit(awarded)
 	queue_free()

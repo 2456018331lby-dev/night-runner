@@ -4,9 +4,12 @@ const SESSION_SCREEN_SCENE := preload("res://scenes/ui/session_screen.tscn")
 const RunCatalogScript := preload("res://scripts/game/run_catalog.gd")
 
 var failures: Array[String] = []
+var original_save_bytes: PackedByteArray = PackedByteArray()
+var save_file_existed: bool = false
 
 
 func _ready() -> void:
+	_snapshot_save_file()
 	var original_mobile := PlatformProfile.is_mobile
 	var original_volume := GameState.get_master_volume()
 	var original_haptics := GameState.are_haptics_enabled()
@@ -44,13 +47,13 @@ func _ready() -> void:
 	add_child(screen)
 	await get_tree().process_frame
 
-	var blitz := RunCatalogScript.get_operation("blitz_pursuit")
+	var blitz := RunCatalogScript.shared().get_operation("blitz_pursuit")
 	var knife_party := _find_directive(blitz, "knife_party")
 	var directive_detail := String(screen.call("_format_hub_directive_summary", knife_party, false))
 	_expect(directive_detail.contains("Longer combo window"), "directive detail should include the directive summary")
 	_expect(directive_detail.contains("COMBO +25%"), "directive detail should include combo modifier impact text")
 	_expect(directive_detail.contains("ATK +12%"), "directive detail should keep multi-modifier impact text")
-	_verify_route_button_state(screen, blitz, RunCatalogScript.get_operation("ghost_circuit"))
+	_verify_route_button_state(screen, blitz, RunCatalogScript.shared().get_operation("ghost_circuit"))
 	_verify_directive_button_state(screen, blitz, knife_party)
 
 	GameState.run_success = false
@@ -65,7 +68,7 @@ func _ready() -> void:
 	GameState.pending_extraction_bonus = 180
 	GameState.extraction_bonus_kills = 2
 	GameState.set_live_route_status("CASHOUT", "Extraction open. Greed converts survival into payout.", "Hot zone // Convoy shear line")
-	screen.call("build_pause", RunCatalogScript.get_operation("blitz_pursuit"))
+	screen.call("build_pause", RunCatalogScript.shared().get_operation("blitz_pursuit"))
 	await get_tree().process_frame
 
 	var route_list: VBoxContainer = screen.get_node("Content/Root/Body/LeftPanel/LeftCol/RouteScroll/RouteList")
@@ -161,6 +164,7 @@ func _ready() -> void:
 	GameState.set_live_route_status(original_route_phase, original_route_pressure, original_hazard_status)
 	GameState.set_master_volume(original_volume, false)
 	GameState.set_haptics_enabled(original_haptics, false)
+	_restore_save_file()
 	screen.queue_free()
 
 	if failures.is_empty():
@@ -243,6 +247,25 @@ func _verify_route_button_state(screen: Node, active_operation: Dictionary, lock
 	active_button.queue_free()
 	ready_button.queue_free()
 	locked_button.queue_free()
+
+
+func _snapshot_save_file() -> void:
+	save_file_existed = FileAccess.file_exists(GameState.SAVE_PATH)
+	if save_file_existed:
+		original_save_bytes = FileAccess.get_file_as_bytes(GameState.SAVE_PATH)
+
+
+func _restore_save_file() -> void:
+	# 暂停页的音量滑块回调会走 set_master_volume() 的持久化分支，把开发者的
+	# 存档改成测试值（音量 / haptics）。这里把测试前的存档原样写回，
+	# 保证 run_all_verifications.ps1 反复跑不会污染本地存档。
+	if not save_file_existed or original_save_bytes.is_empty():
+		return
+	var file := FileAccess.open(GameState.SAVE_PATH, FileAccess.WRITE)
+	if file == null:
+		return
+	file.store_buffer(original_save_bytes)
+	file.close()
 
 
 func _expect(condition: bool, message: String) -> void:

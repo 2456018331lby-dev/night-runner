@@ -117,15 +117,28 @@ func _process(delta: float) -> void:
 
 
 func _build_glows() -> void:
-	backdrop = _make_rect(Vector2(1024.0, 450.0), Vector2(2200.0, 980.0), Color(0.03, 0.05, 0.09, 1.0), -25)
+	backdrop = _make_rect(Vector2(1200.0, 450.0), Vector2(3200.0, 1100.0), Color(0.02, 0.03, 0.07, 1.0), -25)
 	add_child(backdrop)
+
+	if ResourceLoader.exists("res://assets/art/game_hero_backdrop.jpg"):
+		var bg_tex := load("res://assets/art/game_hero_backdrop.jpg") as Texture2D
+		if bg_tex != null:
+			for bg_x in [-100.0, 1100.0, 2300.0]:
+				var bg_sprite := Sprite2D.new()
+				bg_sprite.texture = bg_tex
+				bg_sprite.position = Vector2(bg_x, 380.0)
+				bg_sprite.scale = Vector2(0.9, 0.9)
+				bg_sprite.modulate = Color(0.72, 0.8, 1.0, 0.6)
+				bg_sprite.z_index = -24
+				add_child(bg_sprite)
+
 	moon = _make_ellipse(Vector2(1090.0, 112.0), Vector2(54.0, 54.0), Color(1.0, 0.83, 0.38, 0.98), -20)
 	add_child(moon)
-	var moon_halo := _make_ellipse(Vector2(1090.0, 112.0), Vector2(148.0, 148.0), Color(1.0, 0.83, 0.38, 0.12), -18)
+	var moon_halo := _make_ellipse(Vector2(1090.0, 112.0), Vector2(148.0, 148.0), Color(1.0, 0.83, 0.38, 0.18), -18)
 	add_child(moon_halo)
-	var skyline_glow := _make_ellipse(Vector2(1220.0, 265.0), Vector2(720.0, 220.0), Color(0.1, 0.55, 0.92, 0.08), -19)
+	var skyline_glow := _make_ellipse(Vector2(1220.0, 265.0), Vector2(720.0, 220.0), Color(0.1, 0.65, 1.0, 0.16), -19)
 	add_child(skyline_glow)
-	var chase_glow := _make_ellipse(Vector2(1630.0, 348.0), Vector2(360.0, 120.0), Color(1.0, 0.48, 0.22, 0.09), -18)
+	var chase_glow := _make_ellipse(Vector2(1630.0, 348.0), Vector2(360.0, 120.0), Color(1.0, 0.48, 0.22, 0.14), -18)
 	add_child(chase_glow)
 
 

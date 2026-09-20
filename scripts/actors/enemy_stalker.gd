@@ -11,18 +11,18 @@ extends CharacterBody2D
 
 signal defeated(points: int)
 
-const WALK_SPEED := 72.0
-const GRAVITY := 1500.0
-const CONTACT_RANGE := 32.0
-const PLUNGE_SPEED_Y := 680.0
-const PLUNGE_AIM_RANGE_X := 260.0
-const CLING_TIME := 1.8
-const WARNING_TIME := 0.55
-const RECOVERY_TIME := 0.48
-const REPOSITION_TIME := 1.2
-const LANDING_IMPACT_RANGE := 120.0
-const POINTS_AWARD := 240
-const PLATFORM_REACH_X := 380.0
+var WALK_SPEED := 72.0
+var GRAVITY := 1500.0
+var CONTACT_RANGE := 32.0
+var PLUNGE_SPEED_Y := 680.0
+var PLUNGE_AIM_RANGE_X := 260.0
+var CLING_TIME := 1.8
+var WARNING_TIME := 0.55
+var RECOVERY_TIME := 0.48
+var REPOSITION_TIME := 1.2
+var LANDING_IMPACT_RANGE := 120.0
+var POINTS_AWARD := 240
+var PLATFORM_REACH_X := 380.0
 const PLATFORM_MIN_VERTICAL_GAP := 56.0
 const PLATFORM_EDGE_PADDING := 28.0
 const CLING_SURFACE_MARGIN := 6.0
@@ -30,6 +30,10 @@ const AFTERIMAGE_INTERVAL := 0.05
 const AFTERIMAGE_LIFETIME := 0.22
 const LANDING_PREVIEW_RAY_LENGTH := 760.0
 const LANDING_PREVIEW_FALLBACK_Y := 720.0
+# 击退速度衰减率；与其它敌人的 900 级摩擦保持一致。
+const KNOCKBACK_FRICTION := 900.0
+# 世界坠落判定线。
+const FALL_LINE_Y := 920.0
 
 @onready var body_shape_node: CollisionShape2D = $CollisionShape2D
 @onready var rig: Node2D = $Rig
@@ -68,9 +72,27 @@ var afterimage_timer: float = 0.0
 var afterimages: Array[Sprite2D] = []
 
 
+func _hydrate_stats() -> void:
+	WALK_SPEED = EnemyStats.get_stat("stalker", "walk_speed", WALK_SPEED)
+	GRAVITY = EnemyStats.get_stat("stalker", "gravity", GRAVITY)
+	CONTACT_RANGE = EnemyStats.get_stat("stalker", "contact_range", CONTACT_RANGE)
+	PLUNGE_SPEED_Y = EnemyStats.get_stat("stalker", "plunge_speed_y", PLUNGE_SPEED_Y)
+	PLUNGE_AIM_RANGE_X = EnemyStats.get_stat("stalker", "plunge_aim_range_x", PLUNGE_AIM_RANGE_X)
+	CLING_TIME = EnemyStats.get_stat("stalker", "cling_time", CLING_TIME)
+	WARNING_TIME = EnemyStats.get_stat("stalker", "warning_time", WARNING_TIME)
+	RECOVERY_TIME = EnemyStats.get_stat("stalker", "recovery_time", RECOVERY_TIME)
+	REPOSITION_TIME = EnemyStats.get_stat("stalker", "reposition_time", REPOSITION_TIME)
+	LANDING_IMPACT_RANGE = EnemyStats.get_stat("stalker", "landing_impact_range", LANDING_IMPACT_RANGE)
+	POINTS_AWARD = EnemyStats.get_stat("stalker", "points_award", POINTS_AWARD)
+	PLATFORM_REACH_X = EnemyStats.get_stat("stalker", "platform_reach_x", PLATFORM_REACH_X)
+	max_hp = EnemyStats.get_stat("stalker", "max_hp", max_hp)
+
+
 func _ready() -> void:
 	add_to_group("enemy")
+	_hydrate_stats()
 	current_hp = max_hp
+	_apply_landing_range()
 	_setup_hp_bar()
 	landing_zone.monitoring = true
 	landing_zone.monitorable = false
@@ -116,6 +138,16 @@ func _setup_landing_preview() -> void:
 	add_child(landing_preview_ring)
 
 
+
+
+func _apply_landing_range() -> void:
+	# 真实命中半径必须跟数据表的 landing_impact_range 一致，
+	# 否则调这个字段只会动预警圈，不会动落地判定。
+	var shape := landing_shape.shape
+	if shape is CircleShape2D:
+		var circle := (shape as CircleShape2D).duplicate() as CircleShape2D
+		circle.radius = LANDING_IMPACT_RANGE
+		landing_shape.shape = circle
 
 
 func _setup_hp_bar() -> void:
@@ -173,9 +205,12 @@ func _spawn_hit_number() -> void:
 	tween.tween_callback(text_label.queue_free)
 
 
-func _spawn_defeat_number() -> void:
+func _spawn_defeat_number(points: int) -> void:
+	# 无分（纯演出离场）时不弹飘字，避免出现 "+0"。
+	if points <= 0:
+		return
 	var text_label := Label.new()
-	text_label.text = "+240"
+	text_label.text = "+%d" % points
 	text_label.add_theme_font_size_override("font_size", 20)
 	text_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.32, 1.0))
 	text_label.z_index = 25
@@ -195,16 +230,26 @@ func _physics_process(delta: float) -> void:
 	_update_timers(delta)
 	if not is_on_floor():
 		velocity.y += GRAVITY * delta
-	_update_state(delta)
+	# 被击退期间由击退速度接管：状态机每帧会把 velocity 写回 0 或俯冲速度，
+	# 不做这一步 Stalker 就会完全免疫击退（破坏"平台击落"的核心循环）。
+	if knocked_velocity.length() > 1.0:
+		velocity = knocked_velocity
+		knocked_velocity = knocked_velocity.move_toward(Vector2.ZERO, KNOCKBACK_FRICTION * delta)
+	else:
+		_update_state(delta)
 	move_and_slide()
 	_try_contact_damage()
 	_update_afterimages(delta)
 	_refresh_visuals()
-	if global_position.y > 920.0:
+	if global_position.y > FALL_LINE_Y:
 		_defeat(true, true)
 
 
 func receive_hit(force: Vector2) -> void:
+	# queue_free 当帧内节点仍在 enemy 组里，必须挡住二次命中，否则血条和飘字会重复播放。
+	if defeated_once:
+		return
+	var was_clinging := state == "cling"
 	current_hp -= 1
 	knocked_velocity = force * 0.9
 	hit_flash_timer = 0.2
@@ -212,13 +257,13 @@ func receive_hit(force: Vector2) -> void:
 	_spawn_hit_number()
 	if current_hp <= 0:
 		_defeat(true, false)
-	if state == "cling":
-		state = "reposition"
-		reposition_timer = REPOSITION_TIME * 0.6
-	elif state == "warning":
-		state = "reposition"
-		reposition_timer = REPOSITION_TIME
-		warning_timer = 0.0
+		return
+	# 被击退后统一切到 reposition：否则会带着击退速度继续原状态（例如半空中的 plunge）。
+	state = "reposition"
+	reposition_timer = REPOSITION_TIME * (0.6 if was_clinging else 1.0)
+	warning_timer = 0.0
+	landing_preview_line.visible = false
+	landing_preview_ring.visible = false
 
 
 func _update_timers(delta: float) -> void:
@@ -595,8 +640,9 @@ func _defeat(award_points: bool = true, env_kill: bool = false) -> void:
 		if is_instance_valid(image):
 			image.queue_free()
 	afterimages.clear()
-	_spawn_defeat_number()
+	# 环境击杀（被击落出界）只给一半分，飘字必须显示实收，避免"看到 +100 实得 +50"。
+	var awarded := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
+	_spawn_defeat_number(awarded if award_points else 0)
 	if award_points:
-		var pts := int(POINTS_AWARD * 0.5) if env_kill else POINTS_AWARD
-		defeated.emit(pts)
+		defeated.emit(awarded)
 	queue_free()

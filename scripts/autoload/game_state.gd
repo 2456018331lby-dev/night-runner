@@ -65,9 +65,13 @@ var secondary_objective_completed: bool = false
 var secondary_objective_summary: String = ""
 var extraction_bonus_config: Dictionary = {}
 var extraction_bonus_label: String = ""
+var cashout_tiers: Array = []
+var max_cashout_tier_label: String = ""
 var extraction_bonus_active: bool = false
 var extraction_bonus_kills: int = 0
 var pending_extraction_bonus: int = 0
+var double_down_taken: bool = false
+var double_down_bonus_gained: int = 0
 var extraction_unlock_time: float = -1.0
 var enemy_score_total: int = 0
 var core_score_total: int = 0
@@ -77,6 +81,8 @@ var extraction_bonus_awarded: int = 0
 var hazard_hits_taken: int = 0
 var last_damage_source_kind: String = ""
 var last_damage_source_detail: String = ""
+var last_damage_position: Vector2 = Vector2.ZERO
+var last_damage_position_recorded: bool = false
 var live_route_phase: String = "INGRESS"
 var live_route_pressure: String = "Route cold."
 var live_hazard_status: String = "Hazard net dormant."
@@ -116,6 +122,8 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	current_secondary_objective = Dictionary(operation.get("secondary_objective", {})).duplicate(true)
 	extraction_bonus_config = Dictionary(operation.get("extraction_bonus", {})).duplicate(true)
 	extraction_bonus_label = String(extraction_bonus_config.get("label", "Cashout Bonus"))
+	cashout_tiers = Array(operation.get("cashout_tiers", [])).duplicate(true)
+	max_cashout_tier_label = ""
 	run_modifiers = _build_run_modifiers(operation, directive)
 	score = 0
 	health = max(1, 3 + int(run_modifiers.get("health_bonus", 0)))
@@ -133,6 +141,8 @@ func start_run(operation: Dictionary = {}, directive: Dictionary = {}) -> void:
 	extraction_bonus_active = false
 	extraction_bonus_kills = 0
 	pending_extraction_bonus = 0
+	double_down_taken = false
+	double_down_bonus_gained = 0
 	extraction_unlock_time = -1.0
 	enemy_score_total = 0
 	core_score_total = 0
@@ -206,7 +216,8 @@ func collect_data_core(points: int = 250) -> void:
 
 
 func lose_health(amount: int = 1) -> void:
-	if is_run_failed:
+	# 已通关 / 已失败 / 未开局都不再扣血：避免通关后被残余敌人改判失败并二次记档。
+	if is_run_failed or run_success or not is_run_active:
 		return
 	hits_taken += amount
 	health = max(0, health - amount)
@@ -221,6 +232,10 @@ func lose_health(amount: int = 1) -> void:
 
 
 func finish_run(success: bool) -> void:
+	# 幂等：坠落 / 受伤收尾会在多帧里重复触发，一局只能结算一次。
+	# 否则每帧都会 +1 战绩、写存档、发 telemetry、重建结算界面。
+	if not is_run_active:
+		return
 	is_run_active = false
 	is_run_failed = not success
 	run_success = success
@@ -229,6 +244,7 @@ func finish_run(success: bool) -> void:
 	if success and current_operation_id == "blitz_pursuit" and not has_ux_flag("blitz_tutorial_completed"):
 		set_ux_flag("blitz_tutorial_completed", true, false)
 	_commit_run_record(success)
+	_emit_run_telemetry()
 	if is_run_failed:
 		run_failed.emit()
 	run_finished.emit(success)
@@ -507,6 +523,15 @@ func activate_extraction_bonus() -> void:
 	state_changed.emit()
 
 
+func double_down_pending_bonus(multiplier: float) -> int:
+	var previous_bonus := pending_extraction_bonus
+	pending_extraction_bonus = int(round(float(pending_extraction_bonus) * maxf(1.0, multiplier)))
+	double_down_taken = true
+	double_down_bonus_gained = pending_extraction_bonus - previous_bonus
+	state_changed.emit()
+	return pending_extraction_bonus
+
+
 func apply_run_end_rewards(exit_bonus: int, objective_bonus: int, cashout_bonus: int) -> int:
 	finish_bonus_awarded = max(0, exit_bonus)
 	secondary_bonus_awarded = max(0, objective_bonus)
@@ -522,7 +547,36 @@ func get_next_extraction_bonus_value() -> int:
 	var base_value := int(extraction_bonus_config.get("base_bounty", 0))
 	var step_value := int(extraction_bonus_config.get("step_bounty", 0))
 	var raw_value: int = base_value + max(0, extraction_bonus_kills - 1) * step_value
-	return int(round(float(raw_value) * float(run_modifiers.get("extraction_bonus_multiplier", 1.0))))
+	var scaled_value := float(raw_value) * float(run_modifiers.get("extraction_bonus_multiplier", 1.0))
+	return int(round(scaled_value * get_cashout_tier_multiplier()))
+
+
+func get_cashout_tier() -> Dictionary:
+	if not extraction_unlocked or cashout_tiers.is_empty():
+		return {}
+	var cashout_elapsed := get_cashout_elapsed_time()
+	var current_tier: Dictionary = {}
+	for tier in cashout_tiers:
+		if tier is Dictionary and float(Dictionary(tier).get("elapsed", 0.0)) <= cashout_elapsed:
+			current_tier = Dictionary(tier)
+	return current_tier
+
+
+func get_cashout_tier_multiplier() -> float:
+	var tier := get_cashout_tier()
+	if tier.is_empty():
+		return 1.0
+	return float(tier.get("bounty_multiplier", 1.0))
+
+
+func get_cashout_tier_label() -> String:
+	return String(get_cashout_tier().get("label", ""))
+
+
+func record_cashout_tier_reached(tier_label: String) -> void:
+	if tier_label.is_empty():
+		return
+	max_cashout_tier_label = tier_label
 
 
 func get_extraction_bonus_label() -> String:
@@ -535,9 +589,15 @@ func get_extraction_bonus_status_text() -> String:
 	if not extraction_bonus_active:
 		return "No extraction bonus active."
 	var live_time := formatted_cashout_time()
+	var status_text := ""
 	if pending_extraction_bonus <= 0:
-		return "%s %s live. Extract now or defeat enemies for bonus." % [get_extraction_bonus_label(), live_time]
-	return "%s %s +%d banked // %d takedowns" % [get_extraction_bonus_label(), live_time, pending_extraction_bonus, extraction_bonus_kills]
+		status_text = "%s %s live. Extract now or defeat enemies for bonus." % [get_extraction_bonus_label(), live_time]
+	else:
+		status_text = "%s %s +%d banked // %d takedowns" % [get_extraction_bonus_label(), live_time, pending_extraction_bonus, extraction_bonus_kills]
+	var tier := get_cashout_tier()
+	if not tier.is_empty():
+		status_text += " // %s x%.1f" % [String(tier.get("label", "")), float(tier.get("bounty_multiplier", 1.0))]
+	return status_text
 
 
 func get_extraction_bonus_progress_ratio() -> float:
@@ -554,13 +614,25 @@ func get_cashout_elapsed_time() -> float:
 	return maxf(0.0, elapsed_time - extraction_unlock_time)
 
 
+static func compute_cashout_loop_count(cashout_elapsed: float, loop_config: Dictionary) -> int:
+	if loop_config.is_empty():
+		return 0
+	var start_elapsed := float(loop_config.get("start_elapsed", 0.0))
+	var interval := float(loop_config.get("interval", 0.0))
+	if interval <= 0.0 or cashout_elapsed < start_elapsed:
+		return 0
+	return int(floor((cashout_elapsed - start_elapsed) / interval)) + 1
+
+
 func formatted_cashout_time() -> String:
 	return _format_raw_time(get_cashout_elapsed_time())
 
 
-func register_damage_source(kind: String, detail: String = "") -> void:
+func register_damage_source(kind: String, detail: String = "", position: Vector2 = Vector2.ZERO) -> void:
 	last_damage_source_kind = kind
 	last_damage_source_detail = detail
+	last_damage_position = position
+	last_damage_position_recorded = true
 	if kind == "hazard":
 		hazard_hits_taken += 1
 
@@ -668,8 +740,13 @@ func get_run_rank_report_lines() -> Array[String]:
 			extraction_bonus_kills,
 			formatted_cashout_time(),
 		])
+		if double_down_taken:
+			lines.append("Double-down honored: bank x2 (+%d)." % double_down_bonus_gained)
 	elif pending_extraction_bonus > 0:
-		lines.append("%s lost +%d after %s // cash out sooner." % [get_extraction_bonus_label(), pending_extraction_bonus, formatted_cashout_time()])
+		if double_down_taken:
+			lines.append("%s lost +%d after doubling down over %s // the gamble collapsed." % [get_extraction_bonus_label(), pending_extraction_bonus, formatted_cashout_time()])
+		else:
+			lines.append("%s lost +%d after %s // cash out sooner." % [get_extraction_bonus_label(), pending_extraction_bonus, formatted_cashout_time()])
 	elif extraction_bonus_active:
 		lines.append("%s unused at %s // overstay after unlock for score." % [get_extraction_bonus_label(), formatted_cashout_time()])
 	return lines
@@ -841,7 +918,7 @@ func _commit_run_record(success: bool) -> void:
 
 
 func _unlock_follow_up_operations() -> void:
-	var operation: Dictionary = preload("res://scripts/game/run_catalog.gd").get_operation(current_operation_id)
+	var operation: Dictionary = preload("res://scripts/game/run_catalog.gd").shared().get_operation(current_operation_id)
 	for operation_id in operation.get("unlocks", []):
 		unlock_operation(String(operation_id))
 
@@ -917,3 +994,75 @@ func _format_raw_time(time_value: float) -> String:
 	var minutes := total_seconds / 60
 	var seconds := total_seconds % 60
 	return "%02d:%02d" % [minutes, seconds]
+
+
+func _emit_run_telemetry() -> void:
+	if not OS.has_feature("web"):
+		return
+	var telemetry := _build_run_telemetry()
+	var telemetry_json := JSON.stringify(telemetry)
+	var js_code := "console.log('[NightRunner Telemetry]', %s);" % telemetry_json
+	JavaScriptBridge.eval(js_code)
+
+
+func _build_run_telemetry() -> Dictionary:
+	var death_cause := _get_death_cause()
+	var death_position := _get_death_position()
+	var phase_reached := _get_phase_reached()
+	return {
+		"run_id": "%s_%d_%d" % [current_operation_id, Time.get_ticks_msec(), randi()],
+		"route_id": current_operation_id,
+		"directive_id": String(current_directive.get("id", "base")),
+		"success": run_success,
+		"death_cause": death_cause,
+		"death_x_position": death_position.x,
+		"death_y_position": death_position.y,
+		"phase_reached": phase_reached,
+		"cashout_overstay_seconds": int(get_cashout_elapsed_time()),
+		"cores_collected": data_cores_collected,
+		"final_score": score,
+		"elapsed_time": int(elapsed_time),
+		"hits_taken": hits_taken,
+		"max_combo": max_combo_reached,
+		"extraction_unlocked": extraction_unlocked,
+	}
+
+
+func _get_death_cause() -> String:
+	if run_success:
+		return "success"
+	if last_damage_source_kind == "fall":
+		return "fall"
+	if last_damage_source_kind == "hazard":
+		return "hazard"
+	if last_damage_source_detail == "runner_body":
+		return "enemy_runner"
+	if last_damage_source_detail.begins_with("suppressor"):
+		return "enemy_suppressor"
+	if last_damage_source_detail.begins_with("bastion"):
+		return "enemy_bastion"
+	if last_damage_source_detail.begins_with("phantom"):
+		return "enemy_phantom"
+	if last_damage_source_detail.begins_with("stalker"):
+		return "enemy_stalker"
+	if last_damage_source_detail == "bolt_body":
+		return "enemy_bolt"
+	return "unknown"
+
+
+func _get_death_position() -> Vector2:
+	# 没有记录过伤害来源时返回哨兵值，避免把 (0,0) 当成真实死亡坐标。
+	if not last_damage_position_recorded:
+		return Vector2(-1.0, -1.0)
+	return last_damage_position
+
+
+func _get_phase_reached() -> String:
+	# live_route_phase 由 World 实时维护（INGRESS / BREACH / CASHOUT），比静态推断更贴近实际进度。
+	if not live_route_phase.is_empty():
+		return live_route_phase.to_lower()
+	if extraction_unlocked:
+		return "extraction"
+	if data_cores_collected > 0:
+		return "breach"
+	return "ingress"
