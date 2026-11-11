@@ -1,6 +1,6 @@
 extends Node
 
-## 校验 RunCatalog 操作表完整、类型正确、数据合理，并确认 fallback 表与 .tres 文件一致。
+## 校验 RunCatalog 操作表完整、类型正确、数据合理，并确认资源缺失时仍有最小安全模式。
 ## 数据本体在 data/run_operations.tres；改它或 RunCatalog 后先跑本场景。
 
 const DATA_PATH := "res://data/run_operations.tres"
@@ -32,7 +32,7 @@ func _ready() -> void:
 	_verify_operation_shape()
 	_verify_encounter_scenes()
 	_verify_route_specific_keys()
-	_verify_fallback_consistency()
+	_verify_fallback_contract()
 
 	if failures.is_empty():
 		print("RunCatalog regression passed.")
@@ -186,34 +186,14 @@ func _verify_route_specific_keys() -> void:
 			_expect(operation.has(key), "operation %s has required key '%s'" % [op_id, key])
 
 
-func _verify_fallback_consistency() -> void:
-	# 加载 .tres 文件与 RunCatalog.DEFAULT_OPERATIONS 进行逐字段一致性校验。
-	var data: Resource = ResourceLoader.load(DATA_PATH)
-	if data == null or not data.has_method("get_operations"):
-		return
-
-	var file_operations: Array = data.get_operations()
-	var fallback_operations: Array = RunCatalog.DEFAULT_OPERATIONS.duplicate(true)
-
-	_expect(file_operations.size() == fallback_operations.size(),
-		"fallback table has same operation count as data file (%d vs %d)" % [fallback_operations.size(), file_operations.size()])
-
-	# 逐 operation 校验 id 一致（顺序可能不同，但 id 集合应相同）。
-	var file_ids: Array[String] = []
-	var fallback_ids: Array[String] = []
-	for op in file_operations:
-		file_ids.append(str(op.get("id", "")))
-	for op in fallback_operations:
-		fallback_ids.append(str(op.get("id", "")))
-
-	for id in file_ids:
-		_expect(id in fallback_ids, "fallback table contains operation id '%s'" % id)
-	for id in fallback_ids:
-		_expect(id in file_ids, "data file contains fallback operation id '%s'" % id)
-
-	# 兜底表也必须满足同一套字段白名单，否则数据文件缺失时会静默降级成残缺操作。
-	for operation in fallback_operations:
-		_expect_required_keys(operation, "fallback table")
+func _verify_fallback_contract() -> void:
+	# fallback 不再复制正式三路线内容，只保证资源缺失时有一条完整的最小安全模式。
+	var fallback: Dictionary = RunCatalog.FALLBACK_OPERATION.duplicate(true)
+	_expect_required_keys(fallback, "fallback route")
+	_expect(str(fallback.get("id", "")) == "blitz_pursuit", "fallback route preserves the default operation id")
+	_expect(Array(fallback.get("platforms", [])).size() >= 1, "fallback route has playable geometry")
+	_expect(Array(fallback.get("data_cores", [])).size() >= 1, "fallback route has at least one data core")
+	_expect(not Array(fallback.get("directive_pool", [])).is_empty(), "fallback route has a directive")
 
 
 func _expect_required_keys(operation: Variant, source_label: String) -> void:

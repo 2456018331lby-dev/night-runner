@@ -94,6 +94,14 @@
 
 ## 验证入口
 
+推荐验证入口（从任意当前目录调用都可以；子进程窗口会隐藏，失败会保留临时日志路径）：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\24560\Desktop\study\gametwo\run_all_verifications.ps1
+```
+
+可选参数：`-GodotExe <path>`、`-SceneTimeoutSeconds 60`、`-Quiet`。
+
 常用 Godot console：
 
 ```powershell
@@ -114,7 +122,8 @@
 - Overdrive 贪分路线：`scenes/tools/verify_overdrive_greed_profile.tscn`
 - 遭遇压力：`scenes/tools/verify_encounter_pressure.tscn`
 - 敌人数值表（`data/enemy_stats.tres` / `EnemyStats`）：`scenes/tools/verify_enemy_stats.tscn`
-- 行动目录（`data/run_operations.tres` / `RunCatalog`）：`scenes/tools/verify_run_catalog.tscn`
+- 行动目录（`data/run_operations.tres` / `RunCatalog`）及最小恢复路线：`scenes/tools/verify_run_catalog.tscn`
+- 路线几何唯一来源（平台数量 / 坐标 / 碰撞尺寸 / 无隐藏静态平台）：`scenes/tools/verify_route_geometry.tscn`
 - run telemetry 打点（死因 / 死亡坐标 / 阶段）+ 终局幂等守卫（`finish_run` / `lose_health`）：`scenes/tools/verify_run_telemetry.tscn`
 - 中枢 / 暂停 / 结算右侧信息列可见性：`scenes/tools/verify_session_screen_panels.tscn`
 - 网页门户契约（`fileSizes` 与真实包体一致、加载层压在焦点提示之上）：`scenes/tools/verify_web_portal_bundle.tscn`

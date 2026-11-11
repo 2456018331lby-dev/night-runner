@@ -18,6 +18,7 @@
 - `scenes/ui`: HUD 和触屏 UI
 - `scripts/autoload`: 全局状态、平台适配、输入桥接
 - `scripts/game`: 关卡循环、摄像机、生成、模式状态
+- `run_all_verifications.ps1`: 统一验证入口；会先生成 Godot 导入/类缓存、探测主场景启动，再逐个运行 `verify_*.tscn`，并对超时、Godot 错误诊断和非零退出码失败
 - `scripts/actors`: 角色行为
 - `scripts/ui`: UI 逻辑
 - `scripts/data`: 资源数据类（如 `RunOperationData`，供 `.tres` 资源绑定脚本结构）
@@ -44,6 +45,12 @@
 - `.tres` 加载失败时 autoload 回退到 inline `DEFAULT_STATS` 兜底表；verify 会强制兜底表与数据文件逐字段一致，防止静默漂移
 - 调敌人数值优先改 `data/enemy_stats.tres`，不要再回到各 enemy 脚本里散改常量；纯演出常量（如 `AFTERIMAGE_*`）和部分布局常量仍留在各自脚本，不进表（例外：stalker 的 `platform_reach_x` 已进表，因为它影响索敌行为）
 - 改数据文件、加载层或 enemy 调参入口后先跑 `verify_enemy_stats.tscn`（校验文件加载 / kind 集合 / 键白名单 / 类型 / 兜底一致 / 实例化一致），敌人编组相关再跑 `verify_encounter_pressure.tscn`
+
+### `RunCatalog`
+
+- `data/run_operations.tres` 是三条正式行动的唯一内容来源。
+- `scripts/game/run_catalog.gd` 只保留加载、深拷贝、索引和最小恢复路线；不再复制完整三路线 fallback，避免数据文件与代码表长期漂移。
+- 资源缺失时恢复路线只用于让包体进入可诊断的安全模式，不应被当作发布内容；正式构建必须通过 `verify_run_catalog.tscn`。
 
 ### `PlatformProfile`
 
@@ -82,6 +89,8 @@
 ### `World`
 
 - 负责按行动定义装配玩家出生点、敌人、平台段、核心、撤离门
+- 路线平台的视觉与碰撞唯一来源是行动数据中的 `platforms`；`scenes/game/world.tscn` 的 `Geometry` 只保留动态装配容器，不再放置路线专属 `StaticBody2D`
+- 改路线几何或 `world.tscn` 后先跑 `scenes/tools/verify_route_geometry.tscn`，校验三条路线的平台数量、坐标、碰撞尺寸以及无隐藏静态平台
 - 监听胜负和掉落
 - 只通过前端桥接层下发目标文本和提示
 - 当前也负责 `Blitz Pursuit` 的轻量首局引导触发：开局、首遇敌、首个核心、撤离解锁这四个节点只发提示，不暂停游戏

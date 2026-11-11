@@ -14,6 +14,7 @@ var contact_cooldown: float = 0.0
 var warning_time: float = 0.28
 var visual_extent: Vector2 = Vector2(120.0, 18.0)
 var warning_mix: float = 0.0
+var configured: bool = false
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var halo: Polygon2D = $Halo
@@ -24,6 +25,7 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	monitoring = true
 	monitorable = false
+	_apply_configured_state()
 
 
 func configure(hazard_setup: Dictionary) -> void:
@@ -37,6 +39,13 @@ func configure(hazard_setup: Dictionary) -> void:
 	warning_time = clampf(float(setup.get("warning_time", active_time * 0.5)), 0.05, cycle_time)
 	visual_extent = Vector2(setup.get("size", Vector2(120.0, 18.0)))
 	rotation_degrees = float(setup.get("rotation_degrees", 0.0))
+	configured = true
+	_apply_configured_state()
+
+
+func _apply_configured_state() -> void:
+	if not configured or not is_node_ready():
+		return
 	_apply_geometry()
 	_apply_visuals(false)
 
@@ -46,7 +55,8 @@ func set_stage_enabled(value: bool) -> bool:
 	stage_enabled = value
 	if not stage_enabled:
 		active_now = false
-		_apply_visuals(false)
+		if is_node_ready():
+			_apply_visuals(false)
 	return changed
 
 

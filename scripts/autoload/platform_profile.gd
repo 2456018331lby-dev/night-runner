@@ -108,7 +108,23 @@ func _claim_warn_haptic(now_msec: int) -> bool:
 func _refresh_safe_area_margin() -> void:
 	var screen_size := DisplayServer.screen_get_size()
 	var safe_area := DisplayServer.get_display_safe_area()
-	safe_area_margin = _calculate_safe_area_margin(screen_size, safe_area)
+	var display_margin := _calculate_safe_area_margin(screen_size, safe_area)
+	if screen_size.x <= 0 or screen_size.y <= 0:
+		safe_area_margin = Vector4.ZERO
+		return
+	# DisplayServer reports physical screen pixels, while CanvasLayer controls
+	# consume the current Godot viewport's design coordinates. Convert once here
+	# so HUD, touch controls and menus share the same scaled inset on high-DPI
+	# Android devices and resized web canvases.
+	var viewport_size := get_viewport().get_visible_rect().size
+	var scale_x := viewport_size.x / float(screen_size.x)
+	var scale_y := viewport_size.y / float(screen_size.y)
+	safe_area_margin = Vector4(
+		display_margin.x * scale_x,
+		display_margin.y * scale_y,
+		display_margin.z * scale_x,
+		display_margin.w * scale_y
+	)
 
 
 func _calculate_safe_area_margin(screen_size: Vector2i, safe_area: Rect2i) -> Vector4:

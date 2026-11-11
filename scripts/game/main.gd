@@ -28,6 +28,13 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("restart"):
+		# README promises a one-key retry. Keep it available from the run,
+		# pause and results phases so keyboard players never need to hunt for UI.
+		if FrontendBridge.app_phase in [FrontendBridge.PHASE_RUN, FrontendBridge.PHASE_PAUSE, FrontendBridge.PHASE_RESULTS]:
+			get_viewport().set_input_as_handled()
+			FrontendBridge.request_retry_current_operation()
+			return
 	if event.is_action_pressed("pause"):
 		if FrontendBridge.app_phase == FrontendBridge.PHASE_RUN:
 			FrontendBridge.toggle_pause()

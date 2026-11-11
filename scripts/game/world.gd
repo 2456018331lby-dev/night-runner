@@ -260,9 +260,9 @@ func _spawn_hazard(hazard_setup: Dictionary) -> void:
 	if hazard == null:
 		return
 	hazard.global_position = Vector2(hazard_setup.get("position", Vector2.ZERO))
+	hazard_container.add_child(hazard)
 	if hazard.has_method("configure"):
 		hazard.call("configure", hazard_setup)
-	hazard_container.add_child(hazard)
 	spawned_hazards.append(hazard)
 
 

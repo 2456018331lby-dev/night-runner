@@ -267,7 +267,9 @@ func _refresh() -> void:
 		combo_bar.visible = false
 		objective_row.visible = false
 		directive_row.visible = false
-		cashout_row.visible = false
+		# Keep the compact route strip mounted so the mobile player can always see
+		# navigation, core progress and cashout risk without waiting for a toast.
+		cashout_row.visible = true
 	else:
 		operation_card.visible = false
 		phase_card.visible = false
@@ -275,12 +277,13 @@ func _refresh() -> void:
 		directive_card.visible = false
 		objective_card.visible = false
 		cashout_card.visible = false
-		nav_card.visible = false
 		best_label.visible = false
 		combo_bar.visible = true
 		objective_row.visible = false
 		directive_row.visible = false
-		cashout_row.visible = false
+		# Desktop gets the same compact route strip instead of losing the only
+		# persistent objective feedback after the first navigation update.
+		cashout_row.visible = true
 	_refresh_navigation()
 	_refresh_health_pips()
 
@@ -745,7 +748,10 @@ func _apply_operation_palette() -> void:
 
 
 func _refresh_navigation() -> void:
-	nav_card.visible = navigation_active and not GameState.run_success and not GameState.is_run_failed and PlatformProfile.is_mobile
+	# HUD visibility is owned by World.set_run_ui_visible(); keep this helper
+	# testable in isolation even before GameState.start_run() is called.
+	var run_live := not GameState.run_success and not GameState.is_run_failed
+	nav_card.visible = run_live and navigation_active
 	if not nav_card.visible:
 		return
 	var arrow := _direction_to_arrow(navigation_direction)
@@ -753,9 +759,12 @@ func _refresh_navigation() -> void:
 	var vector_line := "%s  %s // %s" % [arrow, navigation_label.to_upper(), distance_text]
 	if PlatformProfile.is_mobile:
 		var context_line := _get_mobile_navigation_context_line()
+		_set_text(nav_title, "ROUTE STATUS")
 		_set_text(nav_status, "%s\n%s" % [vector_line, context_line] if not context_line.is_empty() else vector_line)
 	else:
-		_set_text(nav_status, vector_line)
+		var context_line := _get_desktop_navigation_context_line()
+		_set_text(nav_title, "ROUTE STATUS")
+		_set_text(nav_status, "%s\n%s" % [vector_line, context_line] if not context_line.is_empty() else vector_line)
 	_set_font_color(nav_status, TEXT_ACCENT if navigation_label.to_lower().contains("extract") else TEXT_SOFT)
 
 
@@ -764,9 +773,23 @@ func _get_mobile_navigation_context_line() -> String:
 	var pressure_line := _get_mobile_route_pressure_text()
 	if not pressure_line.is_empty():
 		fragments.append(pressure_line)
+	var core_line := "CORE %d/%d" % [GameState.data_cores_collected, GameState.data_cores_total]
+	fragments.append(core_line)
 	var optional_status := _get_mobile_optional_status_text()
 	if not optional_status.is_empty():
 		fragments.append(optional_status)
+	if GameState.extraction_unlocked:
+		fragments.append(_get_mobile_cashout_status_text().split("\n")[0])
+	return " // ".join(fragments)
+
+
+func _get_desktop_navigation_context_line() -> String:
+	var fragments: Array[String] = ["CORE %d/%d" % [GameState.data_cores_collected, GameState.data_cores_total]]
+	var phase := GameState.get_route_phase_text()
+	if not phase.is_empty():
+		fragments.append(phase)
+	if GameState.extraction_unlocked:
+		fragments.append(GameState.get_extraction_bonus_status_text().split(" // ")[0])
 	return " // ".join(fragments)
 
 

@@ -14,7 +14,13 @@
 - 当前验证过的 APK：`28,416,550` bytes，包名 `com.nousresearch.nightrunner`，`versionName 0.1.0`，`minSdkVersion 24`，`targetSdkVersion 35`
 - 当前模拟器验证：`NightRunner35` Android 35 可安装并启动到 `com.godot.game.GodotAppLauncher`
 
-导出前先跑：
+导出前先跑完整门禁（脚本会自动解析项目目录、生成 Godot 导入缓存、探测主场景并运行全部 verify 场景；子进程窗口会隐藏）：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\run_all_verifications.ps1
+```
+
+只检查 Android 契约时也可以直接运行：
 
 ```powershell
 & 'C:/Users/24560/AppData/Local/Microsoft/WinGet/Packages/GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe/Godot_v4.6.2-stable_win64_console.exe' --headless --path . scenes/tools/verify_android_export_contract.tscn
@@ -26,11 +32,12 @@
 & 'C:/Users/24560/AppData/Local/Microsoft/WinGet/Packages/GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe/Godot_v4.6.2-stable_win64_console.exe' --headless --path . --export-debug Android exports/android/NightRunner-debug.apk
 ```
 
-签名和 manifest 校验：
+签名和 manifest 校验（SDK 下自动选择实际存在的最高 build-tools 版本，不要把版本号硬编码成未安装的目录）：
 
 ```powershell
 $Sdk = 'C:/Users/24560/Desktop/study/Englishdemo/.android-sdk'
-& "$Sdk/build-tools/35.0.0/apksigner.bat" verify --verbose --print-certs exports/android/NightRunner-debug.apk
+$BuildTools = Get-ChildItem "$Sdk/build-tools" -Directory | Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
+& "$BuildTools/apksigner.bat" verify --verbose --print-certs exports/android/NightRunner-debug.apk
 & "$Sdk/cmdline-tools/latest/bin/apkanalyzer.bat" manifest application-id exports/android/NightRunner-debug.apk
 & "$Sdk/cmdline-tools/latest/bin/apkanalyzer.bat" manifest min-sdk exports/android/NightRunner-debug.apk
 & "$Sdk/cmdline-tools/latest/bin/apkanalyzer.bat" manifest target-sdk exports/android/NightRunner-debug.apk

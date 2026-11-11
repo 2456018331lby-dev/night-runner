@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://b5cdd0kn7aw5j"]
+[gd_scene load_steps=8 format=3 uid="uid://b5cdd0kn7aw5j"]
 
 [ext_resource type="Script" path="res://scripts/game/world.gd" id="1_u5v1w"]
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="2_u0c0k"]
@@ -7,9 +7,6 @@
 [ext_resource type="Script" path="res://scripts/game/presentation_layer.gd" id="5_5locr"]
 [ext_resource type="PackedScene" path="res://scenes/game/extraction_gate.tscn" id="6_f4q3m"]
 [ext_resource type="PackedScene" path="res://scenes/game/boost_pad.tscn" id="7_0t8vl"]
-[ext_resource type="Texture2D" path="res://assets/art/platform_tile.png" id="8_plat_tex"]
-[ext_resource type="Texture2D" path="res://assets/art/ground_tile.png" id="9_ground_tex"]
-
 [sub_resource type="Environment" id="Environment_cyber"]
 background_mode = 3
 glow_enabled = true
@@ -19,21 +16,6 @@ glow_bloom = 0.22
 glow_blend_mode = 0
 glow_hdr_threshold = 0.85
 tonemap_mode = 3
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
-size = Vector2(1900, 64)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_roof_a"]
-size = Vector2(280, 30)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_roof_b"]
-size = Vector2(260, 30)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_roof_d"]
-size = Vector2(220, 30)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_roof_e"]
-size = Vector2(240, 30)
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_u5v1w")
@@ -59,90 +41,6 @@ color = Color(0.4, 0.9, 1, 0.35)
 script = ExtResource("5_5locr")
 
 [node name="Geometry" type="Node2D" parent="."]
-
-[node name="Ground" type="StaticBody2D" parent="Geometry"]
-collision_layer = 4
-collision_mask = 0
-position = Vector2(790, 666)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/Ground"]
-shape = SubResource("RectangleShape2D_ground")
-
-[node name="Visual" type="Polygon2D" parent="Geometry/Ground"]
-texture_repeat = 2
-texture = ExtResource("9_ground_tex")
-texture_offset = Vector2(0, 32)
-polygon = PackedVector2Array(-950, -32, 950, -32, 950, 32, -950, 32)
-
-[node name="RoofA" type="StaticBody2D" parent="Geometry"]
-collision_layer = 4
-collision_mask = 0
-position = Vector2(690, 426)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofA"]
-shape = SubResource("RectangleShape2D_roof_a")
-
-[node name="Visual" type="Polygon2D" parent="Geometry/RoofA"]
-texture_repeat = 2
-texture = ExtResource("8_plat_tex")
-texture_offset = Vector2(0, 15)
-polygon = PackedVector2Array(-140, -15, 140, -15, 140, 15, -140, 15)
-
-[node name="RoofB" type="StaticBody2D" parent="Geometry"]
-collision_layer = 4
-collision_mask = 0
-position = Vector2(1124, 340)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofB"]
-shape = SubResource("RectangleShape2D_roof_b")
-
-[node name="Visual" type="Polygon2D" parent="Geometry/RoofB"]
-texture_repeat = 2
-texture = ExtResource("8_plat_tex")
-texture_offset = Vector2(0, 15)
-polygon = PackedVector2Array(-130, -15, 130, -15, 130, 15, -130, 15)
-
-[node name="RoofC" type="StaticBody2D" parent="Geometry"]
-collision_layer = 4
-collision_mask = 0
-position = Vector2(1500, 240)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofC"]
-shape = SubResource("RectangleShape2D_roof_b")
-
-[node name="Visual" type="Polygon2D" parent="Geometry/RoofC"]
-texture_repeat = 2
-texture = ExtResource("8_plat_tex")
-texture_offset = Vector2(0, 15)
-polygon = PackedVector2Array(-130, -15, 130, -15, 130, 15, -130, 15)
-
-[node name="RoofD" type="StaticBody2D" parent="Geometry"]
-collision_layer = 4
-collision_mask = 0
-position = Vector2(1760, 160)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofD"]
-shape = SubResource("RectangleShape2D_roof_d")
-
-[node name="Visual" type="Polygon2D" parent="Geometry/RoofD"]
-texture_repeat = 2
-texture = ExtResource("8_plat_tex")
-texture_offset = Vector2(0, 15)
-polygon = PackedVector2Array(-110, -15, 110, -15, 110, 15, -110, 15)
-
-[node name="RoofE" type="StaticBody2D" parent="Geometry"]
-collision_layer = 4
-collision_mask = 0
-position = Vector2(2050, 190)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Geometry/RoofE"]
-shape = SubResource("RectangleShape2D_roof_e")
-
-[node name="Visual" type="Polygon2D" parent="Geometry/RoofE"]
-texture_repeat = 2
-texture = ExtResource("8_plat_tex")
-texture_offset = Vector2(0, 15)
-polygon = PackedVector2Array(-120, -15, 120, -15, 120, 15, -120, 15)
 
 [node name="Player" parent="." instance=ExtResource("2_u0c0k")]
 position = Vector2(140, 590)

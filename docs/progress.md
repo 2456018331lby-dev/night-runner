@@ -1,5 +1,15 @@
 # Progress Log
 
+## Current State - 2026-09-24
+
+- 路线几何来源已收口：移除 `scenes/game/world.tscn` 中与 `data/run_operations.tres` 重复的 Ground / Roof 静态平台及碰撞，只保留 `Geometry` 动态装配容器和公共环境节点。
+- 新增 `scenes/tools/verify_route_geometry.tscn` / `scripts/tools/verify_route_geometry.gd`：headless 校验 Blitz / Ghost / Overdrive 三条路线的平台数据存在，动态装配后的平台数量、位置、矩形碰撞尺寸与 route data 一致，且 `Geometry` 不继承隐藏静态 `StaticBody2D`。
+- 验证命令：`<godot> --headless --path . scenes/tools/verify_route_geometry.tscn`；当前输出 `Route geometry regression passed.`，exit code 0。
+- 验证入口已生产化：`run_all_verifications.ps1` 改为基于 `$PSScriptRoot` 定位项目，先执行 Godot import/class-cache bootstrap 和 `main.tscn` 启动探针，再逐场景运行，支持 `-GodotExe` / `-SceneTimeoutSeconds` / `-Quiet`，隐藏子进程窗口，捕获日志并将超时、错误诊断和非零退出码判为失败。
+- `RunCatalog` 已移除完整三路线 inline fallback，改为单条最小恢复路线；`data/run_operations.tres` 成为正式内容唯一来源，`verify_run_catalog.tscn` 改为校验恢复路线契约。
+- HUD 运行中新增桌面/移动端统一的 ROUTE STATUS 紧凑条，持续显示导航、核心进度、阶段和 cashout 状态；`R` 已接入 RUN / PAUSE / RESULTS 一键重开；移动端安全区已换算到 viewport 坐标。
+- 导出脚本失败门禁已补齐：Android / Web 导出失败或产物缺失会返回非零，不再把 Warning 当成功。
+
 ## Current State - 2026-09-20
 
 - **视觉与前端全面现代化升级**：
